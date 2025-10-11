@@ -84,7 +84,7 @@ mapping(address => uint256) public authorClaimable;  // author => claimable bala
 - Balance increases by 50% of mint price × quantity per batch mint
 - Claim transfers all balance and resets to zero
 - Claim with zero balance is allowed (no revert)
-- Sweep only allowed after seasonEndTime + CLAIM_PERIOD
+- Sweep only allowed after seasonEndTime + SWEEP_PROTECTION_PERIOD
 
 ---
 
@@ -158,32 +158,32 @@ uint256 public mintPrice;  // Cost per NFT in wei
 **On-Chain Data:**
 - **Season Ended**: bool (has seasonEnd been triggered)
 - **Season End Time**: uint256 (timestamp when seasonEnd was called)
-- **Claim Period**: uint256 constant (2 weeks = 14 days)
+- **Sweep Protection Period**: uint256 constant (2 weeks = 14 days)
 
 **Storage Variables:**
 ```solidity
-bool public seasonEnded;                     // Has season been ended
-uint256 public seasonEndTime;                // Timestamp of seasonEnd call
-uint256 public constant CLAIM_PERIOD = 14 days;  // Grace period for author claims
+bool public seasonEnded;                              // Has season been ended
+uint256 public seasonEndTime;                         // Timestamp of seasonEnd call
+uint256 public constant SWEEP_PROTECTION_PERIOD = 14 days;  // Prevents premature sweep of unclaimed rewards
 ```
 
 **Relationships:**
 - **Global**: Single season state for entire contract
 - **Affects**: Minting (disabled when seasonEnded = true)
-- **Affects**: Sweeping (enabled after seasonEndTime + CLAIM_PERIOD)
+- **Affects**: Sweeping (enabled after seasonEndTime + SWEEP_PROTECTION_PERIOD)
 
 **State Transitions:**
 ```
 [seasonEnded = false] --endSeason()--> [seasonEnded = true, seasonEndTime = now]
-[Claims Active] --time passes--> [Claims Expired (after CLAIM_PERIOD)]
-[Claims Expired] --sweepUnclaimedRewards()--> [Balances Moved to Treasury]
+[Sweep Blocked] --time passes--> [Sweep Allowed (after SWEEP_PROTECTION_PERIOD)]
+[Sweep Allowed] --sweepUnclaimedRewards()--> [Balances Moved to Treasury]
 ```
 
 **Validation Rules:**
 - Minting reverts if seasonEnded = true
 - endSeason() can only be called once
-- sweepUnclaimedRewards() requires seasonEnded = true AND block.timestamp >= seasonEndTime + CLAIM_PERIOD
-- Authors can claim during and after CLAIM_PERIOD (no time restriction on claims)
+- sweepUnclaimedRewards() requires seasonEnded = true AND block.timestamp >= seasonEndTime + SWEEP_PROTECTION_PERIOD
+- Authors can claim at any time (no time restriction on claims)
 
 ---
 

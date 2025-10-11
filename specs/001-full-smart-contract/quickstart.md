@@ -502,16 +502,16 @@ cast send $CONTRACT "endSeason()" --private-key $OWNER_PRIVATE_KEY --rpc-url bas
 
 # Step 2: Wait 14 days
 
-# Step 3: Check if claim period expired
+# Step 3: Check if protection period expired
 SEASON_END=$(cast call $CONTRACT "seasonEndTime()(uint256)" --rpc-url base_mainnet)
-CLAIM_PERIOD=$(cast call $CONTRACT "CLAIM_PERIOD()(uint256)" --rpc-url base_mainnet)
-SWEEP_TIME=$((SEASON_END + CLAIM_PERIOD))
+PROTECTION_PERIOD=$(cast call $CONTRACT "SWEEP_PROTECTION_PERIOD()(uint256)" --rpc-url base_mainnet)
+SWEEP_TIME=$((SEASON_END + PROTECTION_PERIOD))
 CURRENT_TIME=$(date +%s)
 
 if [ $CURRENT_TIME -ge $SWEEP_TIME ]; then
-  echo "Claim period expired, can sweep"
+  echo "Protection period expired, can sweep"
 else
-  echo "Claim period active, must wait"
+  echo "Protection period active, must wait"
 fi
 
 # Step 4: Sweep unclaimed rewards

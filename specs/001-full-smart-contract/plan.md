@@ -72,7 +72,7 @@ After completing Phase 0 (research.md) and Phase 1 (data-model.md, contracts/, q
 
 - [x] **Clear Over Clever**: ✅ CONFIRMED
   - Descriptive variable names (authorClaimable, treasuryBalance, seasonEndTime)
-  - Explicit constants (CLAIM_PERIOD, MAX_BATCH_SIZE, KEEPER_ROLE)
+  - Explicit constants (SWEEP_PROTECTION_PERIOD, MAX_BATCH_SIZE, KEEPER_ROLE)
   - NatSpec documentation in interface
   - Simple mappings instead of complex data structures
   - No gas micro-optimizations at expense of clarity

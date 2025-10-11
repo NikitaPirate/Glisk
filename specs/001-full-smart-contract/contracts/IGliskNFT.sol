@@ -89,8 +89,8 @@ interface IGliskNFT {
     /// @notice Thrown when season has already ended
     error SeasonAlreadyEnded();
 
-    /// @notice Thrown when attempting to sweep rewards before claim period expires
-    error ClaimPeriodActive();
+    /// @notice Thrown when attempting to sweep rewards before protection period expires
+    error SweepProtectionActive();
 
     /// @notice Thrown when attempting to sweep without ending season first
     error SeasonNotEnded();
@@ -240,7 +240,7 @@ interface IGliskNFT {
     // ============================================
 
     /**
-     * @notice End the season and start 2-week claim countdown (Owner only)
+     * @notice End the season and start 2-week sweep protection period (Owner only)
      * @dev Permanently disables minting. Cannot be reversed.
      *
      * Requirements:
@@ -252,14 +252,14 @@ interface IGliskNFT {
     function endSeason() external;
 
     /**
-     * @notice Sweep unclaimed author rewards to treasury after claim period (Owner only)
+     * @notice Sweep unclaimed author rewards to treasury after protection period (Owner only)
      * @dev Transfers unclaimed balances from specified authors to treasury
      * @param authors Array of author addresses to sweep
      *
      * Requirements:
      * - Caller must have DEFAULT_ADMIN_ROLE
      * - Season must have ended
-     * - Current time must be >= seasonEndTime + CLAIM_PERIOD
+     * - Current time must be >= seasonEndTime + SWEEP_PROTECTION_PERIOD
      *
      * Emits: UnclaimedRewardsSwept event
      */
@@ -278,10 +278,10 @@ interface IGliskNFT {
     function seasonEndTime() external view returns (uint256);
 
     /**
-     * @notice Get claim period duration in seconds
-     * @return Duration of claim period (14 days)
+     * @notice Get sweep protection period duration in seconds
+     * @return Duration of protection period (14 days)
      */
-    function CLAIM_PERIOD() external view returns (uint256);
+    function SWEEP_PROTECTION_PERIOD() external view returns (uint256);
 
     // ============================================
     // ROYALTY MANAGEMENT

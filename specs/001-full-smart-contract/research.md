@@ -280,7 +280,7 @@ function revealTokens(uint256[] calldata tokenIds, string[] calldata uris)
 // Storage
 bool public seasonEnded;
 uint256 public seasonEndTime;
-uint256 public constant CLAIM_PERIOD = 14 days;
+uint256 public constant SWEEP_PROTECTION_PERIOD = 14 days;
 
 // Step 1: Owner triggers season end
 function endSeason() external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -293,7 +293,7 @@ function endSeason() external onlyRole(DEFAULT_ADMIN_ROLE) {
 // Step 2: Owner sweeps after countdown
 function sweepUnclaimedRewards() external onlyRole(DEFAULT_ADMIN_ROLE) {
     require(seasonEnded, "Season not ended");
-    require(block.timestamp >= seasonEndTime + CLAIM_PERIOD, "Claim period active");
+    require(block.timestamp >= seasonEndTime + SWEEP_PROTECTION_PERIOD, "Protection active");
 
     // Sweep all unclaimed author balances
     // NOTE: This requires iterating or tracking authors (gas consideration)
@@ -314,7 +314,7 @@ function sweepUnclaimedRewards() external onlyRole(DEFAULT_ADMIN_ROLE) {
 ```solidity
 function sweepUnclaimedRewards(address[] calldata authors) external onlyRole(DEFAULT_ADMIN_ROLE) {
     require(seasonEnded, "Season not ended");
-    require(block.timestamp >= seasonEndTime + CLAIM_PERIOD, "Claim period active");
+    require(block.timestamp >= seasonEndTime + SWEEP_PROTECTION_PERIOD, "Protection active");
 
     uint256 totalSwept = 0;
     for (uint256 i = 0; i < authors.length; i++) {

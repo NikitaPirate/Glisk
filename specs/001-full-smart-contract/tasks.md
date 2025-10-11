@@ -39,10 +39,10 @@
 
 - [ ] T007 Create `contracts/src/GliskNFT.sol` with contract declaration inheriting from ERC721, AccessControl, ReentrancyGuard, ERC2981
 - [ ] T008 [US-FOUNDATION] Implement constructor with parameters (name, symbol, placeholderURI, initialMintPrice) and DEFAULT_ADMIN_ROLE setup
-- [ ] T009 [US-FOUNDATION] Define state variables: `_nextTokenId`, `mintPrice`, `treasuryBalance`, `_placeholderURI`, `seasonEnded`, `seasonEndTime`, `CLAIM_PERIOD`, `MAX_BATCH_SIZE`
+- [ ] T009 [US-FOUNDATION] Define state variables: `_nextTokenId`, `mintPrice`, `treasuryBalance`, `_placeholderURI`, `seasonEnded`, `seasonEndTime`, `SWEEP_PROTECTION_PERIOD`, `MAX_BATCH_SIZE`
 - [ ] T010 [P] [US-FOUNDATION] Define mappings: `tokenPromptAuthor`, `_tokenURIs`, `_revealed`, `authorClaimable`
-- [ ] T011 [P] [US-FOUNDATION] Define constants: `KEEPER_ROLE`, `CLAIM_PERIOD = 14 days`, `MAX_BATCH_SIZE = 50`
-- [ ] T012 [P] [US-FOUNDATION] Define custom errors: `InvalidQuantity()`, `ExceedsMaxBatchSize()`, `InsufficientPayment()`, `MintingDisabled()`, `SeasonAlreadyEnded()`, `ClaimPeriodActive()`, `SeasonNotEnded()`, `NoBalance()`, `AlreadyRevealed()`, `LengthMismatch()`, `TransferFailed()`
+- [ ] T011 [P] [US-FOUNDATION] Define constants: `KEEPER_ROLE`, `SWEEP_PROTECTION_PERIOD = 14 days`, `MAX_BATCH_SIZE = 50`
+- [ ] T012 [P] [US-FOUNDATION] Define custom errors: `InvalidQuantity()`, `ExceedsMaxBatchSize()`, `InsufficientPayment()`, `MintingDisabled()`, `SeasonAlreadyEnded()`, `SweepProtectionActive()`, `SeasonNotEnded()`, `NoBalance()`, `AlreadyRevealed()`, `LengthMismatch()`, `TransferFailed()`
 - [ ] T013 [P] [US-FOUNDATION] Define all events per IGliskNFT.sol interface
 - [ ] T014 [US-FOUNDATION] Implement `supportsInterface()` override for ERC721, ERC2981, and AccessControl
 - [ ] T015 [US-FOUNDATION] Implement `receive()` function to accept direct ETH payments to treasury
@@ -285,13 +285,13 @@
 - [ ] T096 [US4] Implement `sweepUnclaimedRewards(address[] calldata authors)` function:
   - Require DEFAULT_ADMIN_ROLE
   - Check seasonEnded == true
-  - Check block.timestamp >= seasonEndTime + CLAIM_PERIOD
+  - Check block.timestamp >= seasonEndTime + SWEEP_PROTECTION_PERIOD
   - Loop through authors array
   - For each: read authorClaimable, reset to zero, accumulate total
   - Add total to treasuryBalance
   - Emit UnclaimedRewardsSwept event
 - [ ] T097 [US4] Add seasonEnded check to mint() function (revert if true)
-- [ ] T098 [US4] Implement view functions: `seasonEnded()`, `seasonEndTime()`, `CLAIM_PERIOD()` (public variables already provide these)
+- [ ] T098 [US4] Implement view functions: `seasonEnded()`, `seasonEndTime()`, `SWEEP_PROTECTION_PERIOD()` (public variables already provide these)
 - [ ] T099 [US4] Run all User Story 4 tests and verify they pass
 - [ ] T100 [US4] Add NatSpec comments to endSeason() and sweepUnclaimedRewards()
 
