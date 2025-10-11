@@ -31,7 +31,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+Verify compliance with GLISK Constitution v1.0.0:
+
+- [ ] **Simplicity First**: Solution uses simplest approach, complexity is justified
+- [ ] **Seasonal MVP**: Design targets fast delivery, optimized for ~1-3 month lifecycle
+- [ ] **Monorepo Structure**: Respects `/contracts/`, `/backend/`, `/frontend/` separation
+- [ ] **Smart Contract Security**: If contracts involved, security patterns are followed
+- [ ] **Clear Over Clever**: Implementation plan prioritizes clarity and maintainability
+
+*If any principle is violated, document justification in Complexity Tracking section below.*
 
 ## Project Structure
 
@@ -49,50 +57,42 @@ specs/[###-feature]/
 
 ### Source Code (repository root)
 <!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
+  ACTION REQUIRED: Fill in the specific paths and modules for this feature.
+  GLISK uses a monorepo structure with contracts, backend, and frontend domains.
 -->
 
 ```
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+# GLISK Monorepo Structure
 
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
+contracts/
 ├── src/
-│   ├── models/
+│   ├── GliskNFT.sol           # Main ERC-721 contract
+│   └── [feature-contracts]/
+├── test/
+│   ├── unit/
+│   └── integration/
+└── scripts/                    # Deploy and management scripts
+
+backend/                        # Future: Event listeners, AI generation
+├── src/
 │   ├── services/
+│   ├── db/
 │   └── api/
 └── tests/
 
-frontend/
+frontend/                       # Future: Web UI
 ├── src/
 │   ├── components/
 │   ├── pages/
-│   └── services/
+│   └── hooks/
 └── tests/
 
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+shared/                         # Shared types and schemas (if needed)
+└── types/
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: [Document which domain(s) this feature affects and list
+the specific files/modules that will be created or modified]
 
 ## Complexity Tracking
 

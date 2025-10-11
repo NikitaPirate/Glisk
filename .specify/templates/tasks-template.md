@@ -17,10 +17,12 @@ description: "Task list template for feature implementation"
 - Include exact file paths in descriptions
 
 ## Path Conventions
-- **Single project**: `src/`, `tests/` at repository root
-- **Web app**: `backend/src/`, `frontend/src/`
-- **Mobile**: `api/src/`, `ios/src/` or `android/src/`
-- Paths shown below assume single project - adjust based on plan.md structure
+- **GLISK Monorepo**:
+  - Contracts: `contracts/src/`, `contracts/test/`
+  - Backend: `backend/src/`, `backend/tests/` (future)
+  - Frontend: `frontend/src/`, `frontend/tests/` (future)
+  - Shared: `shared/types/` (if needed)
+- Adjust paths based on which domain(s) the feature affects (see plan.md)
 
 <!-- 
   ============================================================================
