@@ -1,0 +1,130 @@
+'forge config --json' running
+'/Users/nikita/PycharmProjects/funding-tools/.venv/.solc-select/artifacts/solc-0.8.20/solc-0.8.20 --version' running
+'/Users/nikita/PycharmProjects/funding-tools/.venv/.solc-select/artifacts/solc-0.8.20/solc-0.8.20 @openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/ ds-test/=lib/openzeppelin-contracts/lib/forge-std/lib/ds-test/src/ erc4626-tests/=lib/openzeppelin-contracts/lib/erc4626-tests/ forge-std/=lib/forge-std/src/ openzeppelin-contracts/=lib/openzeppelin-contracts/ src/GliskNFT.sol --combined-json abi,ast,bin,bin-runtime,srcmap,srcmap-runtime,userdoc,devdoc,hashes --optimize --optimize-runs 200 --evm-version shanghai --allow-paths .,/Users/nikita/PycharmProjects/glisk/contracts/src' running
+INFO:Detectors:
+GliskNFT.withdrawTreasury() (src/GliskNFT.sol#466-480) sends eth to arbitrary user
+	Dangerous calls:
+	- (success,None) = msg.sender.call{value: amount}() (src/GliskNFT.sol#475)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#functions-that-send-ether-to-arbitrary-destinations
+INFO:Detectors:
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) has bitwise-xor operator ^ instead of the exponentiation operator **: 
+	 - inverse = (3 * denominator) ^ 2 (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#184)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-exponentiation
+INFO:Detectors:
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+	- denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+	- inverse = (3 * denominator) ^ 2 (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#184)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+	- denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+	- inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#188)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+	- denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+	- inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#189)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+	- denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+	- inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#190)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+	- denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+	- inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#191)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+	- denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+	- inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#192)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+	- denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+	- inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#193)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+	- prod0 = prod0 / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#172)
+	- result = prod0 * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#199)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#divide-before-multiply
+INFO:Detectors:
+Reentrancy in GliskNFT.mint(address,uint256) (src/GliskNFT.sol#238-278):
+	External calls:
+	- _safeMint(msg.sender,tokenId) (src/GliskNFT.sol#272)
+		- retval = IERC721Receiver(to).onERC721Received(_msgSender(),from,tokenId,data) (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#467-480)
+	State variables written after the call(s):
+	- tokenId = _nextTokenId ++ (src/GliskNFT.sol#271)
+	GliskNFT._nextTokenId (src/GliskNFT.sol#118) can be used in cross function reentrancies:
+	- GliskNFT.constructor(string,string,string,uint256) (src/GliskNFT.sol#162-175)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-1
+INFO:Detectors:
+ERC721._checkOnERC721Received(address,address,uint256,bytes) (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#465-482) has external calls inside a loop: retval = IERC721Receiver(to).onERC721Received(_msgSender(),from,tokenId,data) (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#467-480)
+	Calls stack containing the loop:
+		GliskNFT.mint(address,uint256)
+		ERC721._safeMint(address,uint256)
+		ERC721._safeMint(address,uint256,bytes)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation/#calls-inside-a-loop
+INFO:Detectors:
+Reentrancy in GliskNFT.mint(address,uint256) (src/GliskNFT.sol#238-278):
+	External calls:
+	- _safeMint(msg.sender,tokenId) (src/GliskNFT.sol#272)
+		- retval = IERC721Receiver(to).onERC721Received(_msgSender(),from,tokenId,data) (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#467-480)
+	State variables written after the call(s):
+	- tokenPromptAuthor[tokenId] = promptAuthor (src/GliskNFT.sol#273)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-2
+INFO:Detectors:
+GliskNFT.sweepUnclaimedRewards(address[]) (src/GliskNFT.sol#586-618) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp < seasonEndTime + SWEEP_PROTECTION_PERIOD (src/GliskNFT.sol#591)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp
+INFO:Detectors:
+ERC721._checkOnERC721Received(address,address,uint256,bytes) (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#465-482) uses assembly
+	- INLINE ASM (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#476-478)
+Strings.toString(uint256) (lib/openzeppelin-contracts/contracts/utils/Strings.sol#24-44) uses assembly
+	- INLINE ASM (lib/openzeppelin-contracts/contracts/utils/Strings.sol#30-32)
+	- INLINE ASM (lib/openzeppelin-contracts/contracts/utils/Strings.sol#36-38)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) uses assembly
+	- INLINE ASM (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#130-133)
+	- INLINE ASM (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#154-161)
+	- INLINE ASM (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#167-176)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#assembly-usage
+INFO:Detectors:
+GliskNFT.mint(address,uint256) (src/GliskNFT.sol#238-278) has costly operations inside a loop:
+	- tokenId = _nextTokenId ++ (src/GliskNFT.sol#271)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#costly-operations-inside-a-loop
+INFO:Detectors:
+AccessControl._setRoleAdmin(bytes32,bytes32) (lib/openzeppelin-contracts/contracts/access/AccessControl.sol#170-174) is never used and should be removed
+Context._msgData() (lib/openzeppelin-contracts/contracts/utils/Context.sol#21-23) is never used and should be removed
+ERC2981._deleteDefaultRoyalty() (lib/openzeppelin-contracts/contracts/token/common/ERC2981.sol#106-108) is never used and should be removed
+ERC2981._resetTokenRoyalty(uint256) (lib/openzeppelin-contracts/contracts/token/common/ERC2981.sol#134-136) is never used and should be removed
+ERC2981._setTokenRoyalty(uint256,address,uint96) (lib/openzeppelin-contracts/contracts/token/common/ERC2981.sol#118-129) is never used and should be removed
+ERC721._baseURI() (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#100-102) is never used and should be removed
+ERC721._burn(uint256) (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#328-333) is never used and should be removed
+ERC721._increaseBalance(address,uint128) (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#224-228) is never used and should be removed
+ERC721._safeTransfer(address,address,uint256) (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#377-379) is never used and should be removed
+ERC721._safeTransfer(address,address,uint256,bytes) (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#385-388) is never used and should be removed
+ERC721._transfer(address,address,uint256) (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#346-356) is never used and should be removed
+ReentrancyGuard._reentrancyGuardEntered() (lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol#81-83) is never used and should be removed
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#dead-code
+INFO:Detectors:
+Version constraint ^0.8.20 contains known severe issues (https://solidity.readthedocs.io/en/latest/bugs.html)
+	- VerbatimInvalidDeduplication
+	- FullInlinerNonExpressionSplitArgumentEvaluationOrder
+	- MissingSideEffectsOnSelectorAccess.
+It is used by:
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/access/AccessControl.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/access/IAccessControl.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/IERC2981.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol#3)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/token/common/ERC2981.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Context.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Strings.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#4)
+	- ^0.8.20 (lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol#4)
+	- ^0.8.20 (src/GliskNFT.sol#2)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity
+INFO:Detectors:
+Low level call in GliskNFT.claimAuthorRewards() (src/GliskNFT.sol#305-323):
+	- (success,None) = msg.sender.call{value: amount}() (src/GliskNFT.sol#318)
+Low level call in GliskNFT.withdrawTreasury() (src/GliskNFT.sol#466-480):
+	- (success,None) = msg.sender.call{value: amount}() (src/GliskNFT.sol#475)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
+INFO:Slither:src/GliskNFT.sol analyzed (19 contracts with 100 detectors), 33 result(s) found
+Installing solc '0.8.20'...
+Version '0.8.20' installed.

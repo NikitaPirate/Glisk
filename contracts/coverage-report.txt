@@ -1,0 +1,359 @@
+Warning: optimizer settings and `viaIR` have been disabled for accurate coverage reports.
+If you encounter "stack too deep" errors, consider using `--ir-minimum` which enables `viaIR` with minimum optimization resolving most of the errors
+Compiling 53 files with Solc 0.8.20
+Solc 0.8.20 finished in 2.70s
+Compiler run successful with warnings:
+Warning (2072): Unused local variable.
+  --> test/invariant/GliskNFT.invariant.t.sol:68:9:
+   |
+68 |         address minter = minters[authorSeed % minters.length];
+   |         ^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/invariant/GliskNFT.invariant.t.sol:149:10:
+    |
+149 |         (bool success,) = address(nft).call{value: amount}("");
+    |          ^^^^^^^^^^^^
+
+Warning (2018): Function state mutability can be restricted to view
+  --> script/Verify.s.sol:44:5:
+   |
+44 |     function verifyOnBasescan(address contractAddress) external {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+  --> test/unit/GliskNFT.Royalty.t.sol:86:5:
+   |
+86 |     function testSupportsERC2981Interface() public {
+   |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Warning (2018): Function state mutability can be restricted to view
+   --> test/unit/GliskNFT.Royalty.t.sol:152:5:
+    |
+152 |     function testRoyaltyForNonExistentToken() public {
+    |     ^ (Relevant source part starts here and spans across multiple lines).
+
+Analysing contracts...
+Running tests...
+
+Ran 6 tests for test/unit/GliskNFT.Pricing.t.sol:GliskNFTPricingTest
+[PASS] testKeeperUpdatesMintPrice() (gas: 169314)
+[PASS] testMultiplePriceUpdates() (gas: 40987)
+[PASS] testOwnerUpdatesMintPrice() (gas: 168932)
+[PASS] testPriceUpdateDoesNotAffectPastMints() (gas: 234862)
+[PASS] testUnauthorizedCannotUpdatePrice() (gas: 19724)
+[PASS] testZeroPriceUpdate() (gas: 113375)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 1.45ms (613.67µs CPU time)
+
+Ran 9 tests for test/unit/GliskNFT.Royalty.t.sol:GliskNFTRoyaltyTest
+[PASS] testDefaultRoyaltyInfo() (gas: 160689)
+[PASS] testDisableRoyalties() (gas: 170181)
+[PASS] testMaximumRoyalty() (gas: 170205)
+[PASS] testNonOwnerCannotUpdateRoyalty() (gas: 16713)
+[PASS] testOwnerUpdatesRoyalty() (gas: 175060)
+[PASS] testRoyaltyCalculation() (gas: 186560)
+[PASS] testRoyaltyForNonExistentToken() (gas: 15291)
+[PASS] testSupportsERC2981Interface() (gas: 6452)
+[PASS] testZeroSalePriceReturnsZeroRoyalty() (gas: 158121)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 1.42ms (684.83µs CPU time)
+
+Ran 8 tests for test/unit/GliskNFT.Minting.t.sol:GliskNFTMintingTest
+[PASS] testConcurrentMintsUniqueTokenIDs() (gas: 425072)
+[PASS] testMintBatchNFTs() (gas: 386575)
+[PASS] testMintRevertsExceedsMaxBatch() (gas: 26195)
+[PASS] testMintRevertsInsufficientPayment() (gas: 28775)
+[PASS] testMintRevertsZeroQuantity() (gas: 19178)
+[PASS] testMintSingleNFT() (gas: 167876)
+[PASS] testMintWithOverpayment() (gas: 158362)
+[PASS] testPromptAuthorAssociation() (gas: 429994)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 2.07ms (1.09ms CPU time)
+
+Ran 12 tests for test/unit/GliskNFT.Season.t.sol:GliskNFTSeasonTest
+[PASS] testClaimDuringCountdown() (gas: 220771)
+[PASS] testEndSeason() (gas: 66028)
+[PASS] testMintRevertsAfterSeasonEnd() (gas: 80116)
+[PASS] testNonOwnerCannotEndSeason() (gas: 13769)
+[PASS] testNonOwnerCannotSweep() (gas: 69290)
+[PASS] testSeasonEndRevertsIfAlreadyEnded() (gas: 61359)
+[PASS] testSweepAfterCountdown() (gas: 317603)
+[PASS] testSweepAuthorWithZeroBalance() (gas: 212957)
+[PASS] testSweepEmptyList() (gas: 68735)
+[PASS] testSweepMultipleAuthors() (gas: 555125)
+[PASS] testSweepRevertsBeforeCountdown() (gas: 204504)
+[PASS] testSweepRevertsSeasonNotEnded() (gas: 158022)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 1.58ms (1.09ms CPU time)
+
+Ran 11 tests for test/unit/GliskNFT.Treasury.t.sol:GliskNFTTreasuryTest
+[PASS] testBalanceInvariant() (gas: 358375)
+[PASS] testDirectPaymentToTreasury() (gas: 46439)
+[PASS] testMultipleDirectPaymentsAccumulate() (gas: 67977)
+[PASS] testTreasuryAccumulatesFromMints() (gas: 625454)
+[PASS] testTreasuryReceivesOverpayment() (gas: 248741)
+[PASS] testWithdrawReentrancyProtection() (gas: 342218)
+[PASS] testWithdrawRevertsNoBalance() (gas: 22152)
+[PASS] testWithdrawRevertsUnauthorized() (gas: 350438)
+[PASS] testWithdrawTransferFails() (gas: 116610)
+[PASS] testWithdrawTreasury() (gas: 599228)
+[PASS] testWithdrawTreasuryAfterAuthorClaims() (gas: 598047)
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 2.31ms (1.56ms CPU time)
+
+Ran 7 tests for test/unit/GliskNFT.Rewards.t.sol:GliskNFTRewardsTest
+[PASS] testAuthorBalanceAfterMint() (gas: 344796)
+[PASS] testClaimAuthorRewards() (gas: 609065)
+[PASS] testClaimReentrancyProtection() (gas: 604093)
+[PASS] testClaimTransferFails() (gas: 381435)
+[PASS] testClaimWithZeroBalance() (gas: 19457)
+[PASS] testMultipleAuthorsIndependentClaims() (gas: 598779)
+[PASS] testMultipleMintsAccumulate() (gas: 647398)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 4.18ms (2.21ms CPU time)
+
+Ran 11 tests for test/unit/GliskNFT.Access.t.sol:GliskNFTAccessTest
+[PASS] testKeeperCanUpdatePrice() (gas: 56480)
+[PASS] testKeeperCanUpdateURIs() (gas: 249244)
+[PASS] testKeeperCannotEndSeason() (gas: 52005)
+[PASS] testKeeperCannotGrantRoles() (gas: 56111)
+[PASS] testKeeperCannotUpdatePlaceholderURI() (gas: 49635)
+[PASS] testKeeperCannotWithdrawTreasury() (gas: 192740)
+[PASS] testNonOwnerCannotGrantRoles() (gas: 24420)
+[PASS] testOwnerGrantsKeeperRole() (gas: 51883)
+[PASS] testOwnerHasAllPermissions() (gas: 246259)
+[PASS] testOwnerRetainsAdminRole() (gas: 54487)
+[PASS] testOwnerRevokesKeeperRole() (gas: 42008)
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 6.51ms (1.57ms CPU time)
+
+Ran 2 tests for test/Counter.t.sol:CounterTest
+[PASS] testFuzz_SetNumber(uint256) (runs: 256, μ: 29133, ~: 29289)
+[PASS] test_Increment() (gas: 28784)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 6.90ms (6.73ms CPU time)
+
+Ran 15 tests for test/unit/GliskNFT.Reveal.t.sol:GliskNFTRevealTest
+[PASS] testBatchRevealLargeQuantity() (gas: 5404146)
+[PASS] testIsRevealed() (gas: 263817)
+[PASS] testKeeperCanReveal() (gas: 216403)
+[PASS] testKeeperCannotUpdatePlaceholder() (gas: 15209)
+[PASS] testPlaceholderUpdateDoesNotAffectRevealed() (gas: 290474)
+[PASS] testPromptAuthorAccessibleAfterReveal() (gas: 208477)
+[PASS] testRevealEmptyBatch() (gas: 16178)
+[PASS] testRevealLengthMismatch() (gas: 256909)
+[PASS] testRevealTokens() (gas: 423574)
+[PASS] testRevealedTokenImmutable() (gas: 225728)
+[PASS] testTokenURIRevertsForNonExistentToken() (gas: 13736)
+[PASS] testTokenURIUnrevealed() (gas: 164678)
+[PASS] testUnauthorizedCannotReveal() (gas: 161752)
+[PASS] testUnauthorizedCannotUpdatePlaceholder() (gas: 15232)
+[PASS] testUpdatePlaceholderURI() (gas: 268583)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 18.90ms (13.95ms CPU time)
+
+Ran 8 tests for test/integration/GliskNFT.integration.t.sol:GliskNFTIntegrationTest
+[PASS] testBatchRevealWithMultipleKeepers() (gas: 1151234)
+[PASS] testCompleteUserJourney() (gas: 1115324)
+[PASS] testDirectPaymentIntegration() (gas: 358566)
+[PASS] testMultipleUsersConcurrent() (gas: 1723942)
+[PASS] testOverpaymentIntegration() (gas: 255152)
+[PASS] testPriceUpdateMidSeason() (gas: 824238)
+[PASS] testRoleManagementWorkflow() (gas: 540055)
+[PASS] testSeasonLifecycle() (gas: 1496271)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 279.67ms (7.05ms CPU time)
+
+Ran 11 tests for test/fuzz/GliskNFT.fuzz.t.sol:GliskNFTFuzzTest
+[PASS] testFuzzAuthorClaim(uint8,uint8) (runs: 256, μ: 1922108, ~: 1257324)
+[PASS] testFuzzBatchReveal(uint8,uint8) (runs: 256, μ: 1780445, ~: 1485199)
+[PASS] testFuzzDirectPayment(uint256) (runs: 256, μ: 50530, ~: 50630)
+[PASS] testFuzzMintInsufficientPayment(uint8,uint256) (runs: 256, μ: 37704, ~: 37678)
+[PASS] testFuzzMintQuantity(uint8,uint256) (runs: 256, μ: 859557, ~: 553673)
+[PASS] testFuzzMultipleAuthorsAccumulation(uint8,uint8) (runs: 256, μ: 2139871, ~: 1249234)
+[PASS] testFuzzOverpaymentDistribution(uint8,uint256) (runs: 256, μ: 856831, ~: 550744)
+[PASS] testFuzzPaymentDistribution(uint8,uint8) (runs: 256, μ: 1907867, ~: 1244142)
+[PASS] testFuzzPriceUpdate(uint256) (runs: 256, μ: 362875, ~: 362996)
+[PASS] testFuzzRevealLengthMismatch(uint8,uint8) (runs: 256, μ: 1107585, ~: 1104527)
+[PASS] testFuzzSeasonSweep(uint8) (runs: 256, μ: 2292109, ~: 1864071)
+Suite result: ok. 11 passed; 0 failed; 0 skipped; finished in 36.45s (3.31s CPU time)
+
+Ran 9 tests for test/invariant/GliskNFT.invariant.t.sol:GliskNFTInvariantTest
+[PASS] invariant_AuthorBalancesNonNegative() (runs: 256, calls: 128000, reverts: 0)
+
+╭-----------------+---------------+-------+---------+----------╮
+| Contract        | Selector      | Calls | Reverts | Discards |
++==============================================================+
+| GliskNFTHandler | claimRewards  | 21542 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | directPayment | 21415 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | endSeason     | 21223 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | mint          | 21277 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | revealTokens  | 21083 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | sweepRewards  | 21460 | 0       | 0        |
+╰-----------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_BalanceConservation() (runs: 256, calls: 128000, reverts: 0)
+
+╭-----------------+---------------+-------+---------+----------╮
+| Contract        | Selector      | Calls | Reverts | Discards |
++==============================================================+
+| GliskNFTHandler | claimRewards  | 21542 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | directPayment | 21415 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | endSeason     | 21223 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | mint          | 21277 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | revealTokens  | 21083 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | sweepRewards  | 21460 | 0       | 0        |
+╰-----------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_MintPricePositive() (runs: 256, calls: 128000, reverts: 0)
+
+╭-----------------+---------------+-------+---------+----------╮
+| Contract        | Selector      | Calls | Reverts | Discards |
++==============================================================+
+| GliskNFTHandler | claimRewards  | 21542 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | directPayment | 21415 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | endSeason     | 21223 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | mint          | 21277 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | revealTokens  | 21083 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | sweepRewards  | 21460 | 0       | 0        |
+╰-----------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_RevealImmutability() (runs: 256, calls: 128000, reverts: 0)
+
+╭-----------------+---------------+-------+---------+----------╮
+| Contract        | Selector      | Calls | Reverts | Discards |
++==============================================================+
+| GliskNFTHandler | claimRewards  | 21542 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | directPayment | 21415 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | endSeason     | 21223 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | mint          | 21277 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | revealTokens  | 21083 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | sweepRewards  | 21460 | 0       | 0        |
+╰-----------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_SeasonEndPermanent() (runs: 256, calls: 128000, reverts: 0)
+
+╭-----------------+---------------+-------+---------+----------╮
+| Contract        | Selector      | Calls | Reverts | Discards |
++==============================================================+
+| GliskNFTHandler | claimRewards  | 21542 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | directPayment | 21415 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | endSeason     | 21223 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | mint          | 21277 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | revealTokens  | 21083 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | sweepRewards  | 21460 | 0       | 0        |
+╰-----------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_TokenIDUniqueness() (runs: 256, calls: 128000, reverts: 0)
+
+╭-----------------+---------------+-------+---------+----------╮
+| Contract        | Selector      | Calls | Reverts | Discards |
++==============================================================+
+| GliskNFTHandler | claimRewards  | 21542 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | directPayment | 21415 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | endSeason     | 21223 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | mint          | 21277 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | revealTokens  | 21083 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | sweepRewards  | 21460 | 0       | 0        |
+╰-----------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_TokenOwnershipConsistent() (runs: 256, calls: 128000, reverts: 0)
+
+╭-----------------+---------------+-------+---------+----------╮
+| Contract        | Selector      | Calls | Reverts | Discards |
++==============================================================+
+| GliskNFTHandler | claimRewards  | 21542 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | directPayment | 21415 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | endSeason     | 21223 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | mint          | 21277 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | revealTokens  | 21083 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | sweepRewards  | 21460 | 0       | 0        |
+╰-----------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_TreasuryBounds() (runs: 256, calls: 128000, reverts: 0)
+
+╭-----------------+---------------+-------+---------+----------╮
+| Contract        | Selector      | Calls | Reverts | Discards |
++==============================================================+
+| GliskNFTHandler | claimRewards  | 21542 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | directPayment | 21415 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | endSeason     | 21223 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | mint          | 21277 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | revealTokens  | 21083 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | sweepRewards  | 21460 | 0       | 0        |
+╰-----------------+---------------+-------+---------+----------╯
+
+[PASS] invariant_ValueConservation() (runs: 256, calls: 128000, reverts: 0)
+
+╭-----------------+---------------+-------+---------+----------╮
+| Contract        | Selector      | Calls | Reverts | Discards |
++==============================================================+
+| GliskNFTHandler | claimRewards  | 21542 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | directPayment | 21415 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | endSeason     | 21223 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | mint          | 21277 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | revealTokens  | 21083 | 0       | 0        |
+|-----------------+---------------+-------+---------+----------|
+| GliskNFTHandler | sweepRewards  | 21460 | 0       | 0        |
+╰-----------------+---------------+-------+---------+----------╯
+
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 36.45s (173.77s CPU time)
+
+Ran 12 test suites in 36.45s (73.22s CPU time): 109 tests passed, 0 failed, 0 skipped (109 total tests)
+
+╭-----------------------------------------+------------------+-------------------+-----------------+-----------------╮
+| File                                    | % Lines          | % Statements      | % Branches      | % Funcs         |
++====================================================================================================================+
+| script/Counter.s.sol                    | 0.00% (0/5)      | 0.00% (0/3)       | 100.00% (0/0)   | 0.00% (0/2)     |
+|-----------------------------------------+------------------+-------------------+-----------------+-----------------|
+| script/Deploy.s.sol                     | 0.00% (0/67)     | 0.00% (0/72)      | 0.00% (0/8)     | 0.00% (0/4)     |
+|-----------------------------------------+------------------+-------------------+-----------------+-----------------|
+| script/Verify.s.sol                     | 0.00% (0/84)     | 0.00% (0/90)      | 0.00% (0/5)     | 0.00% (0/5)     |
+|-----------------------------------------+------------------+-------------------+-----------------+-----------------|
+| src/Counter.sol                         | 100.00% (4/4)    | 100.00% (2/2)     | 100.00% (0/0)   | 100.00% (2/2)   |
+|-----------------------------------------+------------------+-------------------+-----------------+-----------------|
+| src/GliskNFT.sol                        | 100.00% (94/94)  | 100.00% (105/105) | 100.00% (18/18) | 100.00% (14/14) |
+|-----------------------------------------+------------------+-------------------+-----------------+-----------------|
+| test/invariant/GliskNFT.invariant.t.sol | 47.95% (35/73)   | 41.11% (37/90)    | 50.00% (3/6)    | 63.64% (7/11)   |
+|-----------------------------------------+------------------+-------------------+-----------------+-----------------|
+| test/unit/GliskNFT.Rewards.t.sol        | 100.00% (8/8)    | 100.00% (5/5)     | 100.00% (1/1)   | 100.00% (3/3)   |
+|-----------------------------------------+------------------+-------------------+-----------------+-----------------|
+| test/unit/GliskNFT.Treasury.t.sol       | 100.00% (8/8)    | 100.00% (5/5)     | 100.00% (1/1)   | 100.00% (3/3)   |
+|-----------------------------------------+------------------+-------------------+-----------------+-----------------|
+| Total                                   | 43.44% (149/343) | 41.40% (154/372)  | 58.97% (23/39)  | 65.91% (29/44)  |
+╰-----------------------------------------+------------------+-------------------+-----------------+-----------------╯
