@@ -399,21 +399,21 @@
 
 ---
 
-## Phase 15: ERC20 Safety Mechanism (Edge Case)
+## Phase 15: ERC20 Safety Mechanism (Edge Case) ✅
 
 **Purpose**: Add safety mechanism for accidentally sent ERC20 tokens
 
-- [ ] T142 Create `contracts/test/unit/GliskNFT.ERC20Recovery.t.sol` with test setup
-- [ ] T143 [P] Write test: `testRecoverERC20Tokens()` - Owner can withdraw ERC20 tokens
-- [ ] T144 [P] Write test: `testUnauthorizedCannotRecoverERC20()` - Non-owner cannot withdraw
-- [ ] T145 Implement `recoverERC20(address tokenAddress, uint256 amount)` function in `contracts/src/GliskNFT.sol`:
+- [X] T142 Create `contracts/test/unit/GliskNFT.ERC20Recovery.t.sol` with test setup
+- [X] T143 [P] Write test: `testRecoverERC20Tokens()` - Owner can withdraw ERC20 tokens
+- [X] T144 [P] Write test: `testUnauthorizedCannotRecoverERC20()` - Non-owner cannot withdraw
+- [X] T145 Implement `recoverERC20(address tokenAddress, uint256 amount)` function in `contracts/src/GliskNFT.sol`:
   - Require DEFAULT_ADMIN_ROLE
   - Transfer ERC20 tokens to msg.sender using IERC20 interface
   - Emit event
-- [ ] T146 Run ERC20 recovery tests and verify they pass
-- [ ] T147 Add NatSpec comments to recoverERC20()
+- [X] T146 Run ERC20 recovery tests and verify they pass (8 tests passing)
+- [X] T147 Add NatSpec comments to recoverERC20()
 
-**Checkpoint**: ERC20 recovery mechanism complete
+**Checkpoint**: ERC20 recovery mechanism complete ✅
 
 ---
 

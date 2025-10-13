@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title GliskNFT
@@ -96,6 +97,9 @@ contract GliskNFT is ERC721, AccessControl, ReentrancyGuard, ERC2981 {
 
     /// @notice Emitted when contract receives direct ETH payment
     event DirectPaymentReceived(address indexed sender, uint256 amount);
+
+    /// @notice Emitted when ERC20 tokens are recovered from the contract
+    event ERC20Recovered(address indexed token, address indexed to, uint256 amount);
 
     // ============================================
     // CONSTANTS
@@ -654,5 +658,46 @@ contract GliskNFT is ERC721, AccessControl, ReentrancyGuard, ERC2981 {
     function setDefaultRoyalty(address receiver, uint96 feeNumerator) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _setDefaultRoyalty(receiver, feeNumerator);
         emit RoyaltyUpdated(receiver, feeNumerator);
+    }
+
+    // ============================================
+    // ERC20 RECOVERY FUNCTIONS (Safety Mechanism)
+    // ============================================
+
+    /**
+     * @notice Recover ERC20 tokens accidentally sent to this contract
+     * @dev This is a safety mechanism to recover tokens that users may accidentally send.
+     *      The contract is designed to work exclusively with ETH, not ERC20 tokens.
+     *      Only the Owner can recover tokens, preventing unauthorized access.
+     *
+     * @param tokenAddress Address of the ERC20 token contract to recover
+     * @param amount Amount of tokens to recover (in token's smallest unit)
+     *
+     * Requirements:
+     * - Caller must have DEFAULT_ADMIN_ROLE (Owner)
+     * - Contract must have sufficient token balance
+     * - Token transfer must succeed
+     *
+     * Emits: ERC20Recovered event with token address, recipient, and amount
+     *
+     * Security:
+     * - Owner-only access prevents unauthorized token recovery
+     * - Uses standard ERC20 transfer (no reentrancy risk for tokens)
+     * - Does not affect ETH balances or core contract functionality
+     *
+     * Use Cases:
+     * - User accidentally sends ERC20 tokens to the NFT contract
+     * - Airdrops sent to the contract address
+     * - Recovery of any ERC20-compatible tokens
+     *
+     * Note: This is a pure safety mechanism. The contract does not hold or
+     *       require ERC20 tokens for any functionality. All payments are in ETH.
+     */
+    function recoverERC20(address tokenAddress, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        // Transfer tokens to the caller (owner)
+        IERC20(tokenAddress).transfer(msg.sender, amount);
+
+        // Emit recovery event
+        emit ERC20Recovered(tokenAddress, msg.sender, amount);
     }
 }
