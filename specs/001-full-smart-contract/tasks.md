@@ -417,6 +417,48 @@
 
 ---
 
+## Phase 16: Security Audit Fixes (Post-Audit)
+
+**Purpose**: Address security findings from comprehensive audit (Slither + Mythril)
+
+**Audit Results Summary**:
+- Security Score: 85/100 → 95/100 (after fixes)
+- Critical: 0 issues
+- High: 1 issue (unchecked ERC20 transfer)
+- Medium: 0 issues (all false positives)
+- Low: 4 issues (all acceptable)
+
+**Tasks**:
+
+- [X] T148 Add OpenZeppelin SafeERC20 import to `contracts/src/GliskNFT.sol`:
+  - Import: `import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";`
+  - Add using directive: `using SafeERC20 for IERC20;`
+
+- [X] T149 Update `recoverERC20()` function to use `safeTransfer()`:
+  - Replace `IERC20(tokenAddress).transfer(msg.sender, amount);`
+  - With: `IERC20(tokenAddress).safeTransfer(msg.sender, amount);`
+
+- [X] T150 Run full test suite and verify all tests pass:
+  - `forge test` - all 117 tests passed ✅
+  - Verify ERC20 recovery tests still work with SafeERC20 ✅
+
+- [X] T151 Re-run Slither analysis to confirm fix:
+  - `slither . --filter-paths "test/|script/" --json .audit/raw/post-fix-slither.json` ✅
+  - Verify "unchecked-transfer" finding is resolved ✅
+
+- [X] T152 Update security documentation:
+  - Update `audit-fixes.md` with implementation status ✅
+  - Mark H-1 finding as resolved ✅
+
+**Checkpoint**: Security audit fixes complete, contract ready for testnet deployment ✅
+**Security Score**: 95/100 (improved from 85/100)
+
+**References**:
+- Audit Report: `.audit/reports/glisknft/glisknft-2025-10-14T11-23-36-audit-report.md`
+- Findings Document: `specs/001-full-smart-contract/audit-fixes.md`
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

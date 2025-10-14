@@ -245,7 +245,7 @@ NFTs start with a placeholder image and are permanently revealed after off-chain
 - **FR-040**: Owner MUST be able to update the royalty percentage
 
 **ERC20 Safety Mechanism:**
-- **FR-041**: Owner MUST be able to withdraw any ERC20 tokens sent to the contract (safety mechanism only)
+- **FR-041**: Owner MUST be able to safely withdraw any ERC20 tokens sent to the contract using OpenZeppelin SafeERC20 library to handle non-standard tokens (safety mechanism only)
 
 **Events & Monitoring:**
 - **FR-042**: System MUST emit events for all critical state changes (mints, claims, price updates, withdrawals, role changes, URI updates, seasonEnd)
@@ -282,7 +282,7 @@ NFTs start with a placeholder image and are permanently revealed after off-chain
 - **SC-013**: System handles concurrent mints from multiple users without token ID collisions or payment errors
 - **SC-014**: All critical operations emit events that can be monitored by off-chain services
 - **SC-015**: NFTs expose 2.5% royalty information directing to treasury for marketplace integration
-- **SC-016**: Owner can withdraw any ERC20 tokens mistakenly sent to the contract
+- **SC-016**: Owner can safely withdraw any ERC20 tokens mistakenly sent to the contract with proper handling of non-standard token implementations
 
 ## Assumptions
 

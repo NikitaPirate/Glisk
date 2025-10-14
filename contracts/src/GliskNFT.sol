@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @title GliskNFT
@@ -21,6 +22,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * - ERC-2981 royalty support
  */
 contract GliskNFT is ERC721, AccessControl, ReentrancyGuard, ERC2981 {
+    using SafeERC20 for IERC20;
     // ============================================
     // CUSTOM ERRORS
     // ============================================
@@ -694,8 +696,8 @@ contract GliskNFT is ERC721, AccessControl, ReentrancyGuard, ERC2981 {
      *       require ERC20 tokens for any functionality. All payments are in ETH.
      */
     function recoverERC20(address tokenAddress, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        // Transfer tokens to the caller (owner)
-        IERC20(tokenAddress).transfer(msg.sender, amount);
+        // Transfer tokens to the caller (owner) using SafeERC20
+        IERC20(tokenAddress).safeTransfer(msg.sender, amount);
 
         // Emit recovery event
         emit ERC20Recovered(tokenAddress, msg.sender, amount);
