@@ -127,17 +127,19 @@ Implement complete features one at a time based on priority. Each spec adds one 
 
 ### 7. Docker Compose Architecture
 
-**Decision**: Single `docker-compose.yml` at repository root
-**Why**: Full stack in one file, easy dev environment
+**Decision**: Monolithic FastAPI with background workers
+**Why**: Seasonal MVP simplicity, easier deployment, shared resources
 
 Services:
-- `postgres` - Database
-- `backend-api` - FastAPI application
-- `backend-image-worker` - Image generation worker
-- `backend-ipfs-worker` - IPFS upload worker
-- `backend-reveal-worker` - Batch reveal worker
+- `postgres` - Database (PostgreSQL 17)
+- `backend` - FastAPI application with 3 background asyncio workers
 
-All services share single `.env` file at root.
+Workers run as background tasks within FastAPI lifespan:
+- Image generation worker (polls detected tokens)
+- IPFS upload worker (polls uploading tokens)
+- Reveal worker (polls ready tokens, batch reveals)
+
+All workers share the same UoW factory and database connection pool.
 
 ---
 
@@ -270,25 +272,42 @@ class TokenRepository:
 
 **No generic base classes** - write specific methods as needed.
 
-### 3. Worker Pattern
+### 3. Background Workers (Monolithic)
 
 ```python
-async def image_worker_loop(uow_factory, image_service):
+# app.py - Workers started in FastAPI lifespan
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    settings = Settings()
+    session_factory = setup_db_session(settings.database_url)
+    uow_factory = create_uow_factory(session_factory)
+
+    # Start background workers
+    worker_tasks = []
+    if settings.enable_image_worker:
+        worker_tasks.append(asyncio.create_task(image_worker_loop(uow_factory)))
+    if settings.enable_ipfs_worker:
+        worker_tasks.append(asyncio.create_task(ipfs_worker_loop(uow_factory)))
+    if settings.enable_reveal_worker:
+        worker_tasks.append(asyncio.create_task(reveal_worker_loop(uow_factory)))
+
+    app.state.worker_tasks = worker_tasks
+    yield
+
+    # Graceful shutdown
+    for task in worker_tasks:
+        task.cancel()
+    await asyncio.gather(*worker_tasks, return_exceptions=True)
+
+# workers/image_worker.py
+async def image_worker_loop(uow_factory):
     while True:
-        async with uow_factory() as uow:
+        async with await uow_factory() as uow:
             tokens = await uow.tokens.get_pending_for_generation(limit=10)
             for token in tokens:
-                try:
-                    image_path = await image_service.generate(token.author.prompt_text)
-                    token.status = TokenStatus.UPLOADING
-                    token.image_path = image_path
-                    await uow.commit()
-                except ServiceUnavailable:
-                    token.attempt_count += 1
-                    if token.attempt_count > 100:
-                        token.status = TokenStatus.FAILED
-                    await uow.commit()
-        await asyncio.sleep(1.0)  # Poll interval
+                # Process token...
+                token.mark_uploading()
+        await asyncio.sleep(1.0)
 ```
 
 ---
@@ -344,6 +363,9 @@ SELFHOSTED_IMAGE_API_URL=http://localhost:8080  # Optional fallback
 
 ### Workers
 ```bash
+ENABLE_IMAGE_WORKER=true  # Enable image generation worker
+ENABLE_IPFS_WORKER=true  # Enable IPFS upload worker
+ENABLE_REVEAL_WORKER=true  # Enable reveal worker
 WORKER_POLL_INTERVAL=1.0  # seconds (0.1-5.0)
 BATCH_REVEAL_WAIT_SECONDS=5  # Wait for more tokens (3-5s)
 BATCH_REVEAL_MAX_TOKENS=50  # Max batch size
@@ -363,37 +385,37 @@ DEFAULT_PROMPT="A glitchy digital art piece"  # Fallback prompt
 
 ```
 backend/
-├── src/
+├── src/glisk/
 │   ├── core/
 │   │   ├── config.py              # Pydantic BaseSettings
 │   │   ├── database.py            # setup_db_session()
 │   │   ├── timezone.py            # UTC timezone init
 │   │   └── dependencies.py        # FastAPI DI
-│   ├── db/
-│   │   ├── models/                # SQLModel classes
-│   │   ├── repositories/          # Simple direct repos
-│   │   └── unit_of_work.py        # UoW + create_uow_factory()
-│   ├── services/
-│   │   ├── blockchain/            # webhook_handler, event_recovery, keeper, web3_client
+│   ├── models/                    # SQLModel classes (7 tables)
+│   ├── repositories/              # Simple direct repos (no base class)
+│   ├── uow.py                     # UoW + create_uow_factory()
+│   ├── services/                  # (003b-003e)
+│   │   ├── blockchain/            # webhook_handler, event_recovery, keeper
 │   │   ├── image_generation/      # replicate_client, generator_service
 │   │   ├── ipfs/                  # pinata_client, uploader_service
 │   │   └── metadata/              # builder
-│   ├── workers/
-│   │   ├── image_worker.py        # Poll + generate
-│   │   ├── ipfs_worker.py         # Poll + upload
-│   │   └── reveal_worker.py       # Poll + batch reveal
-│   ├── api/
-│   │   ├── routes/                # health, admin, webhooks
-│   │   └── main.py                # FastAPI app factory
-│   ├── cli/
+│   ├── workers/                   # (003c-003e) Background asyncio tasks
+│   │   ├── image_worker.py        # Poll detected → generate
+│   │   ├── ipfs_worker.py         # Poll uploading → IPFS
+│   │   └── reveal_worker.py       # Poll ready → batch reveal
+│   ├── api/                       # (003b-003e)
+│   │   └── routes/                # health, admin, webhooks
+│   ├── cli/                       # (003e)
 │   │   └── manual_reveal.py       # Emergency CLI
-│   └── main.py                    # Bootstrap
+│   └── app.py                     # FastAPI app with lifespan workers
 ├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── conftest.py                # testcontainers fixtures
+│   ├── conftest.py                # testcontainers fixtures
+│   ├── test_repositories.py
+│   ├── test_state_transitions.py
+│   └── test_uow.py
 ├── alembic/                       # Migrations
 ├── Dockerfile
+├── entrypoint.sh
 ├── pyproject.toml                 # uv project
 └── README.md
 ```
@@ -425,11 +447,10 @@ backend/
 
 ### Local Development
 ```bash
-# Start full stack
+# Start full stack (postgres + backend with 3 workers)
 docker compose up --build
 
-# Run migrations
-docker compose exec backend-api alembic upgrade head
+# Migrations run automatically via entrypoint.sh
 
 # Add test author
 docker compose exec postgres psql -U glisk -d glisk_s0 -c \
@@ -455,6 +476,7 @@ docker compose exec postgres psql -U glisk -d glisk_s0 -c \
 
 ## Version History
 
+- **v1.2** (2025-10-16): Updated to monolithic architecture with background workers
 - **v1.1** (2025-10-16): Updated with Strategy 3 implementation approach, psycopg driver
 - **v1.0** (2025-10-16): Initial master design document from spec/plan/research/data-model/contracts
 
