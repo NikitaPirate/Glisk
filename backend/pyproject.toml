@@ -1,12 +1,14 @@
 [project]
-name = "backend"
+name = "glisk"
 version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.13"
+description = "GLISK Backend - NFT minting and metadata management"
+requires-python = ">=3.14"
 dependencies = [
     "alembic>=1.17.0",
     "alembic-postgresql-enum>=1.8.0",
     "fastapi>=0.119.0",
+    "greenlet>=3.2.4",
+    "pre-commit>=4.3.0",
     "psycopg[binary]>=3.2.10",
     "pydantic>=2.12.2",
     "pydantic-settings>=2.11.0",
@@ -15,8 +17,19 @@ dependencies = [
     "uvicorn>=0.37.0",
 ]
 
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatchling.build.targets.wheel]
+packages = ["src/glisk"]
+
 [dependency-groups]
 dev = [
+    "hatchling>=1.27.0",
     "httpx>=0.28.1",
     "pyright>=1.1.406",
     "pytest>=8.4.2",
@@ -27,9 +40,14 @@ dev = [
 
 [tool.ruff]
 line-length = 100
-select = ["E", "F", "I"]
 fix = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
 
 [tool.pyright]
 typeCheckingMode = "basic"
+pythonVersion = "3.14"
+include = ["src", "tests", "alembic"]
 venvPath = "."
+venv = ".venv"

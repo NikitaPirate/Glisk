@@ -17,12 +17,32 @@ services:
       timeout: 3s
       retries: 5
 
+  # Optional: Run migrations as separate one-time service
+  # Uncomment this and comment out entrypoint.sh if you want explicit migration control
+  # migrations:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: backend-migrations
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   env_file:
+  #     - .env
+  #   command: ["uv", "run", "alembic", "upgrade", "head"]
+  #   restart: "no"
+
   backend-api:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: backend-api-1
     depends_on:
       postgres:
         condition: service_healthy
+      # Uncomment if using separate migrations service:
+      # migrations:
+      #   condition: service_completed_successfully
     env_file:
       - .env
     ports:

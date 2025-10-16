@@ -177,4 +177,25 @@ When encountering unexpected behavior with dependencies or tools:
 **Simple mistakes to fix immediately:**
 - Forgot an import, config edit, or installation command
 
+## Working Directory Management
+
+**Always work from repo root**: `/Users/nikita/PycharmProjects/glisk`
+
+### Rules
+1. Run `pwd` before commands if uncertain
+2. Stay at repo root unless necessary
+3. Use `docker exec` for container commands (works from anywhere)
+
+### Key Paths
+- `docker compose` → Run from repo root (docker-compose.yml location)
+- `uv run pytest/alembic` → Run from backend/ directory
+- Backend code: `backend/src/glisk/`
+- Tests: `backend/tests/`
+
+### Recovery
+```bash
+pwd  # Check location
+cd /Users/nikita/PycharmProjects/glisk  # Return to root
+```
+
 <!-- MANUAL ADDITIONS END -->

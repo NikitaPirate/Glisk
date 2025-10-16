@@ -7,7 +7,7 @@ GliskNFT.withdrawTreasury() (src/GliskNFT.sol#466-480) sends eth to arbitrary us
 	- (success,None) = msg.sender.call{value: amount}() (src/GliskNFT.sol#475)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#functions-that-send-ether-to-arbitrary-destinations
 INFO:Detectors:
-Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) has bitwise-xor operator ^ instead of the exponentiation operator **: 
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) has bitwise-xor operator ^ instead of the exponentiation operator **:
 	 - inverse = (3 * denominator) ^ 2 (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#184)
 Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-exponentiation
 INFO:Detectors:

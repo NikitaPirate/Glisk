@@ -1,21 +1,28 @@
 FROM python:3.14-slim
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install uv
 RUN pip install uv
 
 # Set working directory
 WORKDIR /app
 
-# Copy dependency files first for layer caching
+# Copy all source files first (needed for package detection)
 COPY pyproject.toml uv.lock ./
-
-# Install dependencies
-RUN uv sync --frozen
-
-# Copy source code
 COPY src/ ./src/
 COPY alembic/ ./alembic/
 COPY alembic.ini ./
 
-# Run the application
-CMD ["uv", "run", "uvicorn", "glisk.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Install dependencies (package is now present for hatchling)
+RUN uv sync --frozen --no-editable
+
+# Copy entrypoint script
+COPY entrypoint.sh ./
+RUN chmod +x entrypoint.sh
+
+# Use entrypoint script
+ENTRYPOINT ["./entrypoint.sh"]

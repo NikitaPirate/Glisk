@@ -18,9 +18,15 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Import all models for autogenerate support
-# Note: These imports will be added later when models are created
-# from glisk.models import Author, Token, MintEvent, ImageGenerationJob
-# from glisk.models import IPFSUploadRecord, RevealTransaction, SystemState
+from glisk.models import (  # noqa: E402, F401
+    Author,
+    ImageGenerationJob,
+    IPFSUploadRecord,
+    MintEvent,
+    RevealTransaction,
+    SystemState,
+    Token,
+)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
