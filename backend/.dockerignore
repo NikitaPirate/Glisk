@@ -1,0 +1,36 @@
+# Environment files
+.env
+.env.*
+
+# Git
+.git/
+.gitignore
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Caches
+.mypy_cache/
+.ruff_cache/
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Documentation
+*.md
+docs/
+
+# CI/CD
+.github/

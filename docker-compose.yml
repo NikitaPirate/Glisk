@@ -1,0 +1,33 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: backend-postgres-1
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-glisk}
+      POSTGRES_USER: ${POSTGRES_USER:-glisk}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: ["postgres", "-c", "max_connections=200"]
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-glisk}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend-api:
+    build: ./backend
+    container_name: backend-api-1
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

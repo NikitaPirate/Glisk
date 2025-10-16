@@ -1,0 +1,42 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Ruff and type checking
+.ruff_cache/
+.mypy_cache/
+.pytype/
+.dmypy.json
+dmypy.json
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs
+*.log

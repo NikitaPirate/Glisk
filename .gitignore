@@ -1,6 +1,7 @@
 # special
 .audit/
 .prompts
+.examples
 
 # directories
 cache

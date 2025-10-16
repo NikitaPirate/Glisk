@@ -6,6 +6,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-10
 - Solidity ^0.8.20 + OpenZeppelin Contracts v5.x (ERC721, AccessControl, ReentrancyGuard, ERC2981) (001-full-smart-contract)
 - Markdown for command definitions, Bash for orchestration scripts (002-smart-contract-audit)
 - File-based (audit history in `.audit/` directory, results as markdown reports) (002-smart-contract-audit)
+- Python 3.14 (standard GIL-enabled version) + FastAPI, SQLModel, psycopg3 (async), Alembic, Pydantic BaseSettings, structlog, pytest, testcontainers (003-003a-backend-foundation)
+- PostgreSQL 14+ with 200 connection pool, UTC timestamps, JSONB suppor (003-003a-backend-foundation)
 
 ## Project Structure
 ```
@@ -142,6 +144,7 @@ forge clean && forge build  # Clean build
 Solidity ^0.8.20: Follow standard conventions
 
 ## Recent Changes
+- 003-003a-backend-foundation: Added Python 3.14 (standard GIL-enabled version) + FastAPI, SQLModel, psycopg3 (async), Alembic, Pydantic BaseSettings, structlog, pytest, testcontainers
 - 002-smart-contract-audit: Added Markdown for command definitions, Bash for orchestration scripts
 - 001-full-smart-contract: Added Solidity ^0.8.20 + OpenZeppelin Contracts v5.x (ERC721, AccessControl, ReentrancyGuard, ERC2981)
 

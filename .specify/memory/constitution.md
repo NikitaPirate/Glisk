@@ -1,30 +1,28 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: Initial → 1.0.0
-Created: 2025-10-10
-Change Type: Initial constitution creation
+Version Change: 1.0.0 → 1.1.0
+Updated: 2025-10-16
+Change Type: Backend standards addition (MINOR version bump)
 
-Principles Added:
-- I. Simplicity First
-- II. Seasonal MVP Philosophy
-- III. Monorepo Structure
-- IV. Smart Contract Security
-- V. Clear Over Clever
+Standards Added:
+- Database section: UTC enforcement, Alembic workflow, repository pattern
+- Testing: Complex logic focus, testcontainers over mocks
+- Backend-specific development practices
 
-Sections Added:
-- Core Principles (5 principles)
-- Technical Constraints
-- Development Standards
-- Governance
+Impact:
+- Existing contracts domain: No changes
+- Backend domain (003-003a-backend-foundation): Aligned with new standards
+- Future features must follow Alembic autogenerate + verification workflow
 
 Templates Status:
-- ✅ plan-template.md (reviewed - constitution check section compatible)
-- ✅ spec-template.md (reviewed - requirements align with principles)
-- ✅ tasks-template.md (reviewed - task structure supports principles)
+- ✅ plan-template.md (no changes needed)
+- ✅ spec-template.md (no changes needed)
+- ✅ tasks-template.md (no changes needed)
 
-Follow-up TODOs:
-- None - all placeholders filled
+Follow-up Actions:
+- ✅ Updated research.md with clarified decisions (alembic-postgresql-enum, .env location, ruff/pyright)
+- ⏳ Need to update CLAUDE.md with constitution v1.1.0 principles
 -->
 
 # GLISK Constitution
@@ -168,8 +166,21 @@ Code MUST favor clarity and directness over cleverness or optimization unless pe
 
 - Smart contracts MUST have test coverage for all state transitions
 - Critical payment flows MUST have dedicated test scenarios
+- Backend: Focus tests on complex logic (FOR UPDATE SKIP LOCKED, state transitions). Skip testing simple CRUD operations.
 - Test both happy paths and failure cases
-- Mock external dependencies in tests
+- Use real databases (testcontainers) for integration tests, not mocks
+
+### Database (Backend)
+
+**UTC Enforcement**: All datetime handling MUST use UTC timestamps. Application MUST import `glisk.core.timezone` module at startup to set `TZ=UTC` environment variable. No timezone-aware PostgreSQL types; enforce UTC at application level.
+
+**Alembic Workflow**:
+- Use `alembic revision --autogenerate` to generate migrations from SQLModel changes
+- MUST manually verify generated migrations before applying (check enum handling, indexes, cascades)
+- Use `alembic-postgresql-enum` package for proper PostgreSQL enum handling
+- Test migration idempotency: `upgrade head → downgrade base → upgrade head` sequence must succeed
+
+**Repository Pattern**: Use direct repository implementations without generic base classes. Each repository has unique query patterns (acceptable copy-paste for MVP). Refactor only if >3 identical methods exist across repositories.
 
 ### Version Control
 
@@ -199,4 +210,8 @@ This constitution defines the standards and principles for GLISK development. Al
 
 ### Version Information
 
-**Version**: 1.0.0 | **Ratified**: 2025-10-10 | **Last Amended**: 2025-10-10
+**Version**: 1.1.0 | **Ratified**: 2025-10-10 | **Last Amended**: 2025-10-16
+
+**Changelog**:
+- 1.1.0 (2025-10-16): Added backend-specific standards (UTC enforcement, Alembic workflow, repository pattern, testing focus)
+- 1.0.0 (2025-10-10): Initial constitution with 5 core principles

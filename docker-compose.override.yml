@@ -1,0 +1,8 @@
+# Local development override - exposes PostgreSQL port
+# This file is gitignored and should not be committed
+version: '3.8'
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
