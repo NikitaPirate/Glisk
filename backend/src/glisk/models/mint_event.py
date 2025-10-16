@@ -18,6 +18,8 @@ class MintEvent(SQLModel, table=True):
     block_number: int = Field(index=True)
     block_timestamp: datetime
     token_id: int
+    author_wallet: str = Field(max_length=42)  # Prompt author's wallet (003b)
+    recipient: str = Field(max_length=42)  # Minter's wallet (003b)
     detected_at: datetime = Field(default_factory=datetime.utcnow)
 
     @field_validator("tx_hash")

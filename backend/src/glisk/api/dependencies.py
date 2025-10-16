@@ -6,12 +6,13 @@ This module provides reusable FastAPI dependencies for:
 - Request context and logging
 """
 
-from typing import Annotated
+from typing import Annotated, Callable
 
 from fastapi import Depends, Header, HTTPException, Request, status
 
 from glisk.core.config import Settings
 from glisk.services.blockchain.alchemy_signature import validate_alchemy_signature
+from glisk.uow import UnitOfWork
 
 
 def get_settings() -> Settings:
@@ -90,3 +91,21 @@ async def validate_webhook_signature(
 
     # Signature is valid - return raw body for processing
     return raw_body
+
+
+def get_uow_factory(request: Request) -> Callable[[], UnitOfWork]:
+    """Get UnitOfWork factory from app state.
+
+    Args:
+        request: FastAPI Request object (contains app.state)
+
+    Returns:
+        UnitOfWork factory function from app lifespan
+
+    Example:
+        >>> @router.post("/endpoint")
+        >>> async def endpoint(uow_factory=Depends(get_uow_factory)):
+        ...     async with await uow_factory() as uow:
+        ...         await uow.authors.get_by_wallet(wallet)
+    """
+    return request.app.state.uow_factory

@@ -89,26 +89,26 @@ description: "Task list for Mint Event Detection System implementation"
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Create `backend/src/glisk/api/routes/webhooks.py` with POST /webhooks/alchemy endpoint:
+- [X] T008 [US1] Create `backend/src/glisk/api/routes/webhooks.py` with POST /webhooks/alchemy endpoint:
   - Accept Alchemy webhook payload (JSON)
   - Use signature validation dependency from US3
   - Parse BatchMinted event from `event.data.block.logs[]`
   - Filter by contract address and event signature
   - Extract: minter, promptAuthor, startTokenId, quantity, totalPaid, txHash, blockNumber, logIndex
-  - Manual event decoding (no ABI required - ~25 lines inline parsing)
-- [ ] T009 [US1] Implement author lookup and event storage in webhooks.py:
+  - Manual event decoding (no ABI required - ~75 lines inline parsing)
+- [X] T009 [US1] Implement author lookup and event storage in webhooks.py:
   - Query `AuthorRepository.get_by_wallet(author_wallet)` to get author_id
   - If not found, use default author from config `GLISK_DEFAULT_AUTHOR_WALLET`
   - Create MintEvent record (tx_hash, log_index, block_number, token_id, author_wallet, recipient, detected_at)
-  - Create Token record (token_id, current_owner, author_id, status='detected', minted_at, tx_hash)
+  - Create Token record (token_id, minter_address, author_id, status='detected', mint_timestamp)
   - Use UnitOfWork pattern for atomic transaction
-- [ ] T010 [US1] Implement error handling and HTTP responses in webhooks.py:
+- [X] T010 [US1] Implement error handling and HTTP responses in webhooks.py:
   - Return 200 OK with mint_event_id and token_id on success
-  - Return 409 Conflict on duplicate event (UNIQUE constraint violation on tx_hash, log_index)
+  - Return 409 Conflict on duplicate event (via exists() check before insert)
   - Return 400 Bad Request on malformed payload
   - Return 500 Internal Server Error on database failures (triggers Alchemy retry)
   - Log all events with structlog (webhook.received, event.stored, webhook.duplicate)
-- [ ] T011 [US1] Register webhook route in `backend/src/glisk/app.py`:
+- [X] T011 [US1] Register webhook route in `backend/src/glisk/app.py`:
   - Import webhooks router
   - Include router with `/webhooks` prefix
 - [ ] T012 [US1] Create `backend/tests/test_webhook_integration.py` with integration tests:
@@ -119,7 +119,7 @@ description: "Task list for Mint Event Detection System implementation"
   - Test filtering by contract address and transaction status
   - Test filtering events from non-GliskNFT contracts (should ignore and return 200 OK with no storage)
 
-**Checkpoint**: Real-time mint detection fully functional - webhook endpoint can receive events, validate signatures, and store MintEvent + Token records
+**Checkpoint**: ✅ Real-time mint detection implemented - webhook endpoint can receive events, validate signatures, and store MintEvent + Token records (integration tests pending)
 
 ---
 
