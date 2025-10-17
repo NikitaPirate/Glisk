@@ -111,7 +111,7 @@ description: "Task list for Mint Event Detection System implementation"
 - [X] T011 [US1] Register webhook route in `backend/src/glisk/app.py`:
   - Import webhooks router
   - Include router with `/webhooks` prefix
-- [ ] T012 [US1] Create `backend/tests/test_webhook_integration.py` with integration tests:
+- [X] T012 [US1] Create `backend/tests/test_webhook_integration.py` with integration tests:
   - Test complete webhook flow (signature → parse → store) using testcontainers
   - Test duplicate event handling (409 Conflict)
   - Test author lookup (registered vs unregistered)

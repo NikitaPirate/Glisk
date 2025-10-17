@@ -6,7 +6,7 @@ This module provides functions to:
 3. Track recovery progress via system_state table
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import structlog
@@ -137,11 +137,14 @@ def fetch_mint_events(
 def _decode_batch_minted_event(w3: Web3, log: LogReceipt) -> dict[str, Any]:
     """Decode BatchMinted event from raw log data.
 
-    BatchMinted event structure:
-    - topics[0]: Event signature (keccak256 of event declaration)
-    - topics[1]: Indexed minter address (32 bytes)
-    - topics[2]: Indexed promptAuthor address (32 bytes)
-    - data: ABI-encoded (startTokenId, quantity, totalPaid) tuple
+    BatchMinted event structure (from contracts/src/GliskNFT.sol):
+        event BatchMinted(
+            address indexed minter,       // topics[1]
+            address indexed promptAuthor, // topics[2]
+            uint256 indexed startTokenId, // topics[3] ← INDEXED!
+            uint256 quantity,             // data[0:32]
+            uint256 totalPaid             // data[32:64]
+        );
 
     Args:
         w3: Web3 instance for address checksumming
@@ -153,21 +156,22 @@ def _decode_batch_minted_event(w3: Web3, log: LogReceipt) -> dict[str, Any]:
     # Extract indexed parameters from topics
     minter = w3.to_checksum_address("0x" + log["topics"][1].hex()[-40:])
     author = w3.to_checksum_address("0x" + log["topics"][2].hex()[-40:])
+    # CRITICAL: startTokenId is INDEXED, so it's in topics[3], NOT in data!
+    start_token_id = int(log["topics"][3].hex(), 16)
 
     # Decode non-indexed parameters from data field
-    # Data contains: uint256 startTokenId, uint256 quantity, uint256 totalPaid (96 bytes total)
+    # Data contains: uint256 quantity, uint256 totalPaid (64 bytes total)
     data_hex = log["data"].hex() if isinstance(log["data"], bytes) else log["data"]
     if data_hex.startswith("0x"):
         data_hex = data_hex[2:]
 
-    start_token_id = int(data_hex[0:64], 16)
-    quantity = int(data_hex[64:128], 16)
-    total_paid = int(data_hex[128:192], 16)
+    quantity = int(data_hex[0:64], 16)  # First 32 bytes
+    total_paid = int(data_hex[64:128], 16)  # Second 32 bytes
 
     # Fetch block timestamp
     block = w3.eth.get_block(log["blockNumber"])
     timestamp = block.get("timestamp", 0)  # type: ignore[arg-type]
-    block_timestamp = datetime.utcfromtimestamp(timestamp)
+    block_timestamp = datetime.fromtimestamp(timestamp, UTC)
 
     return {
         "minter": minter,
@@ -237,7 +241,7 @@ async def store_recovered_events(
                     token_id=token_id,
                     author_wallet=event["author"],
                     recipient=event["minter"],
-                    detected_at=datetime.utcnow(),
+                    detected_at=datetime.now(UTC),
                 )
                 await uow.mint_events.add(mint_event)
 
