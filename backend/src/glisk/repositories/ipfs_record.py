@@ -76,3 +76,34 @@ class IPFSUploadRecordRepository:
 
         result = await self.session.execute(query)
         return list(result.scalars().all())
+
+    async def create(
+        self,
+        token_id: UUID,
+        record_type: str,
+        cid: str | None,
+        status: str,
+        retry_count: int,
+    ) -> IPFSUploadRecord:
+        """Create and persist new IPFS upload record.
+
+        Convenience method that creates record instance and persists to database.
+
+        Args:
+            token_id: Token's unique identifier
+            record_type: Type of upload ("image" or "metadata")
+            cid: IPFS CID (None if upload failed)
+            status: Upload status ("pending", "uploading", "completed", "failed")
+            retry_count: Number of retry attempts
+
+        Returns:
+            Persisted IPFSUploadRecord
+        """
+        record = IPFSUploadRecord(
+            token_id=token_id,
+            record_type=record_type,
+            cid=cid,
+            status=status,
+            retry_count=retry_count,
+        )
+        return await self.add(record)

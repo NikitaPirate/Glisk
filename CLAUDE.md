@@ -363,8 +363,221 @@ WORKER_BATCH_SIZE=20  # Default: 10
 - Research Notes: `specs/003-003c-image-generation/research.md`
 
 **Next Steps** (Future features):
-- 003-003d: IPFS Upload & Metadata (upload images to IPFS, update token URIs)
-- 003-003e: Reveal Mechanism (batch reveal tokens on-chain)
+- 003-003d: IPFS Upload & Reveal ✅ COMPLETE
+- 003-003e: Future enhancements (admin APIs, health endpoints, custom monitoring)
+
+---
+
+### IPFS Upload and Batch Reveal (003-003d-ipfs-reveal)
+
+**Status**: ✅ Complete (Phases 1-6 implemented)
+
+**Purpose**: Completes the MVP pipeline by uploading generated images to IPFS via Pinata, creating ERC721-compliant metadata, and batch-revealing tokens on-chain for gas optimization.
+
+**Features Implemented**:
+- ✅ Phase 1: Setup (requests library, error hierarchy, Pinata/keeper configuration)
+- ✅ Phase 2: Foundational (database schema extensions, audit tables, repositories)
+- ✅ Phase 3: User Story 1 - Automatic IPFS upload for images and metadata
+- ✅ Phase 4: User Story 2 - Automatic batch reveal on blockchain
+- ✅ Phase 5: User Story 3 - Resilient error handling with exponential backoff and recovery
+- ✅ Phase 6: Polish (documentation, validation, configuration reference)
+
+**Key Files**:
+- `backend/src/glisk/workers/ipfs_upload_worker.py` - IPFS upload worker (140 LOC)
+- `backend/src/glisk/workers/reveal_worker.py` - Batch reveal worker (150 LOC)
+- `backend/src/glisk/services/ipfs/pinata_client.py` - Pinata IPFS client (80 LOC)
+- `backend/src/glisk/services/blockchain/keeper.py` - Blockchain keeper service (100 LOC)
+- `backend/src/glisk/repositories/token.py` - Extended with upload/reveal methods
+- `backend/alembic/versions/*_add_ipfs_reveal_fields.py` - Three migrations for schema
+
+**Worker Lifecycle**:
+
+Both workers start automatically with the FastAPI application:
+
+```bash
+cd backend
+uv run uvicorn glisk.main:app --reload
+
+# Worker logs on startup:
+# INFO: worker.started worker_type=ipfs_upload poll_interval=1 batch_size=10
+# INFO: worker.started worker=reveal_worker poll_interval=1 batch_max_size=50
+```
+
+**Configuration** (.env):
+
+```bash
+# IPFS Upload (Pinata) - Required
+PINATA_JWT=your_pinata_jwt_token_here
+PINATA_GATEWAY=gateway.pinata.cloud
+
+# Blockchain Keeper - Required
+KEEPER_PRIVATE_KEY=0xYOUR_KEEPER_PRIVATE_KEY_HERE_64_HEX_CHARS
+KEEPER_GAS_STRATEGY=medium
+REVEAL_GAS_BUFFER=1.2
+TRANSACTION_TIMEOUT_SECONDS=180
+
+# Worker Configuration - Optional
+POLL_INTERVAL_SECONDS=1
+WORKER_BATCH_SIZE=10
+BATCH_REVEAL_WAIT_SECONDS=5
+BATCH_REVEAL_MAX_TOKENS=50
+```
+
+**Setup Requirements**:
+
+1. **Pinata Account** (IPFS storage):
+   - Sign up at https://pinata.cloud
+   - Create API key with `pinFileToIPFS` and `pinJSONToIPFS` permissions
+   - Copy JWT token to `PINATA_JWT`
+
+2. **Keeper Wallet** (blockchain transactions):
+   - Generate new wallet: `cast wallet new` (Foundry)
+   - Fund wallet with ETH on Base Sepolia (for gas)
+   - Copy private key to `KEEPER_PRIVATE_KEY`
+
+**Testing**:
+
+```bash
+# Run all tests
+cd backend
+TZ=America/Los_Angeles uv run pytest tests/ -v
+
+# Manual testing per quickstart.md
+# Test 1: IPFS upload single token
+# Test 2: Batch reveal multiple tokens
+# Test 3: IPFS upload failure handling
+# Test 4: Reveal transaction revert handling
+```
+
+**Monitoring**:
+
+Query token status and audit tables to monitor pipeline:
+
+```bash
+# Count tokens by status
+docker exec backend-postgres-1 psql -U glisk -d glisk -c "SELECT status, COUNT(*) FROM tokens_s0 GROUP BY status"
+
+# Check IPFS upload queue depth
+docker exec backend-postgres-1 psql -U glisk -d glisk -c "SELECT COUNT(*) FROM tokens_s0 WHERE status='uploading'"
+
+# Check reveal queue depth
+docker exec backend-postgres-1 psql -U glisk -d glisk -c "SELECT COUNT(*) FROM tokens_s0 WHERE status='ready'"
+
+# Inspect IPFS upload audit trail
+docker exec backend-postgres-1 psql -U glisk -d glisk -c "SELECT token_id, upload_type, status, ipfs_cid FROM ipfs_upload_records ORDER BY created_at DESC LIMIT 10"
+
+# Inspect reveal transactions
+docker exec backend-postgres-1 psql -U glisk -d glisk -c "SELECT reveal_id, tx_hash, array_length(token_ids, 1) as batch_size, status, gas_used FROM reveal_transactions ORDER BY submitted_at DESC LIMIT 10"
+```
+
+**Structured Log Events**:
+
+```bash
+# Monitor IPFS upload worker health
+tail -f backend/logs/glisk.log | grep "ipfs\."
+
+# Monitor reveal worker health
+tail -f backend/logs/glisk.log | grep "reveal\."
+
+# Track worker lifecycle events
+tail -f backend/logs/glisk.log | grep "worker\."
+
+# Audit transient errors (retries)
+tail -f backend/logs/glisk.log | grep "transient_error"
+
+# Audit permanent errors (manual investigation needed)
+tail -f backend/logs/glisk.log | grep "permanent_error"
+```
+
+**Manual Recovery**:
+
+Reset tokens after resolving issues:
+
+```bash
+# Reset specific token stuck in 'uploading'
+docker exec backend-postgres-1 psql -U glisk -d glisk <<EOF
+UPDATE tokens_s0
+SET status = 'uploading', generation_attempts = 0, generation_error = NULL
+WHERE token_id = 123;
+EOF
+
+# Bulk reset after IPFS service outage
+docker exec backend-postgres-1 psql -U glisk -d glisk <<EOF
+UPDATE tokens_s0
+SET status = 'uploading', generation_error = NULL
+WHERE status = 'failed' AND generation_attempts < 3;
+EOF
+
+# Reset tokens stuck in 'ready' after reveal issues
+docker exec backend-postgres-1 psql -U glisk -d glisk <<EOF
+UPDATE tokens_s0
+SET status = 'ready'
+WHERE token_id IN (SELECT unnest(token_ids) FROM reveal_transactions WHERE status = 'failed');
+EOF
+```
+
+**Performance Tuning**:
+
+```bash
+# Reduce IPFS upload worker CPU usage
+POLL_INTERVAL_SECONDS=5  # Default: 1
+WORKER_BATCH_SIZE=3  # Default: 10
+
+# Optimize reveal batch efficiency (more tokens = better gas efficiency)
+BATCH_REVEAL_MAX_TOKENS=50  # Default: 50
+BATCH_REVEAL_WAIT_SECONDS=10  # Default: 5 (wait longer for fuller batches)
+
+# Increase gas safety buffer for volatile gas markets
+REVEAL_GAS_BUFFER=1.5  # Default: 1.2 (20% buffer)
+
+# Reduce transaction timeout for faster failure detection
+TRANSACTION_TIMEOUT_SECONDS=120  # Default: 180
+```
+
+**Common Issues**:
+
+| Issue | Diagnosis | Resolution |
+|-------|-----------|------------|
+| Tokens stuck in 'uploading' | Worker crash | Restart worker (triggers auto-recovery) |
+| IPFS upload 401/403 errors | Invalid/expired JWT | Check `PINATA_JWT` configuration, regenerate at pinata.cloud |
+| Reveal transaction reverts | Invalid token IDs | Check token state on-chain at basescan.org |
+| Keeper wallet insufficient funds | Low ETH balance | Fund keeper wallet with ETH for gas |
+| Slow reveal confirmations | Network congestion | Increase `REVEAL_GAS_BUFFER` or wait for lower gas prices |
+| Orphaned pending transactions | Worker restart during tx | Worker auto-recovers on startup, checks blockchain receipts |
+
+**Error Messages Guide**:
+
+The system provides actionable error messages:
+
+- **401 Unauthorized (IPFS)**: "Check PINATA_JWT configuration in .env file. Verify JWT token is active at https://app.pinata.cloud/developers/api-keys"
+- **403 Forbidden (IPFS)**: "Check PINATA_JWT permissions (requires pinFileToIPFS access). Verify account status and quota limits at https://app.pinata.cloud/billing"
+- **Gas estimation failure**: "Keeper wallet has insufficient balance for gas. Check balance at {keeper_address}. Fund wallet or adjust REVEAL_GAS_BUFFER setting."
+- **Transaction revert**: "Verify token IDs are valid and metadata URIs match format 'ipfs://<CID>'. Check transaction details at https://sepolia.basescan.org/tx/{tx_hash}"
+
+**State Transitions**:
+
+```
+detected → generating → uploading → ready → revealed
+            ↓              ↓          ↓
+          failed       failed     failed
+```
+
+- `uploading`: IPFS upload worker processes token
+- `ready`: Token has IPFS CIDs, awaiting batch reveal
+- `revealed`: Token revealed on-chain with transaction hash
+
+**Documentation**:
+- Specification: `specs/003-003d-ipfs-reveal/spec.md`
+- Implementation Plan: `specs/003-003d-ipfs-reveal/plan.md`
+- Quickstart Guide: `specs/003-003d-ipfs-reveal/quickstart.md`
+- Internal Contracts: `specs/003-003d-ipfs-reveal/contracts/internal-service-contracts.md`
+- Data Model: `specs/003-003d-ipfs-reveal/data-model.md`
+- Research Notes: `specs/003-003d-ipfs-reveal/research.md`
+
+**Next Steps** (Future features):
+- 003-003e: Admin APIs for manual token management
+- 003-003f: Health endpoints and custom monitoring dashboards
+- 003-003g: Advanced gas optimization strategies
 
 ## Recent Changes
 - 003-003d-ipfs-reveal: Added Python 3.14 (standard GIL-enabled version)

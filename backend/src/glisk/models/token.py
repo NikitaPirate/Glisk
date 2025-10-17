@@ -48,6 +48,9 @@ class Token(SQLModel, table=True):
     generation_attempts: int = Field(default=0, ge=0)
     generation_error: Optional[str] = Field(default=None, max_length=1000)
 
+    # Reveal fields (003-003d-ipfs-reveal)
+    reveal_tx_hash: Optional[str] = Field(default=None, max_length=66)
+
     @field_validator("minter_address")
     @classmethod
     def validate_minter_address(cls, v: str) -> str:

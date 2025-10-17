@@ -50,6 +50,20 @@ class Settings(BaseSettings):
     poll_interval_seconds: int = Field(default=1, alias="POLL_INTERVAL_SECONDS")
     worker_batch_size: int = Field(default=10, alias="WORKER_BATCH_SIZE")
 
+    # IPFS Upload (Pinata) - 003-003d-ipfs-reveal
+    pinata_jwt: str = Field(default="", alias="PINATA_JWT")
+    pinata_gateway: str = Field(default="gateway.pinata.cloud", alias="PINATA_GATEWAY")
+
+    # Blockchain Keeper - 003-003d-ipfs-reveal
+    keeper_private_key: str = Field(default="", alias="KEEPER_PRIVATE_KEY")
+    keeper_gas_strategy: str = Field(default="medium", alias="KEEPER_GAS_STRATEGY")
+    reveal_gas_buffer: float = Field(default=1.2, alias="REVEAL_GAS_BUFFER")
+    transaction_timeout_seconds: int = Field(default=180, alias="TRANSACTION_TIMEOUT_SECONDS")
+
+    # Reveal Worker - 003-003d-ipfs-reveal
+    batch_reveal_wait_seconds: int = Field(default=5, alias="BATCH_REVEAL_WAIT_SECONDS")
+    batch_reveal_max_tokens: int = Field(default=50, alias="BATCH_REVEAL_MAX_TOKENS")
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""
@@ -81,6 +95,37 @@ class Settings(BaseSettings):
             structlog.get_logger().warning(
                 "config.validation.warning",
                 message="FALLBACK_CENSORED_PROMPT not set - using default",
+            )
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_ipfs_reveal_config(self) -> "Settings":
+        """Validate IPFS and reveal configuration on startup.
+
+        Ensures required environment variables are set for IPFS upload and reveal workers.
+        Emits warnings if configuration is incomplete.
+
+        Validation is skipped in test/development environments to avoid breaking tests.
+        """
+        # Skip validation in test environments
+        if self.app_env in ("test", "testing"):
+            return self
+
+        # PINATA_JWT is required for IPFS upload worker
+        if not self.pinata_jwt:
+            structlog.get_logger().warning(
+                "config.validation.warning",
+                message="PINATA_JWT not set - IPFS upload worker will fail",
+                hint="Get your JWT token from https://pinata.cloud",
+            )
+
+        # KEEPER_PRIVATE_KEY is required for reveal worker
+        if not self.keeper_private_key:
+            structlog.get_logger().warning(
+                "config.validation.warning",
+                message="KEEPER_PRIVATE_KEY not set - reveal worker will fail",
+                hint="Generate a keeper wallet and fund with ETH for gas",
             )
 
         return self

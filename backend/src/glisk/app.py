@@ -15,6 +15,8 @@ from glisk.core.config import Settings, configure_logging
 from glisk.core.database import setup_db_session
 from glisk.uow import create_uow_factory
 from glisk.workers.image_generation_worker import run_image_generation_worker
+from glisk.workers.ipfs_upload_worker import run_ipfs_upload_worker
+from glisk.workers.reveal_worker import run_reveal_worker
 
 logger = structlog.get_logger()
 
@@ -43,18 +45,30 @@ async def lifespan(app: FastAPI):
     app.state.session_factory = session_factory
     app.state.uow_factory = uow_factory
 
-    # Start image generation worker as background task
-    worker_task = asyncio.create_task(run_image_generation_worker(session_factory, settings))
+    # Start background workers
+    image_worker_task = asyncio.create_task(run_image_generation_worker(session_factory, settings))
+    ipfs_worker_task = asyncio.create_task(run_ipfs_upload_worker(session_factory, settings))
+    reveal_worker_task = asyncio.create_task(run_reveal_worker(session_factory, settings))
 
     logger.info("application.startup", db_url=settings.database_url.split("@")[-1])
 
     yield
 
-    # Shutdown: Cancel worker and close database connections
+    # Shutdown: Cancel workers and close database connections
     logger.info("application.shutdown")
-    worker_task.cancel()
+    image_worker_task.cancel()
+    ipfs_worker_task.cancel()
+    reveal_worker_task.cancel()
     try:
-        await worker_task
+        await image_worker_task
+    except asyncio.CancelledError:
+        pass
+    try:
+        await ipfs_worker_task
+    except asyncio.CancelledError:
+        pass
+    try:
+        await reveal_worker_task
     except asyncio.CancelledError:
         pass
 

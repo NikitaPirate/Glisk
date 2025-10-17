@@ -101,3 +101,55 @@ class RevealTransactionRepository:
             List of pending transactions ordered by creation time (oldest first)
         """
         return await self.get_by_status("pending", limit=limit)
+
+    async def mark_confirmed(
+        self,
+        tx_hash: str,
+        block_number: int,
+        gas_used: int,
+    ) -> None:
+        """Mark reveal transaction as confirmed.
+
+        Updates transaction status and stores blockchain confirmation details.
+
+        Args:
+            tx_hash: Transaction hash (0x...)
+            block_number: Block number where transaction was confirmed
+            gas_used: Gas used by transaction
+        """
+        from datetime import datetime
+
+        result = await self.session.execute(
+            select(RevealTransaction).where(RevealTransaction.tx_hash == tx_hash)  # type: ignore[arg-type]
+        )
+        tx_record = result.scalar_one_or_none()
+
+        if tx_record:
+            tx_record.status = "confirmed"
+            tx_record.block_number = block_number
+            tx_record.confirmed_at = datetime.utcnow()
+            self.session.add(tx_record)
+            await self.session.flush()
+
+    async def mark_failed(
+        self,
+        tx_hash: str,
+        error_message: str,
+    ) -> None:
+        """Mark reveal transaction as failed.
+
+        Updates transaction status and stores error message.
+
+        Args:
+            tx_hash: Transaction hash (0x...)
+            error_message: Error message describing failure
+        """
+        result = await self.session.execute(
+            select(RevealTransaction).where(RevealTransaction.tx_hash == tx_hash)  # type: ignore[arg-type]
+        )
+        tx_record = result.scalar_one_or_none()
+
+        if tx_record:
+            tx_record.status = "failed"
+            self.session.add(tx_record)
+            await self.session.flush()

@@ -238,3 +238,43 @@ class TokenRepository:
         self.session.add(token)
         await self.session.flush()
         await self.session.refresh(token)
+
+    async def update_ipfs_cids(self, token: Token, image_cid: str, metadata_cid: str) -> None:
+        """Update token with IPFS CIDs and mark as ready for reveal.
+
+        Args:
+            token: Token entity to update
+            image_cid: IPFS CID of uploaded image
+            metadata_cid: IPFS CID of uploaded metadata JSON
+
+        Raises:
+            ValueError: If either CID is empty
+        """
+        if not image_cid or not metadata_cid:
+            raise ValueError("Both image_cid and metadata_cid are required")
+
+        token.image_cid = image_cid
+        token.metadata_cid = metadata_cid
+        token.status = TokenStatus.READY
+        self.session.add(token)
+        await self.session.flush()
+        await self.session.refresh(token)
+
+    async def mark_revealed(self, token: Token, tx_hash: str) -> None:
+        """Mark token as revealed with transaction hash.
+
+        Args:
+            token: Token entity to update
+            tx_hash: Ethereum transaction hash of reveal operation
+
+        Raises:
+            ValueError: If tx_hash is empty
+        """
+        if not tx_hash:
+            raise ValueError("tx_hash is required")
+
+        token.reveal_tx_hash = tx_hash
+        token.status = TokenStatus.REVEALED
+        self.session.add(token)
+        await self.session.flush()
+        await self.session.refresh(token)
