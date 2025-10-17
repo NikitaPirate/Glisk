@@ -43,6 +43,11 @@ class Token(SQLModel, table=True):
     error_data: Optional[dict] = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
+    # Image generation fields (003-003c-image-generation)
+    image_url: Optional[str] = Field(default=None)
+    generation_attempts: int = Field(default=0, ge=0)
+    generation_error: Optional[str] = Field(default=None, max_length=1000)
+
     @field_validator("minter_address")
     @classmethod
     def validate_minter_address(cls, v: str) -> str:

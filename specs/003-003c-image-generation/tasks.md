@@ -35,11 +35,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Update SQLModel entity in `backend/src/glisk/db/models.py`: Add three new fields to `Token` model: `image_url: Optional[str]`, `generation_attempts: int = 0`, `generation_error: Optional[str]`
-- [ ] T006 Generate Alembic migration: `cd backend && uv run alembic revision --autogenerate -m "add_image_generation_fields"` for three new columns in `tokens_s0` table
-- [ ] T007 Verify and test migration idempotency: Apply migration, rollback, reapply per quickstart.md
-- [ ] T008 Apply database migration: `cd backend && uv run alembic upgrade head`
-- [ ] T009 [P] Create error classification hierarchy in `backend/src/glisk/services/image_generation/replicate_client.py`: Define `ReplicateError`, `TransientError`, `ContentPolicyError`, `PermanentError` exception classes
+- [X] T005 Update SQLModel entity in `backend/src/glisk/db/models.py`: Add three new fields to `Token` model: `image_url: Optional[str]`, `generation_attempts: int = 0`, `generation_error: Optional[str]`
+- [X] T006 Generate Alembic migration: `cd backend && uv run alembic revision --autogenerate -m "add_image_generation_fields"` for three new columns in `tokens_s0` table
+- [X] T007 Verify and test migration idempotency: Apply migration, rollback, reapply per quickstart.md
+- [X] T008 Apply database migration: `cd backend && uv run alembic upgrade head`
+- [X] T009 [P] Create error classification hierarchy in `backend/src/glisk/services/image_generation/replicate_client.py`: Define `ReplicateError`, `TransientError`, `ContentPolicyError`, `PermanentError` exception classes
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
