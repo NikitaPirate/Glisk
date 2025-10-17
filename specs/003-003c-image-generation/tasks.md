@@ -114,10 +114,10 @@
 **Purpose**: Improvements that affect multiple user stories, documentation, and validation
 
 - [ ] T035 [P] Add quickstart validation: Manually execute all tests from `specs/003-003c-image-generation/quickstart.md` (Test 1: single token generation, Test 2: transient failure, Test 3: content policy violation)
-- [ ] T036 [P] Update project documentation in `CLAUDE.md`: Add Image Generation Worker section documenting worker usage, configuration, monitoring, and manual recovery procedures per quickstart.md
-- [ ] T037 [P] Code cleanup: Review all worker and service code for clarity, remove debug statements, ensure consistent error handling patterns across all three user stories
-- [ ] T038 [P] Configuration validation: Add startup checks in `backend/src/glisk/core/config.py` to validate required environment variables (`REPLICATE_API_TOKEN`, `FALLBACK_CENSORED_PROMPT`) are set, fail fast with clear error messages if missing
-- [ ] T039 Verify database schema: Query `tokens_s0` table to confirm all three new columns exist (`image_url`, `generation_attempts`, `generation_error`) with correct types and defaults
+- [X] T036 [P] Update project documentation in `CLAUDE.md`: Add Image Generation Worker section documenting worker usage, configuration, monitoring, and manual recovery procedures per quickstart.md
+- [X] T037 [P] Code cleanup: Review all worker and service code for clarity, remove debug statements, ensure consistent error handling patterns across all three user stories
+- [X] T038 [P] Configuration validation: Add startup checks in `backend/src/glisk/core/config.py` to validate required environment variables (`REPLICATE_API_TOKEN`, `FALLBACK_CENSORED_PROMPT`) are set, fail fast with clear error messages if missing
+- [X] T039 Verify database schema: Query `tokens_s0` table to confirm all three new columns exist (`image_url`, `generation_attempts`, `generation_error`) with correct types and defaults
 - [ ] T040 End-to-end validation: Insert test token with status='detected', verify complete workflow from detection → generation → uploading status with valid image URL, check logs for all expected events
 
 ---

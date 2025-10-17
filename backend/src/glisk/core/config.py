@@ -1,7 +1,7 @@
 """Application configuration using Pydantic BaseSettings."""
 
 import structlog
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -54,6 +54,36 @@ class Settings(BaseSettings):
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""
         return [origin.strip() for origin in self.cors_origins.split(",")]
+
+    @model_validator(mode="after")
+    def validate_image_generation_config(self) -> "Settings":
+        """Validate image generation configuration on startup.
+
+        Ensures required environment variables are set for the worker to function.
+        Fails fast with clear error messages if configuration is incomplete.
+
+        Validation is skipped in test/development environments to avoid breaking tests.
+        """
+        # Skip validation in test environments
+        if self.app_env in ("test", "testing"):
+            return self
+
+        # REPLICATE_API_TOKEN is required for image generation worker in production
+        if not self.replicate_api_token:
+            structlog.get_logger().warning(
+                "config.validation.warning",
+                message="REPLICATE_API_TOKEN not set - image generation worker will fail",
+                hint="Get your API token from https://replicate.com/account/api-tokens",
+            )
+
+        # FALLBACK_CENSORED_PROMPT should be non-empty (has default, just warn)
+        if not self.fallback_censored_prompt:
+            structlog.get_logger().warning(
+                "config.validation.warning",
+                message="FALLBACK_CENSORED_PROMPT not set - using default",
+            )
+
+        return self
 
 
 def configure_logging(settings: Settings) -> None:

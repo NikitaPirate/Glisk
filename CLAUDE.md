@@ -223,6 +223,149 @@ TZ=America/Los_Angeles uv run pytest tests/test_quickstart.py -v
 - 003-003c: Image Generation (process detected events → generate AI images)
 - 003-003d: IPFS Upload & Metadata (upload images, update token URIs)
 
+---
+
+### Image Generation Worker (003-003c-image-generation)
+
+**Status**: ✅ Complete (Phases 1-6 implemented)
+
+**Purpose**: Background worker that polls for newly detected NFT mint events, generates AI images using Replicate API with the author's text prompt, and updates token records with generated image URLs.
+
+**Features Implemented**:
+- ✅ Phase 1: Setup (Replicate SDK dependency, environment configuration)
+- ✅ Phase 2: Foundational (database schema extensions, error classification hierarchy)
+- ✅ Phase 3: User Story 1 - Automatic image generation for detected tokens
+- ✅ Phase 4: User Story 2 - Resilient retries with exponential backoff
+- ✅ Phase 5: User Story 3 - Graceful failure handling and error visibility
+- ✅ Phase 6: Polish (configuration validation, schema verification, code cleanup, documentation)
+
+**Key Files**:
+- `backend/src/glisk/workers/image_generation_worker.py` - Polling loop with lifecycle management
+- `backend/src/glisk/services/image_generation/replicate_client.py` - Replicate API integration
+- `backend/src/glisk/services/image_generation/prompt_validator.py` - Prompt validation logic
+- `backend/src/glisk/repositories/token.py` - Repository methods for token updates
+- `backend/alembic/versions/*_add_image_generation_fields.py` - Database migration
+
+**Worker Lifecycle**:
+
+The worker starts automatically with the FastAPI application and runs as a background task:
+
+```bash
+cd backend
+uv run uvicorn glisk.main:app --reload
+
+# Worker logs on startup:
+# INFO: worker.started poll_interval=1 batch_size=10
+```
+
+**Configuration** (.env):
+
+```bash
+# Required
+REPLICATE_API_TOKEN=r8_YourApiTokenHere123456789
+
+# Optional (defaults shown)
+REPLICATE_MODEL_VERSION=black-forest-labs/flux-schnell
+FALLBACK_CENSORED_PROMPT="Cute kittens playing with yarn balls in a sunny meadow with flowers"
+POLL_INTERVAL_SECONDS=1
+WORKER_BATCH_SIZE=10
+```
+
+**Testing**:
+
+```bash
+# Run all tests
+cd backend
+TZ=America/Los_Angeles uv run pytest tests/ -v
+
+# Manual testing per quickstart.md
+# Test 1: Single token generation
+# Test 2: Transient failure with retry
+# Test 3: Content policy violation with fallback
+```
+
+**Monitoring**:
+
+Query token status to monitor worker progress:
+
+```bash
+# Count tokens by status
+docker exec backend-postgres-1 psql -U glisk -d glisk -c "SELECT status, COUNT(*) FROM tokens_s0 GROUP BY status"
+
+# Check queue depth (pending generation)
+docker exec backend-postgres-1 psql -U glisk -d glisk -c "SELECT COUNT(*) FROM tokens_s0 WHERE status='detected'"
+
+# Inspect failed tokens
+docker exec backend-postgres-1 psql -U glisk -d glisk -c "SELECT token_id, generation_attempts, generation_error FROM tokens_s0 WHERE status='failed' ORDER BY mint_timestamp DESC LIMIT 10"
+```
+
+**Structured Log Events**:
+
+```bash
+# Monitor worker health
+tail -f backend/logs/glisk.log | grep "worker\."
+
+# Track generation events
+tail -f backend/logs/glisk.log | grep "token\.generation"
+
+# Audit censorship events
+tail -f backend/logs/glisk.log | grep "token\.censored"
+```
+
+**Manual Recovery**:
+
+Reset failed tokens after resolving issues (e.g., API outage, bad configuration):
+
+```bash
+# Reset specific token
+docker exec backend-postgres-1 psql -U glisk -d glisk <<EOF
+UPDATE tokens_s0
+SET status = 'detected', generation_attempts = 0, generation_error = NULL
+WHERE token_id = 123;
+EOF
+
+# Bulk reset after outage (tokens with retry budget remaining)
+docker exec backend-postgres-1 psql -U glisk -d glisk <<EOF
+UPDATE tokens_s0
+SET status = 'detected', generation_error = NULL
+WHERE status = 'failed' AND generation_attempts < 3;
+EOF
+```
+
+**Performance Tuning**:
+
+```bash
+# Reduce CPU usage (increase polling interval)
+POLL_INTERVAL_SECONDS=5  # Default: 1
+
+# Reduce concurrent load (avoid rate limits)
+WORKER_BATCH_SIZE=3  # Default: 10
+
+# Increase throughput (high volume)
+WORKER_BATCH_SIZE=20  # Default: 10
+```
+
+**Common Issues**:
+
+| Issue | Diagnosis | Resolution |
+|-------|-----------|------------|
+| Tokens stuck in 'generating' | Worker crash | Restart worker (triggers auto-recovery) |
+| High failure rate | Check `generation_error` distribution | Fix REPLICATE_API_TOKEN or reduce batch size |
+| Slow generation (>2 min) | Model latency | Switch to faster model (flux-schnell) |
+| Worker not starting | Missing config | Verify REPLICATE_API_TOKEN in .env |
+
+**Documentation**:
+- Specification: `specs/003-003c-image-generation/spec.md`
+- Implementation Plan: `specs/003-003c-image-generation/plan.md`
+- Quickstart Guide: `specs/003-003c-image-generation/quickstart.md`
+- Internal Contracts: `specs/003-003c-image-generation/contracts/internal-service-contracts.md`
+- Data Model: `specs/003-003c-image-generation/data-model.md`
+- Research Notes: `specs/003-003c-image-generation/research.md`
+
+**Next Steps** (Future features):
+- 003-003d: IPFS Upload & Metadata (upload images to IPFS, update token URIs)
+- 003-003e: Reveal Mechanism (batch reveal tokens on-chain)
+
 ## Recent Changes
 - 003-003c-image-generation: Added Python 3.14 (standard GIL-enabled version) + FastAPI (lifecycle hooks), Replicate Python SDK, SQLModel, psycopg3 (async), structlog
 - 003-003b-event-detection: ✅ COMPLETE - Mint event detection system with webhooks and recovery CLI
