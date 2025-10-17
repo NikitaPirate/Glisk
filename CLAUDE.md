@@ -224,9 +224,9 @@ TZ=America/Los_Angeles uv run pytest tests/test_quickstart.py -v
 - 003-003d: IPFS Upload & Metadata (upload images, update token URIs)
 
 ## Recent Changes
+- 003-003c-image-generation: Added Python 3.14 (standard GIL-enabled version) + FastAPI (lifecycle hooks), Replicate Python SDK, SQLModel, psycopg3 (async), structlog
 - 003-003b-event-detection: ✅ COMPLETE - Mint event detection system with webhooks and recovery CLI
 - 003-003a-backend-foundation: Added Python 3.14 (standard GIL-enabled version) + FastAPI, SQLModel, psycopg3 (async), Alembic, Pydantic BaseSettings, structlog, pytest, testcontainers
-- 002-smart-contract-audit: Added Markdown for command definitions, Bash for orchestration scripts
 
 <!-- MANUAL ADDITIONS START -->
 
@@ -277,5 +277,31 @@ When encountering unexpected behavior with dependencies or tools:
 pwd  # Check location
 cd /Users/nikita/PycharmProjects/glisk  # Return to root
 ```
+
+## Implementation Workflow (Phase-Based Testing & Git Rules)
+
+### Phase Testing (MANDATORY)
+
+**Before starting each phase**:
+```bash
+cd backend && uv run pytest tests/ -v
+```
+All tests MUST pass before starting new work.
+
+**After completing each phase**:
+```bash
+cd backend && uv run pytest tests/ -v
+```
+If tests fail = BLOCKER. Fix before next phase.
+
+**Core principle**: Tests define correctness. If tests fail after your changes, your code is wrong.
+
+### Git Commits (MANDATORY)
+
+**NEVER bypass pre-commit hooks**:
+- ❌ `git commit --no-verify` - FORBIDDEN
+- ❌ `git commit -n` - FORBIDDEN
+
+**If hook fails**: Fix the issue, don't skip the hook.
 
 <!-- MANUAL ADDITIONS END -->
