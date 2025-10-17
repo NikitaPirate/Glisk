@@ -9,15 +9,20 @@ import time
 from typing import Callable
 
 import structlog
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from glisk.core.config import Settings
 from glisk.models.author import Author
-from glisk.models.token import Token
+from glisk.models.token import Token, TokenStatus
 from glisk.repositories.token import TokenRepository
 from glisk.services.image_generation.prompt_validator import validate_prompt
-from glisk.services.image_generation.replicate_client import generate_image
+from glisk.services.image_generation.replicate_client import (
+    ContentPolicyError,
+    PermanentError,
+    TransientError,
+    generate_image,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -27,14 +32,19 @@ async def process_single_token(
     session: AsyncSession,
     settings: Settings,
 ) -> None:
-    """Process a single token for image generation.
+    """Process a single token for image generation with retry logic.
 
     Workflow:
     1. Update status: detected → generating
     2. Fetch author's prompt text
     3. Validate prompt
     4. Call Replicate API to generate image
-    5. Update token with image URL and status: generating → uploading
+    5. Handle errors:
+       - TransientError: Increment attempts, reset to detected for retry
+       - ContentPolicyError: Retry with fallback prompt
+       - PermanentError: Mark as failed
+       - Max retries (3): Mark as failed
+    6. Update token with image URL and status: generating → uploading
 
     Args:
         token: Token entity to process
@@ -46,11 +56,13 @@ async def process_single_token(
     """
     token_repo = TokenRepository(session)
     start_time = time.time()
+    attempt_number = token.generation_attempts + 1
 
     # Log start of processing
     logger.info(
         "token.generation.started",
         token_id=token.token_id,
+        attempt_number=attempt_number,
     )
 
     # Step 1: Mark token as generating
@@ -87,12 +99,129 @@ async def process_single_token(
             "token.generation.succeeded",
             token_id=token.token_id,
             image_url=image_url,
-            duration=duration,
+            duration_seconds=duration,
+            attempt_number=attempt_number,
         )
 
-    except Exception:
-        # If any error occurs, rollback and re-raise
+    except TransientError as e:
+        # Transient error (network timeout, rate limit, service unavailable)
         await session.rollback()
+
+        # Check if max retries exceeded
+        if token.generation_attempts >= 2:  # 0-indexed, so >= 2 means 3rd attempt
+            # Max retries exhausted
+            await token_repo.mark_failed(token, f"Max retries exceeded: {str(e)}")
+            await session.commit()
+            logger.error(
+                "token.generation.exhausted",
+                token_id=token.token_id,
+                attempts=token.generation_attempts + 1,
+                last_error=str(e),
+            )
+        else:
+            # Increment attempts and reset to detected for retry
+            await token_repo.increment_attempts(token, str(e))
+            await session.commit()
+
+            # Exponential backoff: 2^attempts seconds (1s, 2s, 4s)
+            backoff_seconds = 2**token.generation_attempts
+            await asyncio.sleep(backoff_seconds)
+
+            logger.warning(
+                "token.generation.retry",
+                token_id=token.token_id,
+                error_type="TransientError",
+                error_message=str(e),
+                attempt_number=attempt_number,
+                max_attempts=3,
+                backoff_seconds=backoff_seconds,
+            )
+
+    except ContentPolicyError as e:
+        # Content policy violation - retry with fallback prompt
+        await session.rollback()
+
+        # Log censorship event
+        logger.warning(
+            "token.censored",
+            token_id=token.token_id,
+            original_prompt="[redacted]",
+            reason="content_policy_violation",
+        )
+
+        # Retry with fallback prompt
+        try:
+            image_url = await generate_image(
+                prompt=settings.fallback_censored_prompt,
+                api_token=settings.replicate_api_token,
+                model_version=settings.replicate_model_version,
+            )
+
+            # Update token with fallback image
+            await token_repo.update_image_url(token, image_url)
+            # Increment attempts to track censorship
+            token.generation_attempts += 1
+            session.add(token)
+            await session.commit()
+
+            duration = time.time() - start_time
+            logger.info(
+                "token.generation.succeeded",
+                token_id=token.token_id,
+                image_url=image_url,
+                duration_seconds=duration,
+                attempt_number=attempt_number,
+                fallback_used=True,
+            )
+        except Exception as fallback_error:
+            # Fallback also failed
+            await session.rollback()
+            await token_repo.mark_failed(token, f"Fallback prompt failed: {str(fallback_error)}")
+            await session.commit()
+            logger.error(
+                "token.generation.failed",
+                token_id=token.token_id,
+                error_type="ContentPolicyError",
+                error_message=f"Original: {str(e)}, Fallback: {str(fallback_error)}",
+                attempt_number=attempt_number,
+            )
+
+    except PermanentError as e:
+        # Permanent error (invalid API token, validation error)
+        await session.rollback()
+        await token_repo.mark_failed(token, str(e))
+        await session.commit()
+        logger.error(
+            "token.generation.failed",
+            token_id=token.token_id,
+            error_type="PermanentError",
+            error_message=str(e),
+            attempt_number=attempt_number,
+        )
+
+    except ValueError as e:
+        # Prompt validation error - treat as permanent
+        await session.rollback()
+        await token_repo.mark_failed(token, f"Prompt validation failed: {str(e)}")
+        await session.commit()
+        logger.error(
+            "token.generation.failed",
+            token_id=token.token_id,
+            error_type="ValueError",
+            error_message=f"Prompt validation failed: {str(e)}",
+            attempt_number=attempt_number,
+        )
+
+    except Exception as e:
+        # Unexpected error - rollback and re-raise for batch error handling
+        await session.rollback()
+        logger.error(
+            "token.generation.failed",
+            token_id=token.token_id,
+            error_type=type(e).__name__,
+            error_message=str(e),
+            attempt_number=attempt_number,
+        )
         raise
 
 
@@ -136,6 +265,34 @@ async def process_batch(
             )
 
 
+async def recover_orphaned_tokens(session: AsyncSession) -> None:
+    """Reset tokens stuck in 'generating' status on startup.
+
+    Worker crashes or restarts leave tokens in 'generating' status.
+    This function resets them to 'detected' if they still have retry budget.
+
+    Query:
+        UPDATE tokens_s0
+        SET status = 'detected'
+        WHERE status = 'generating'
+          AND generation_attempts < 3
+
+    Args:
+        session: Database session for recovery query
+    """
+    result = await session.execute(
+        update(Token)
+        .where(Token.status == TokenStatus.GENERATING)  # type: ignore[arg-type]
+        .where(Token.generation_attempts < 3)  # type: ignore[attr-defined]
+        .values(status=TokenStatus.DETECTED)
+    )
+    await session.commit()
+
+    recovered_count = result.rowcount  # type: ignore[attr-defined]
+    if recovered_count > 0:
+        logger.info("worker.recovery", orphaned_tokens_reset=recovered_count)
+
+
 async def run_image_generation_worker(
     session_factory: Callable,
     settings: Settings,
@@ -145,15 +302,20 @@ async def run_image_generation_worker(
     Polls at POLL_INTERVAL_SECONDS, processes batches, and handles graceful shutdown.
 
     Workflow:
-    1. Poll at configured interval
-    2. Call process_batch() with new session
-    3. Handle CancelledError for graceful shutdown
-    4. Log worker start/stop events
+    1. Run startup recovery (reset orphaned tokens)
+    2. Poll at configured interval
+    3. Call process_batch() with new session
+    4. Handle CancelledError for graceful shutdown
+    5. Log worker start/stop events
 
     Args:
         session_factory: Factory function that creates database sessions
         settings: Application settings (poll interval, batch size, API tokens)
     """
+    # Startup recovery: reset orphaned tokens
+    async with session_factory() as session:
+        await recover_orphaned_tokens(session)
+
     logger.info(
         "worker.started",
         poll_interval=settings.poll_interval_seconds,

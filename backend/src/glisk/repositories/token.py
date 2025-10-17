@@ -211,3 +211,30 @@ class TokenRepository:
             .offset(offset)
         )
         return list(result.scalars().all())
+
+    async def mark_failed(self, token: Token, error_message: str) -> None:
+        """Mark token as permanently failed with error message.
+
+        Args:
+            token: Token entity to update
+            error_message: Error description (truncated to 1000 characters)
+        """
+        token.status = TokenStatus.FAILED
+        token.generation_error = error_message[:1000]  # Truncate to 1000 chars
+        self.session.add(token)
+        await self.session.flush()
+        await self.session.refresh(token)
+
+    async def increment_attempts(self, token: Token, error_message: str) -> None:
+        """Increment retry counter and reset status for transient failure.
+
+        Args:
+            token: Token entity to update
+            error_message: Error description (truncated to 1000 characters)
+        """
+        token.generation_attempts += 1
+        token.status = TokenStatus.DETECTED  # Reset to detected for retry
+        token.generation_error = error_message[:1000]  # Truncate to 1000 chars
+        self.session.add(token)
+        await self.session.flush()
+        await self.session.refresh(token)

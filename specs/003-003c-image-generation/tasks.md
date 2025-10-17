@@ -75,15 +75,15 @@
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] Implement error classification function `classify_error(exception: Exception) -> ReplicateError` in `backend/src/glisk/services/image_generation/replicate_client.py`: Map Python exceptions to error categories (timeout → TransientError, 429/503 → TransientError, 401 → PermanentError, content policy → ContentPolicyError)
-- [ ] T020 [US2] Add retry logic to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Wrap Replicate API call in try-except, classify errors, handle `TransientError` by calling `increment_attempts()` and resetting status to 'detected'
-- [ ] T021 [US2] Add repository method `increment_attempts(token: Token, error_message: str)` in `backend/src/glisk/repositories/token_repository.py`: Increment `generation_attempts`, set status='detected', store error message, commit transaction
-- [ ] T022 [US2] Implement exponential backoff in `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Add `await asyncio.sleep(2 ** token.generation_attempts)` before retrying (1s, 2s, 4s delays)
-- [ ] T023 [US2] Add max retry check to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: If `token.generation_attempts >= 3` after error, call `mark_failed()` instead of `increment_attempts()`
-- [ ] T024 [US2] Add repository method `mark_failed(token: Token, error_message: str)` in `backend/src/glisk/repositories/token_repository.py`: Set status='failed', store error message (truncated to 1000 chars), commit transaction
-- [ ] T025 [US2] Implement startup recovery function `recover_orphaned_tokens(session: AsyncSession)` in `backend/src/glisk/workers/image_generation_worker.py`: Run SQL `UPDATE tokens_s0 SET status='detected' WHERE status='generating' AND generation_attempts < 3` on worker startup
-- [ ] T026 [US2] Call `recover_orphaned_tokens()` in FastAPI lifespan function in `backend/src/glisk/main.py`: Execute before starting worker background task
-- [ ] T027 [US2] Add retry logging to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Log `token.generation.retry` events with error type, attempt number, and max attempts; log `token.generation.exhausted` when retry limit reached
+- [X] T019 [US2] Implement error classification function `classify_error(exception: Exception) -> ReplicateError` in `backend/src/glisk/services/image_generation/replicate_client.py`: Map Python exceptions to error categories (timeout → TransientError, 429/503 → TransientError, 401 → PermanentError, content policy → ContentPolicyError)
+- [X] T020 [US2] Add retry logic to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Wrap Replicate API call in try-except, classify errors, handle `TransientError` by calling `increment_attempts()` and resetting status to 'detected'
+- [X] T021 [US2] Add repository method `increment_attempts(token: Token, error_message: str)` in `backend/src/glisk/repositories/token.py`: Increment `generation_attempts`, set status='detected', store error message, commit transaction
+- [X] T022 [US2] Implement exponential backoff in `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Add `await asyncio.sleep(2 ** token.generation_attempts)` before retrying (1s, 2s, 4s delays)
+- [X] T023 [US2] Add max retry check to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: If `token.generation_attempts >= 3` after error, call `mark_failed()` instead of `increment_attempts()`
+- [X] T024 [US2] Add repository method `mark_failed(token: Token, error_message: str)` in `backend/src/glisk/repositories/token.py`: Set status='failed', store error message (truncated to 1000 chars), commit transaction
+- [X] T025 [US2] Implement startup recovery function `recover_orphaned_tokens(session: AsyncSession)` in `backend/src/glisk/workers/image_generation_worker.py`: Run SQL `UPDATE tokens_s0 SET status='detected' WHERE status='generating' AND generation_attempts < 3` on worker startup
+- [X] T026 [US2] Call `recover_orphaned_tokens()` in worker startup in `backend/src/glisk/workers/image_generation_worker.py`: Execute before starting worker background task
+- [X] T027 [US2] Add retry logging to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Log `token.generation.retry` events with error type, attempt number, and max attempts; log `token.generation.exhausted` when retry limit reached
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently - transient failures trigger automatic retries with exponential backoff, permanent failures and retry exhaustion mark tokens as failed.
 
