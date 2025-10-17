@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     host: str = Field(default="0.0.0.0", alias="HOST")
     port: int = Field(default=8000, alias="PORT")
 
+    # Alchemy Integration (003-003b-event-detection)
+    # Optional fields with defaults to maintain backward compatibility with existing tests
+    alchemy_api_key: str = Field(default="", alias="ALCHEMY_API_KEY")
+    alchemy_webhook_secret: str = Field(default="", alias="ALCHEMY_WEBHOOK_SECRET")
+    glisk_nft_contract_address: str = Field(default="", alias="GLISK_NFT_CONTRACT_ADDRESS")
+    network: str = Field(default="BASE_SEPOLIA", alias="NETWORK")
+    glisk_default_author_wallet: str = Field(default="", alias="GLISK_DEFAULT_AUTHOR_WALLET")
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""

@@ -73,6 +73,8 @@ async def test_mint_event_duplicate_detection(session):
         block_number=12345,
         block_timestamp=datetime.now(timezone.utc),
         token_id=100,
+        author_wallet="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+        recipient="0x1234567890123456789012345678901234567890",
         detected_at=datetime.now(timezone.utc),
     )
     session.add(event)
