@@ -367,9 +367,9 @@ WORKER_BATCH_SIZE=20  # Default: 10
 - 003-003e: Reveal Mechanism (batch reveal tokens on-chain)
 
 ## Recent Changes
+- 003-003d-ipfs-reveal: Added Python 3.14 (standard GIL-enabled version)
 - 003-003c-image-generation: Added Python 3.14 (standard GIL-enabled version) + FastAPI (lifecycle hooks), Replicate Python SDK, SQLModel, psycopg3 (async), structlog
 - 003-003b-event-detection: ✅ COMPLETE - Mint event detection system with webhooks and recovery CLI
-- 003-003a-backend-foundation: Added Python 3.14 (standard GIL-enabled version) + FastAPI, SQLModel, psycopg3 (async), Alembic, Pydantic BaseSettings, structlog, pytest, testcontainers
 
 <!-- MANUAL ADDITIONS START -->
 
@@ -419,6 +419,74 @@ When encountering unexpected behavior with dependencies or tools:
 ```bash
 pwd  # Check location
 cd /Users/nikita/PycharmProjects/glisk  # Return to root
+```
+
+## Alembic Migration Workflow (Database Schema Changes)
+
+**MANDATORY Order**: Always update SQLModel models FIRST, then autogenerate migrations from model changes.
+
+### Correct Workflow
+```bash
+cd backend
+
+# 1. UPDATE MODELS FIRST
+# Edit backend/src/glisk/db/models.py to add/modify SQLModel fields
+# Example: Add new fields to Token model
+
+# 2. AUTOGENERATE MIGRATION
+uv run alembic revision --autogenerate -m "descriptive_migration_name"
+
+# 3. REVIEW GENERATED MIGRATION
+# Check alembic/versions/XXXX_descriptive_migration_name.py
+# Verify upgrade() and downgrade() logic
+# Edit if needed (add indexes, constraints, data migrations)
+
+# 4. APPLY MIGRATION
+uv run alembic upgrade head
+
+# 5. VERIFY SCHEMA
+docker exec backend-postgres-1 psql -U glisk -d glisk -c "\d table_name"
+```
+
+### ❌ Wrong Order (Don't Do This)
+```bash
+# DON'T manually write migrations first
+# DON'T apply migrations before updating models
+# This causes model/schema mismatch
+```
+
+### Key Principles
+- **Models are source of truth**: SQLModel definitions drive schema
+- **Autogenerate saves time**: Alembic detects model changes automatically
+- **Always review**: Autogenerate is smart but not perfect (check indexes, constraints)
+- **Test idempotency**: Run `alembic downgrade -1 && alembic upgrade head` to verify
+
+### Example: Adding Fields to Existing Table
+```python
+# 1. Edit models.py
+class Token(SQLModel, table=True):
+    __tablename__ = "tokens_s0"
+
+    # Existing fields...
+    token_id: int = Field(primary_key=True)
+
+    # NEW FIELDS
+    image_cid: Optional[str] = Field(default=None)
+    metadata_cid: Optional[str] = Field(default=None)
+    reveal_tx_hash: Optional[str] = Field(default=None)
+
+# 2. Autogenerate migration
+# $ uv run alembic revision --autogenerate -m "add_ipfs_reveal_fields"
+# Creates: alembic/versions/XXXX_add_ipfs_reveal_fields.py
+
+# 3. Review generated migration
+def upgrade() -> None:
+    op.add_column('tokens_s0', sa.Column('image_cid', sa.Text(), nullable=True))
+    op.add_column('tokens_s0', sa.Column('metadata_cid', sa.Text(), nullable=True))
+    op.add_column('tokens_s0', sa.Column('reveal_tx_hash', sa.Text(), nullable=True))
+
+# 4. Apply
+# $ uv run alembic upgrade head
 ```
 
 ## Implementation Workflow (Phase-Based Testing & Git Rules)
