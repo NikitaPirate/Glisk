@@ -133,24 +133,24 @@ description: "Task list for Mint Event Detection System implementation"
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] Implement event recovery service in `backend/src/glisk/services/blockchain/event_recovery.py`:
+- [X] T013 [US2] Implement event recovery service in `backend/src/glisk/services/blockchain/event_recovery.py`:
   - Function: `fetch_mint_events(from_block: int, to_block: int | str, batch_size: int = 1000) -> list`
   - Initialize Web3 with Alchemy HTTP provider using `ALCHEMY_API_KEY`
   - Calculate BatchMinted event signature: `keccak256("BatchMinted(address,address,uint256,uint256,uint256)")`
   - Call `eth_getLogs` with contract address and event signature filters
   - Implement adaptive pagination (1000 blocks default, reduce on timeout, increase on empty results)
   - Return list of decoded event dictionaries (minter, author, token_id, tx_hash, block_number, log_index)
-- [ ] T014 [US2] Implement event storage logic in event_recovery.py:
+- [X] T014 [US2] Implement event storage logic in event_recovery.py:
   - Function: `store_recovered_events(events: list, uow: UnitOfWork) -> tuple[int, int]`
   - For each event: lookup author, create MintEvent + Token records
   - Handle UNIQUE constraint violations gracefully (skip duplicates)
   - Return tuple: (stored_count, skipped_count)
-- [ ] T015 [US2] Implement system state management in event_recovery.py:
+- [X] T015 [US2] Implement system state management in event_recovery.py:
   - Function: `update_last_processed_block(block_number: int, uow: UnitOfWork)`
   - Update `system_state` table: key='last_processed_block', value=str(block_number)
   - Function: `get_last_processed_block(uow: UnitOfWork) -> int | None`
   - Query `system_state` table for last processed block
-- [ ] T016 [US2] Create CLI command in `backend/src/glisk/cli/recover_events.py`:
+- [X] T016 [US2] Create CLI command in `backend/src/glisk/cli/recover_events.py`:
   - Arguments: `--from-block` (optional), `--to-block` (optional, default='latest'), `--batch-size` (optional, default=1000), `--dry-run` (flag), `--verbose` (flag)
   - Load config from environment
   - Get starting block: use `--from-block` if provided, else load from `system_state`
@@ -158,10 +158,10 @@ description: "Task list for Mint Event Detection System implementation"
   - Implement retry logic for rate limits (exponential backoff, 3 attempts)
   - Print progress: "Processing blocks X - Y (batch N/M)", "Found N events, stored M"
   - Support --dry-run mode (fetch and print events without database writes)
-- [ ] T017 [US2] Make CLI module executable by creating `backend/src/glisk/cli/__main__.py`:
+- [X] T017 [US2] Make CLI module executable by creating `backend/src/glisk/cli/__main__.py`:
   - Import and execute recover_events command
   - Enable `python -m glisk.cli.recover_events` syntax
-- [ ] T018 [US2] Create `backend/tests/test_event_recovery.py` with integration tests:
+- [X] T018 [US2] Create `backend/tests/test_event_recovery.py` with integration tests:
   - Test fetch_mint_events with mocked Web3 responses
   - Test recovery mechanism (eth_getLogs → storage → state update)
   - Test pagination and adaptive chunking
@@ -170,7 +170,7 @@ description: "Task list for Mint Event Detection System implementation"
   - Test last_processed_block persistence
   - Test CLI resume from last_processed_block after interruption (run CLI → stop → verify state saved → run again → verify resumes)
 
-**Checkpoint**: Event recovery fully functional - CLI can fetch historical events, handle pagination, update system state
+**Checkpoint**: ✅ Event recovery fully functional - CLI can fetch historical events, handle pagination, update system state
 
 ---
 
