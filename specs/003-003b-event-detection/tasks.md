@@ -178,21 +178,21 @@ description: "Task list for Mint Event Detection System implementation"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T019 [P] Add structured logging for all webhook and recovery operations:
+- [X] T019 [P] Add structured logging for all webhook and recovery operations:
   - Use structlog (already configured in 003a)
   - Log levels: INFO for events, WARNING for duplicates, ERROR for failures
   - Include context: tx_hash, token_id, block_number, author_wallet
-- [ ] T020 [P] Create quickstart validation script in `backend/tests/test_quickstart.py`:
+- [X] T020 [P] Create quickstart validation script in `backend/tests/test_quickstart.py`:
   - Verify all endpoints respond correctly
   - Test signature validation with sample payload
   - Verify database connectivity
   - Check configuration loading
-- [ ] T021 Code review and cleanup:
+- [X] T021 Code review and cleanup:
   - Review inline event parsing (ensure under 80 lines per constitution)
   - Verify all UTC timestamp enforcement (import glisk.core.timezone)
   - Check constant-time HMAC comparison implementation
   - Validate error messages are informative
-- [ ] T022 Documentation updates:
+- [X] T022 Documentation updates:
   - Add docstrings to all public functions
   - Document webhook payload structure in webhooks.py
   - Add CLI usage examples in recover_events.py

@@ -145,8 +145,86 @@ forge clean && forge build  # Clean build
 ## Code Style
 Solidity ^0.8.20: Follow standard conventions
 
+## Backend Features
+
+### Mint Event Detection System (003-003b-event-detection)
+
+**Status**: ✅ Complete (Phases 1-6 implemented)
+
+**Purpose**: Real-time blockchain event detection for NFT mints via Alchemy webhooks + historical event recovery via eth_getLogs.
+
+**Features Implemented**:
+- ✅ Phase 1: Setup (web3.py dependency, Alchemy configuration)
+- ✅ Phase 2: Foundational security (HMAC signature validation with constant-time comparison)
+- ✅ Phase 3: Webhook authentication (signature validation dependency, unit tests)
+- ✅ Phase 4: Real-time mint detection (POST /webhooks/alchemy endpoint, event parsing, database storage)
+- ✅ Phase 5: Event recovery CLI (`python -m glisk.cli.recover_events` with pagination and state management)
+- ✅ Phase 6: Polish (structured logging, quickstart validation tests, code review, documentation)
+
+**Key Files**:
+- `backend/src/glisk/api/routes/webhooks.py` - Webhook endpoint (POST /webhooks/alchemy)
+- `backend/src/glisk/services/blockchain/alchemy_signature.py` - HMAC-SHA256 signature validation
+- `backend/src/glisk/services/blockchain/event_recovery.py` - eth_getLogs recovery mechanism
+- `backend/src/glisk/cli/recover_events.py` - CLI command for historical event recovery
+- `backend/tests/test_quickstart.py` - Quickstart validation test suite
+
+**Usage**:
+
+*Webhook Endpoint* (Real-time detection):
+```bash
+# Endpoint receives Alchemy webhooks at POST /webhooks/alchemy
+# Validates HMAC signature, parses BatchMinted events, stores to database
+# See specs/003-003b-event-detection/quickstart.md for setup
+```
+
+*Event Recovery CLI* (Historical events):
+```bash
+# First-time recovery from contract deployment block
+cd backend
+python -m glisk.cli.recover_events --from-block 12345000
+
+# Resume from last checkpoint
+python -m glisk.cli.recover_events
+
+# Dry run (no database writes)
+python -m glisk.cli.recover_events --from-block 12345000 --dry-run
+
+# Verbose logging
+python -m glisk.cli.recover_events --from-block 12345000 -v
+```
+
+**Configuration** (.env):
+```bash
+ALCHEMY_API_KEY=your_api_key
+ALCHEMY_WEBHOOK_SECRET=your_signing_key
+GLISK_NFT_CONTRACT_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+NETWORK=BASE_SEPOLIA
+GLISK_DEFAULT_AUTHOR_WALLET=0x0000000000000000000000000000000000000001
+```
+
+**Testing**:
+```bash
+# Run all tests (includes quickstart validation)
+cd backend
+TZ=America/Los_Angeles uv run pytest tests/ -v
+
+# Run quickstart validation only
+TZ=America/Los_Angeles uv run pytest tests/test_quickstart.py -v
+```
+
+**Documentation**:
+- Specification: `specs/003-003b-event-detection/spec.md`
+- Implementation Plan: `specs/003-003b-event-detection/plan.md`
+- Quickstart Guide: `specs/003-003b-event-detection/quickstart.md`
+- API Contracts: `specs/003-003b-event-detection/contracts/`
+- Research Notes: `specs/003-003b-event-detection/research.md`
+
+**Next Steps** (Future features):
+- 003-003c: Image Generation (process detected events → generate AI images)
+- 003-003d: IPFS Upload & Metadata (upload images, update token URIs)
+
 ## Recent Changes
-- 003-003b-event-detection: Added Python 3.14 (standard GIL-enabled version) + FastAPI, Alchemy SDK (py-alchemy-sdk), hmac (stdlib), SQLModel, psycopg3 (async), Pydantic BaseSettings
+- 003-003b-event-detection: ✅ COMPLETE - Mint event detection system with webhooks and recovery CLI
 - 003-003a-backend-foundation: Added Python 3.14 (standard GIL-enabled version) + FastAPI, SQLModel, psycopg3 (async), Alembic, Pydantic BaseSettings, structlog, pytest, testcontainers
 - 002-smart-contract-audit: Added Markdown for command definitions, Bash for orchestration scripts
 
