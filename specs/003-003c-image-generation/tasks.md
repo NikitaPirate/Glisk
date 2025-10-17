@@ -97,13 +97,13 @@
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Add content policy violation handling to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Catch `ContentPolicyError`, log censorship event with original prompt, retry generation with `FALLBACK_CENSORED_PROMPT` value from config
-- [ ] T029 [US3] Add censorship logging to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Log `token.censored` event with token_id, original_prompt (redacted), fallback_prompt, reason='content_policy_violation'
-- [ ] T030 [US3] Add permanent error handling to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Catch `PermanentError`, immediately call `mark_failed()` without retry (no increment), log `token.generation.failed` with error details
-- [ ] T031 [US3] Add prompt validation error handling to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Catch `ValueError` from `validate_prompt()`, treat as non-retryable, mark failed immediately with error "Prompt validation failed: {message}"
-- [ ] T032 [US3] Add worker error handling to `run_image_generation_worker()` in `backend/src/glisk/workers/image_generation_worker.py`: Wrap polling loop in try-except, log `worker.error` events with exc_info, backoff 5 seconds on unexpected exceptions, continue loop
-- [ ] T033 [US3] Add error message truncation to `mark_failed()` and `increment_attempts()` in `backend/src/glisk/repositories/token_repository.py`: Ensure error messages are truncated to 1000 characters before database write
-- [ ] T034 [US3] Update logging throughout worker in `backend/src/glisk/workers/image_generation_worker.py`: Add comprehensive logging for all error paths - permanent failures, validation failures, retry exhaustion, content policy violations with actionable error details
+- [X] T028 [US3] Add content policy violation handling to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Catch `ContentPolicyError`, log censorship event with original prompt, retry generation with `FALLBACK_CENSORED_PROMPT` value from config
+- [X] T029 [US3] Add censorship logging to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Log `token.censored` event with token_id, original_prompt (redacted), fallback_prompt, reason='content_policy_violation'
+- [X] T030 [US3] Add permanent error handling to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Catch `PermanentError`, immediately call `mark_failed()` without retry (no increment), log `token.generation.failed` with error details
+- [X] T031 [US3] Add prompt validation error handling to `process_single_token()` in `backend/src/glisk/workers/image_generation_worker.py`: Catch `ValueError` from `validate_prompt()`, treat as non-retryable, mark failed immediately with error "Prompt validation failed: {message}"
+- [X] T032 [US3] Add worker error handling to `run_image_generation_worker()` in `backend/src/glisk/workers/image_generation_worker.py`: Wrap polling loop in try-except, log `worker.error` events with exc_info, backoff 5 seconds on unexpected exceptions, continue loop
+- [X] T033 [US3] Add error message truncation to `mark_failed()` and `increment_attempts()` in `backend/src/glisk/repositories/token.py`: Ensure error messages are truncated to 1000 characters before database write
+- [X] T034 [US3] Update logging throughout worker in `backend/src/glisk/workers/image_generation_worker.py`: Add comprehensive logging for all error paths - permanent failures, validation failures, retry exhaustion, content policy violations with actionable error details
 
 **Checkpoint**: All user stories should now be independently functional - error visibility is complete, operators can query failed tokens and understand failure reasons.
 

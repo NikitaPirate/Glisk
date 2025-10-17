@@ -324,12 +324,28 @@ async def run_image_generation_worker(
 
     try:
         while True:
-            # Create new session for each polling cycle
-            async with session_factory() as session:
-                await process_batch(session, settings)
+            try:
+                # Create new session for each polling cycle
+                async with session_factory() as session:
+                    await process_batch(session, settings)
 
-            # Wait for next polling interval
-            await asyncio.sleep(settings.poll_interval_seconds)
+                # Wait for next polling interval
+                await asyncio.sleep(settings.poll_interval_seconds)
+
+            except asyncio.CancelledError:
+                # Propagate cancellation for graceful shutdown
+                raise
+
+            except Exception as e:
+                # Unexpected error in polling loop - log and continue with backoff
+                logger.error(
+                    "worker.error",
+                    error_type=type(e).__name__,
+                    error_message=str(e),
+                    exc_info=True,
+                )
+                # Back off 5 seconds before retrying
+                await asyncio.sleep(5)
 
     except asyncio.CancelledError:
         # Graceful shutdown
