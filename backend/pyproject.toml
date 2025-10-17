@@ -2,7 +2,7 @@
 name = "glisk"
 version = "0.1.0"
 description = "GLISK Backend - NFT minting and metadata management"
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.17.0",
     "alembic-postgresql-enum>=1.8.0",
@@ -49,7 +49,7 @@ select = ["E", "F", "I"]
 
 [tool.pyright]
 typeCheckingMode = "basic"
-pythonVersion = "3.14"
+pythonVersion = "3.13"
 include = ["src", "tests", "alembic"]
 venvPath = "."
 venv = ".venv"
