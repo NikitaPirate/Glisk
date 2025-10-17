@@ -72,6 +72,7 @@ class TokenRepository:
 
         Query explanation:
         - WHERE status = 'detected': Only unprocessed tokens
+        - WHERE generation_attempts < 3: Only tokens with retry budget remaining
         - ORDER BY mint_timestamp ASC: Process oldest first
         - LIMIT: Batch size for worker
         - FOR UPDATE SKIP LOCKED: Lock rows, skip already locked ones
@@ -86,11 +87,31 @@ class TokenRepository:
         result = await self.session.execute(
             select(Token)
             .where(Token.status == TokenStatus.DETECTED)  # type: ignore[arg-type]
+            .where(Token.generation_attempts < 3)  # type: ignore[attr-defined]
             .order_by(Token.mint_timestamp.asc())  # type: ignore[attr-defined]
             .limit(limit)
             .with_for_update(skip_locked=True)
         )
         return list(result.scalars().all())
+
+    async def update_image_url(self, token: Token, image_url: str) -> None:
+        """Update token with generated image URL and mark as ready for upload.
+
+        Args:
+            token: Token entity to update
+            image_url: Generated image URL from Replicate CDN
+
+        Raises:
+            ValueError: If image_url is empty
+        """
+        if not image_url:
+            raise ValueError("image_url cannot be empty")
+
+        token.image_url = image_url
+        token.status = TokenStatus.UPLOADING
+        self.session.add(token)
+        await self.session.flush()
+        await self.session.refresh(token)
 
     async def get_pending_for_upload(self, limit: int = 10) -> list[Token]:
         """Retrieve tokens pending IPFS upload with row-level locking.

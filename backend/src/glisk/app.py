@@ -1,6 +1,7 @@
 """FastAPI application factory."""
 
 # Import timezone enforcement (sets TZ=UTC)
+import asyncio
 from contextlib import asynccontextmanager
 
 import structlog
@@ -13,6 +14,7 @@ from glisk.core import timezone  # noqa: F401
 from glisk.core.config import Settings, configure_logging
 from glisk.core.database import setup_db_session
 from glisk.uow import create_uow_factory
+from glisk.workers.image_generation_worker import run_image_generation_worker
 
 logger = structlog.get_logger()
 
@@ -22,8 +24,8 @@ async def lifespan(app: FastAPI):
     """Application lifespan context manager.
 
     Handles startup and shutdown tasks:
-    - Startup: Initialize database session factory, configure logging
-    - Shutdown: Close database connections
+    - Startup: Initialize database session factory, configure logging, start worker
+    - Shutdown: Stop worker, close database connections
     """
     # Load settings
     settings = Settings()  # type: ignore[call-arg]
@@ -41,12 +43,21 @@ async def lifespan(app: FastAPI):
     app.state.session_factory = session_factory
     app.state.uow_factory = uow_factory
 
+    # Start image generation worker as background task
+    worker_task = asyncio.create_task(run_image_generation_worker(session_factory, settings))
+
     logger.info("application.startup", db_url=settings.database_url.split("@")[-1])
 
     yield
 
-    # Shutdown: Close database connections
+    # Shutdown: Cancel worker and close database connections
     logger.info("application.shutdown")
+    worker_task.cancel()
+    try:
+        await worker_task
+    except asyncio.CancelledError:
+        pass
+
     await session_factory.close_all()  # type: ignore[attr-defined]
 
 

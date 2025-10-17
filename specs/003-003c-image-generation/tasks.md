@@ -53,15 +53,15 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [P] [US1] Create `PromptValidator` module in `backend/src/glisk/services/image_generation/prompt_validator.py`: Implement `validate_prompt(prompt: str)` function with length ≤1000 chars and non-empty validation
-- [ ] T011 [P] [US1] Create `ReplicateClient` service in `backend/src/glisk/services/image_generation/replicate_client.py`: Implement `generate_image(prompt: str, model_version: str | None = None) -> str` using official Replicate Python SDK (sync wrapped in asyncio via `to_thread`)
-- [ ] T012 [US1] Extend `TokenRepository` in `backend/src/glisk/repositories/token_repository.py`: Add `find_for_generation(limit: int = 10) -> List[Token]` method with PostgreSQL `FOR UPDATE SKIP LOCKED` query filtering `status='detected' AND generation_attempts < 3`, ordered by `detected_at ASC`
-- [ ] T013 [US1] Add repository method `update_image_url(token: Token, image_url: str)` in `backend/src/glisk/repositories/token_repository.py`: Update token with image URL and set status to 'uploading', commit transaction
-- [ ] T014 [US1] Create worker module `backend/src/glisk/workers/image_generation_worker.py`: Implement `process_single_token(token: Token)` function to handle single token generation workflow (validate prompt → call Replicate → update status 'detected' → 'generating' → 'uploading')
-- [ ] T015 [US1] Implement `process_batch()` function in `backend/src/glisk/workers/image_generation_worker.py`: Lock tokens via `find_for_generation()`, process concurrently with `asyncio.gather()` and `return_exceptions=True`
-- [ ] T016 [US1] Implement main worker loop `run_image_generation_worker()` in `backend/src/glisk/workers/image_generation_worker.py`: Poll at `POLL_INTERVAL_SECONDS`, call `process_batch()`, handle `CancelledError` for graceful shutdown
-- [ ] T017 [US1] Integrate worker with FastAPI lifecycle in `backend/src/glisk/main.py`: Create `@asynccontextmanager` lifespan function to start worker as background task on startup and cancel on shutdown
-- [ ] T018 [US1] Add structured logging to worker in `backend/src/glisk/workers/image_generation_worker.py`: Log events `worker.started`, `worker.stopped`, `token.generation.started`, `token.generation.succeeded` with structured fields (token_id, duration, image_url)
+- [X] T010 [P] [US1] Create `PromptValidator` module in `backend/src/glisk/services/image_generation/prompt_validator.py`: Implement `validate_prompt(prompt: str)` function with length ≤1000 chars and non-empty validation
+- [X] T011 [P] [US1] Create `ReplicateClient` service in `backend/src/glisk/services/image_generation/replicate_client.py`: Implement `generate_image(prompt: str, model_version: str | None = None) -> str` using official Replicate Python SDK (sync wrapped in asyncio via `to_thread`)
+- [X] T012 [US1] Extend `TokenRepository` in `backend/src/glisk/repositories/token.py`: Add `find_for_generation(limit: int = 10) -> List[Token]` method with PostgreSQL `FOR UPDATE SKIP LOCKED` query filtering `status='detected' AND generation_attempts < 3`, ordered by `mint_timestamp ASC`
+- [X] T013 [US1] Add repository method `update_image_url(token: Token, image_url: str)` in `backend/src/glisk/repositories/token.py`: Update token with image URL and set status to 'uploading', commit transaction
+- [X] T014 [US1] Create worker module `backend/src/glisk/workers/image_generation_worker.py`: Implement `process_single_token(token: Token)` function to handle single token generation workflow (validate prompt → call Replicate → update status 'detected' → 'generating' → 'uploading')
+- [X] T015 [US1] Implement `process_batch()` function in `backend/src/glisk/workers/image_generation_worker.py`: Lock tokens via `get_pending_for_generation()`, process concurrently with `asyncio.gather()` and `return_exceptions=True`
+- [X] T016 [US1] Implement main worker loop `run_image_generation_worker()` in `backend/src/glisk/workers/image_generation_worker.py`: Poll at `POLL_INTERVAL_SECONDS`, call `process_batch()`, handle `CancelledError` for graceful shutdown
+- [X] T017 [US1] Integrate worker with FastAPI lifecycle in `backend/src/glisk/app.py`: Create `@asynccontextmanager` lifespan function to start worker as background task on startup and cancel on shutdown
+- [X] T018 [US1] Add structured logging to worker in `backend/src/glisk/workers/image_generation_worker.py`: Log events `worker.started`, `worker.stopped`, `token.generation.started`, `token.generation.succeeded` with structured fields (token_id, duration, image_url)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - tokens with status='detected' automatically get images generated and progress to 'uploading' status. Validate with manual test from quickstart.md.
 
