@@ -38,6 +38,18 @@ class Settings(BaseSettings):
     network: str = Field(default="BASE_SEPOLIA", alias="NETWORK")
     glisk_default_author_wallet: str = Field(default="", alias="GLISK_DEFAULT_AUTHOR_WALLET")
 
+    # Replicate Image Generation (003-003c-image-generation)
+    replicate_api_token: str = Field(default="", alias="REPLICATE_API_TOKEN")
+    replicate_model_version: str = Field(
+        default="black-forest-labs/flux-schnell", alias="REPLICATE_MODEL_VERSION"
+    )
+    fallback_censored_prompt: str = Field(
+        default="Cute kittens playing with yarn balls in a sunny meadow with flowers",
+        alias="FALLBACK_CENSORED_PROMPT",
+    )
+    poll_interval_seconds: int = Field(default=1, alias="POLL_INTERVAL_SECONDS")
+    worker_batch_size: int = Field(default=10, alias="WORKER_BATCH_SIZE")
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""

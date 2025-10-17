@@ -22,10 +22,10 @@
 
 **Purpose**: Project initialization and basic structure for image generation worker
 
-- [ ] T001 Add Replicate Python SDK dependency: `cd backend && uv add replicate`
-- [ ] T002 [P] Update environment configuration in `backend/src/glisk/core/config.py` with Replicate settings: `REPLICATE_API_TOKEN`, `REPLICATE_MODEL_VERSION`, `FALLBACK_CENSORED_PROMPT`, `POLL_INTERVAL_SECONDS`, `WORKER_BATCH_SIZE`
-- [ ] T003 [P] Create worker package directory structure: `backend/src/glisk/workers/__init__.py`
-- [ ] T004 [P] Create image generation service package: `backend/src/glisk/services/image_generation/__init__.py`
+- [X] T001 Add Replicate Python SDK dependency: `cd backend && uv add replicate`
+- [X] T002 [P] Update environment configuration in `backend/src/glisk/core/config.py` with Replicate settings: `REPLICATE_API_TOKEN`, `REPLICATE_MODEL_VERSION`, `FALLBACK_CENSORED_PROMPT`, `POLL_INTERVAL_SECONDS`, `WORKER_BATCH_SIZE`
+- [X] T003 [P] Create worker package directory structure: `backend/src/glisk/workers/__init__.py`
+- [X] T004 [P] Create image generation service package: `backend/src/glisk/services/image_generation/__init__.py`
 
 ---
 
