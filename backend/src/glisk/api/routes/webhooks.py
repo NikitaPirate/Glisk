@@ -245,7 +245,10 @@ async def receive_alchemy_webhook(
             event_data = decode_batch_minted_event(log, block_number)
             logger.info(
                 "webhook.event_decoded",
-                token_id=event_data["start_token_id"],
+                start_token_id=event_data["start_token_id"],
+                quantity=event_data["quantity"],
+                token_range=f"{event_data['start_token_id']}-\
+                    {event_data['start_token_id'] + event_data['quantity'] - 1}",
                 tx_hash=event_data["tx_hash"],
                 minter=event_data["minter"],
             )
@@ -303,17 +306,18 @@ async def receive_alchemy_webhook(
 
                 logger.info(
                     "webhook.creating_records",
-                    token_id=event_data["start_token_id"],
+                    start_token_id=event_data["start_token_id"],
+                    quantity=event_data["quantity"],
                     author_id=author.id,
                 )
 
-                # Create MintEvent record
+                # Create MintEvent record (one per BatchMinted event)
                 mint_event = MintEvent(
                     tx_hash=event_data["tx_hash"],
                     log_index=event_data["log_index"],
                     block_number=event_data["block_number"],
                     block_timestamp=datetime.utcnow(),  # Use current time as approximation
-                    token_id=event_data["start_token_id"],
+                    token_id=event_data["start_token_id"],  # Store start token ID as representative
                     author_wallet=event_data["prompt_author"],
                     recipient=event_data["minter"],
                     detected_at=datetime.utcnow(),
@@ -322,24 +326,33 @@ async def receive_alchemy_webhook(
                 await uow.mint_events.add(mint_event)
                 logger.info("webhook.mint_event_added", tx_hash=event_data["tx_hash"])
 
-                # Create Token record with status='detected'
-                token = Token(
-                    token_id=event_data["start_token_id"],
-                    author_id=author.id,
-                    minter_address=event_data["minter"],
-                    status=TokenStatus.DETECTED,
-                    mint_timestamp=datetime.utcnow(),
-                )
+                # Create Token records for each token in batch
+                created_token_ids = []
+                for i in range(event_data["quantity"]):
+                    token_id = event_data["start_token_id"] + i
+                    token = Token(
+                        token_id=token_id,
+                        author_id=author.id,
+                        minter_address=event_data["minter"],
+                        status=TokenStatus.DETECTED,
+                        mint_timestamp=datetime.utcnow(),
+                    )
+                    await uow.tokens.add(token)
+                    created_token_ids.append(token_id)
 
-                await uow.tokens.add(token)
-                logger.info("webhook.token_added", token_id=event_data["start_token_id"])
+                logger.info(
+                    "webhook.tokens_added",
+                    count=len(created_token_ids),
+                    token_ids=created_token_ids,
+                )
 
                 # Commit transaction (happens automatically on context exit)
 
             logger.info(
                 "event.stored",
                 tx_hash=event_data["tx_hash"],
-                token_id=event_data["start_token_id"],
+                token_count=len(created_token_ids),
+                token_ids=created_token_ids,
                 author_wallet=event_data["prompt_author"],
                 mint_event_id=str(mint_event.id),
             )
@@ -347,7 +360,8 @@ async def receive_alchemy_webhook(
             processed_events.append(
                 {
                     "mint_event_id": str(mint_event.id),
-                    "token_id": event_data["start_token_id"],
+                    "token_count": len(created_token_ids),
+                    "token_ids": created_token_ids,
                 }
             )
 
