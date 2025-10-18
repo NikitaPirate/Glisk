@@ -19,3 +19,13 @@ repos:
       - id: trailing-whitespace
       - id: check-yaml
       - id: end-of-file-fixer
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: Run pytest tests
+        entry: bash -c 'cd backend && TZ=America/Los_Angeles uv run pytest tests/ -v'
+        language: system
+        pass_filenames: false
+        files: \.py$
+        types: [python]

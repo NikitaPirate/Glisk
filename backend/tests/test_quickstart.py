@@ -26,8 +26,18 @@ from glisk.core.config import Settings
 
 
 @pytest_asyncio.fixture
-async def test_client():
-    """Provide AsyncClient for testing API endpoints."""
+async def test_client(uow_factory):
+    """Provide AsyncClient for testing API endpoints with database access.
+
+    Args:
+        uow_factory: UnitOfWork factory from conftest (provides database access)
+
+    Note: Injects uow_factory into app.state for dependency injection.
+    """
+    # Inject uow_factory into app.state for dependency injection
+    # This allows webhook endpoints to access the test database
+    app.state.uow_factory = uow_factory
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
 
@@ -158,7 +168,7 @@ class TestQuickstartValidation:
             "webhookId": "test",
             "id": "test001",
             "type": "GRAPHQL",
-            "event": {"data": {"block": {"logs": []}}},
+            "event": {"data": {"block": {"number": 12345, "logs": []}}},
         }
 
         body = json.dumps(payload).encode("utf-8")
@@ -292,14 +302,17 @@ class TestQuickstartValidation:
             "event": {
                 "data": {
                     "block": {
+                        "number": 12345,
                         "logs": [
                             {
                                 # Different contract
-                                "address": "0x0000000000000000000000000000000000000000",
+                                "account": {
+                                    "address": "0x0000000000000000000000000000000000000000"
+                                },
                                 "topics": ["0x1234"],
                                 "data": "0x",
                             }
-                        ]
+                        ],
                     }
                 }
             },
