@@ -199,6 +199,19 @@ contract GliskNFT is ERC721, AccessControl, ReentrancyGuard, ERC2981 {
     }
 
     // ============================================
+    // TOKEN ID QUERY (Recovery Support)
+    // ============================================
+
+    /**
+     * @notice Get the next token ID that will be minted
+     * @dev Public getter for _nextTokenId state variable
+     * @return The next token ID (starts at 1, increments after each mint)
+     */
+    function nextTokenId() external view returns (uint256) {
+        return _nextTokenId;
+    }
+
+    // ============================================
     // RECEIVE FUNCTION
     // ============================================
 

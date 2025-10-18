@@ -24,9 +24,9 @@
 
 **Purpose**: Verify prerequisites and prepare for implementation
 
-- [ ] T001 Verify all existing tests pass before starting: `cd backend && TZ=America/Los_Angeles uv run pytest tests/ -v`
-- [ ] T002 Verify smart contract deployed to testnet and CONTRACT_ADDRESS in backend/.env
-- [ ] T003 Verify GLISK_DEFAULT_AUTHOR_WALLET exists in authors table
+- [x] T001 Verify all existing tests pass before starting: `cd backend && TZ=America/Los_Angeles uv run pytest tests/ -v`
+- [x] T002 Verify smart contract deployed to testnet and CONTRACT_ADDRESS in backend/.env
+- [x] T003 Verify GLISK_DEFAULT_AUTHOR_WALLET exists in authors table
 
 ---
 
@@ -36,10 +36,10 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 [Foundational] Add nextTokenId() public getter to contracts/src/GliskNFT.sol (after line 200, in Token ID Query section)
-- [ ] T005 [Foundational] Redeploy smart contract to Base Sepolia testnet: `cd contracts && forge build && forge script script/Deploy.s.sol:DeployScript --rpc-url base-sepolia --broadcast`
-- [ ] T006 [Foundational] Update GLISK_NFT_CONTRACT_ADDRESS in backend/.env with newly deployed contract address
-- [ ] T007 [Foundational] Verify contract deployment and nextTokenId() function via Basescan or cast: `cast call $CONTRACT_ADDRESS "nextTokenId()(uint256)" --rpc-url base-sepolia`
+- [x] T004 [Foundational] Add nextTokenId() public getter to contracts/src/GliskNFT.sol (after line 200, in Token ID Query section)
+- [x] T005 [Foundational] Redeploy smart contract to Base Sepolia testnet: `cd contracts && forge build && forge script script/Deploy.s.sol:DeployScript --rpc-url base-sepolia --broadcast`
+- [x] T006 [Foundational] Update GLISK_NFT_CONTRACT_ADDRESS in backend/.env with newly deployed contract address
+- [x] T007 [Foundational] Verify contract deployment and nextTokenId() function via Basescan or cast: `cast call $CONTRACT_ADDRESS "nextTokenId()(uint256)" --rpc-url base-sepolia`
 
 **Checkpoint**: Smart contract has nextTokenId() getter - user story implementation can now begin
 
