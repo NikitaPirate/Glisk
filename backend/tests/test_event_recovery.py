@@ -179,12 +179,10 @@ async def test_store_recovered_events(session, mock_settings):
 
     assert token1 is not None
     assert token1.status.value == "detected"
-    assert token1.minter_address == "0x1234567890123456789012345678901234567890"
     assert token1.author_id == author.id
 
     assert token2 is not None
     assert token2.status.value == "detected"
-    assert token2.minter_address == "0x1234567890123456789012345678901234567890"
     assert token2.author_id == author.id
 
 

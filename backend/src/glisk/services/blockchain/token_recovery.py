@@ -236,15 +236,11 @@ class TokenRecoveryService:
                     )
 
                 # Create token record
-                # Note: Using placeholder values for fields that will be removed in Phase 4
-                # minter_address and mint_timestamp cannot be accurately determined from recovery
                 token = Token(
                     token_id=token_id,
                     author_id=author.id,
                     status=TokenStatus.DETECTED,
                     generation_attempts=0,
-                    minter_address=author_wallet.lower(),  # Use author as placeholder
-                    mint_timestamp=datetime.now(UTC),  # Use recovery time as placeholder
                 )
 
                 await uow.tokens.add(token)

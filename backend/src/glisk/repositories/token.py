@@ -67,13 +67,13 @@ class TokenRepository:
         """Retrieve tokens pending image generation with row-level locking.
 
         Uses FOR UPDATE SKIP LOCKED to ensure concurrent workers receive
-        non-overlapping sets of tokens. Orders by mint_timestamp ASC to
+        non-overlapping sets of tokens. Orders by created_at ASC to
         process oldest tokens first (FIFO).
 
         Query explanation:
         - WHERE status = 'detected': Only unprocessed tokens
         - WHERE generation_attempts < 3: Only tokens with retry budget remaining
-        - ORDER BY mint_timestamp ASC: Process oldest first
+        - ORDER BY created_at ASC: Process oldest first
         - LIMIT: Batch size for worker
         - FOR UPDATE SKIP LOCKED: Lock rows, skip already locked ones
 
@@ -88,7 +88,7 @@ class TokenRepository:
             select(Token)
             .where(Token.status == TokenStatus.DETECTED)  # type: ignore[arg-type]
             .where(Token.generation_attempts < 3)  # type: ignore[attr-defined]
-            .order_by(Token.mint_timestamp.asc())  # type: ignore[attr-defined]
+            .order_by(Token.created_at.asc())  # type: ignore[attr-defined]
             .limit(limit)
             .with_for_update(skip_locked=True)
         )
@@ -120,7 +120,7 @@ class TokenRepository:
 
         Query explanation:
         - WHERE status = 'uploading': Tokens ready for IPFS upload
-        - ORDER BY mint_timestamp ASC: Process oldest first
+        - ORDER BY created_at ASC: Process oldest first
         - LIMIT: Batch size for worker
         - FOR UPDATE SKIP LOCKED: Lock rows, skip already locked ones
 
@@ -134,7 +134,7 @@ class TokenRepository:
         result = await self.session.execute(
             select(Token)
             .where(Token.status == TokenStatus.UPLOADING)  # type: ignore[arg-type]
-            .order_by(Token.mint_timestamp.asc())  # type: ignore[attr-defined]
+            .order_by(Token.created_at.asc())  # type: ignore[attr-defined]
             .limit(limit)
             .with_for_update(skip_locked=True)
         )
@@ -148,7 +148,7 @@ class TokenRepository:
 
         Query explanation:
         - WHERE status = 'ready': Tokens with metadata uploaded
-        - ORDER BY mint_timestamp ASC: Process oldest first
+        - ORDER BY created_at ASC: Process oldest first
         - LIMIT: Batch size for reveal transaction
         - FOR UPDATE SKIP LOCKED: Lock rows, skip already locked ones
 
@@ -162,7 +162,7 @@ class TokenRepository:
         result = await self.session.execute(
             select(Token)
             .where(Token.status == TokenStatus.READY)  # type: ignore[arg-type]
-            .order_by(Token.mint_timestamp.asc())  # type: ignore[attr-defined]
+            .order_by(Token.created_at.asc())  # type: ignore[attr-defined]
             .limit(limit)
             .with_for_update(skip_locked=True)
         )
@@ -179,12 +179,12 @@ class TokenRepository:
             offset: Number of tokens to skip (default: 0)
 
         Returns:
-            List of tokens ordered by mint timestamp (newest first)
+            List of tokens ordered by created_at timestamp (newest first)
         """
         result = await self.session.execute(
             select(Token)
             .where(Token.author_id == author_id)  # type: ignore[arg-type]
-            .order_by(Token.mint_timestamp.desc())  # type: ignore[attr-defined]
+            .order_by(Token.created_at.desc())  # type: ignore[attr-defined]
             .limit(limit)
             .offset(offset)
         )
@@ -201,12 +201,12 @@ class TokenRepository:
             offset: Number of tokens to skip (default: 0)
 
         Returns:
-            List of tokens ordered by mint timestamp (oldest first)
+            List of tokens ordered by created_at timestamp (oldest first)
         """
         result = await self.session.execute(
             select(Token)
             .where(Token.status == status)  # type: ignore[arg-type]
-            .order_by(Token.mint_timestamp.asc())  # type: ignore[attr-defined]
+            .order_by(Token.created_at.asc())  # type: ignore[attr-defined]
             .limit(limit)
             .offset(offset)
         )

@@ -5,7 +5,6 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID, uuid4
 
-from pydantic import field_validator
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
@@ -35,9 +34,7 @@ class Token(SQLModel, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     token_id: int = Field(unique=True, index=True)
     author_id: UUID = Field(foreign_key="authors.id")
-    minter_address: str = Field(max_length=42)
     status: TokenStatus = Field(default=TokenStatus.DETECTED, index=True)
-    mint_timestamp: datetime = Field(index=True)
     image_cid: Optional[str] = Field(default=None, max_length=255)
     metadata_cid: Optional[str] = Field(default=None, max_length=255)
     error_data: Optional[dict] = Field(default=None, sa_column=Column(JSON))
@@ -50,18 +47,6 @@ class Token(SQLModel, table=True):
 
     # Reveal fields (003-003d-ipfs-reveal)
     reveal_tx_hash: Optional[str] = Field(default=None, max_length=66)
-
-    @field_validator("minter_address")
-    @classmethod
-    def validate_minter_address(cls, v: str) -> str:
-        """Validate Ethereum wallet address format."""
-        if not v.startswith("0x") or len(v) != 42:
-            raise ValueError("Minter address must be in format 0x followed by 40 hex characters")
-        try:
-            int(v[2:], 16)
-        except ValueError:
-            raise ValueError("Minter address must contain valid hexadecimal characters")
-        return v
 
     def mark_generating(self) -> None:
         """Transition from detected to generating.

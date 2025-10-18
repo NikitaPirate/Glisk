@@ -6,7 +6,6 @@ Tests cover:
 - Full recovery flow integration test with testcontainer PostgreSQL
 """
 
-from datetime import UTC, datetime
 from unittest.mock import Mock, patch
 
 import pytest
@@ -64,8 +63,6 @@ async def test_get_missing_token_ids_partial_gaps(session):
             author_id=author.id,
             status=TokenStatus.DETECTED,
             generation_attempts=0,
-            minter_address="0x1234567890123456789012345678901234567890",
-            mint_timestamp=datetime.now(UTC),
         )
         session.add(token)
     await session.commit()
@@ -101,8 +98,6 @@ async def test_get_missing_token_ids_no_gaps(session):
             author_id=author.id,
             status=TokenStatus.DETECTED,
             generation_attempts=0,
-            minter_address="0x1234567890123456789012345678901234567890",
-            mint_timestamp=datetime.now(UTC),
         )
         session.add(token)
     await session.commit()
@@ -138,8 +133,6 @@ async def test_get_missing_token_ids_single_missing(session):
             author_id=author.id,
             status=TokenStatus.DETECTED,
             generation_attempts=0,
-            minter_address="0x1234567890123456789012345678901234567890",
-            mint_timestamp=datetime.now(UTC),
         )
         session.add(token)
     await session.commit()
@@ -364,8 +357,6 @@ async def test_full_recovery_flow_integration(uow_factory):
                 author_id=author1.id,
                 status=TokenStatus.DETECTED,
                 generation_attempts=0,
-                minter_address="0x1111111111111111111111111111111111111111",
-                mint_timestamp=datetime.now(UTC),
             )
             await uow.tokens.add(token)
 
@@ -460,8 +451,6 @@ async def test_recovery_with_no_gaps(uow_factory):
                 author_id=author.id,
                 status=TokenStatus.DETECTED,
                 generation_attempts=0,
-                minter_address="0x1111111111111111111111111111111111111111",
-                mint_timestamp=datetime.now(UTC),
             )
             await uow.tokens.add(token)
 

@@ -333,9 +333,7 @@ async def receive_alchemy_webhook(
                     token = Token(
                         token_id=token_id,
                         author_id=author.id,
-                        minter_address=event_data["minter"],
                         status=TokenStatus.DETECTED,
-                        mint_timestamp=datetime.utcnow(),
                     )
                     await uow.tokens.add(token)
                     created_token_ids.append(token_id)

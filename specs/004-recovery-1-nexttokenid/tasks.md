@@ -80,20 +80,20 @@
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] Remove mint_timestamp and minter_address field definitions from backend/src/glisk/models/token.py (lines 38-40 and validator lines 54-64)
-- [ ] T020 [US2] Generate Alembic migration: `cd backend && uv run alembic revision --autogenerate -m "remove_unused_recovery_fields"`
-- [ ] T021 [US2] Manually verify migration file backend/alembic/versions/*_remove_unused_recovery_fields.py contains op.drop_column for both fields
-- [ ] T022 [US2] Add downgrade() implementation to migration: recreate columns with nullable=True for rollback safety
-- [ ] T023 [US2] Grep codebase for field references: `rg "mint_timestamp|minter_address" backend/` and document all files to update
-- [ ] T024 [US2] Update get_pending_for_generation() in backend/src/glisk/repositories/token.py: Change ORDER BY from mint_timestamp.asc() to created_at.asc()
-- [ ] T025 [US2] Apply migration: `cd backend && uv run alembic upgrade head`
+- [x] T019 [US2] Remove mint_timestamp and minter_address field definitions from backend/src/glisk/models/token.py (lines 38-40 and validator lines 54-64)
+- [x] T020 [US2] Generate Alembic migration: `cd backend && uv run alembic revision --autogenerate -m "remove_unused_recovery_fields"`
+- [x] T021 [US2] Manually verify migration file backend/alembic/versions/*_remove_unused_recovery_fields.py contains op.drop_column for both fields
+- [x] T022 [US2] Add downgrade() implementation to migration: recreate columns with nullable=True for rollback safety
+- [x] T023 [US2] Grep codebase for field references: `rg "mint_timestamp|minter_address" backend/` and document all files to update
+- [x] T024 [US2] Update get_pending_for_generation() in backend/src/glisk/repositories/token.py: Change ORDER BY from mint_timestamp.asc() to created_at.asc()
+- [x] T025 [US2] Apply migration: `cd backend && uv run alembic upgrade head`
 
 ### Verification for User Story 2
 
-- [ ] T026 [P] [US2] Verify schema changes via psql: `docker exec backend-postgres-1 psql -U glisk -d glisk -c "\d tokens_s0"` should NOT show mint_timestamp or minter_address columns
-- [ ] T027 [P] [US2] Run all tests to verify no breakage: `cd backend && TZ=America/Los_Angeles uv run pytest tests/ -v`
-- [ ] T028 [US2] Test migration idempotency: `cd backend && uv run alembic downgrade -1 && uv run alembic upgrade head` should succeed
-- [ ] T029 [US2] Manual verification: Start application, verify image generation worker still processes tokens correctly (check logs for no field reference errors)
+- [x] T026 [P] [US2] Verify schema changes via psql: `docker exec backend-postgres-1 psql -U glisk -d glisk -c "\d tokens_s0"` should NOT show mint_timestamp or minter_address columns
+- [x] T027 [P] [US2] Run all tests to verify no breakage: `cd backend && TZ=America/Los_Angeles uv run pytest tests/ -v`
+- [x] T028 [US2] Test migration idempotency: `cd backend && uv run alembic downgrade -1 && uv run alembic upgrade head` should succeed
+- [x] T029 [US2] Manual verification: Start application, verify image generation worker still processes tokens correctly (check logs for no field reference errors)
 
 **Checkpoint**: Database schema is simplified, all processes work without removed fields
 

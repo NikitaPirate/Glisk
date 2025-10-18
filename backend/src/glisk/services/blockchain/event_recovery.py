@@ -248,10 +248,8 @@ async def store_recovered_events(
                 # Create Token record
                 token = Token(
                     token_id=token_id,
-                    minter_address=event["minter"],
                     author_id=author.id,
                     status=TokenStatus.DETECTED,
-                    mint_timestamp=event["block_timestamp"],
                 )
                 await uow.tokens.add(token)
 

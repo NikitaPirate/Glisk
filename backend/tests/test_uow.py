@@ -6,8 +6,6 @@ Tests focus on transaction management:
 - Multiple repository operations are atomic
 """
 
-from datetime import datetime, timezone
-
 import pytest
 
 from glisk.models.author import Author
@@ -159,9 +157,7 @@ async def test_uow_atomic_multi_repository_operation(session):
         token = Token(
             token_id=1000,
             author_id=author.id,
-            minter_address="0x1234567890123456789012345678901234567890",
             status=TokenStatus.DETECTED,
-            mint_timestamp=datetime.now(timezone.utc),
         )
         await uow.tokens.add(token)
         token_id = token.id

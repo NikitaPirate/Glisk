@@ -6,8 +6,6 @@ Tests focus on validating the token lifecycle state machine:
 - Failed state is reachable from any non-terminal state
 """
 
-from datetime import datetime, timezone
-
 import pytest
 
 from glisk.models.author import Author
@@ -33,9 +31,7 @@ async def test_valid_state_transitions(session):
     token = Token(
         token_id=1000,
         author_id=author.id,
-        minter_address="0x1234567890123456789012345678901234567890",
         status=TokenStatus.DETECTED,
-        mint_timestamp=datetime.now(timezone.utc),
     )
     session.add(token)
     await session.flush()
@@ -79,9 +75,7 @@ async def test_invalid_state_transition_raises_exception(session):
     token = Token(
         token_id=1000,
         author_id=author.id,
-        minter_address="0x1234567890123456789012345678901234567890",
         status=TokenStatus.DETECTED,
-        mint_timestamp=datetime.now(timezone.utc),
     )
     session.add(token)
     await session.flush()
@@ -125,9 +119,7 @@ async def test_mark_failed_from_any_non_terminal_state(session):
         token = Token(
             token_id=token_id_counter,
             author_id=author.id,
-            minter_address="0x1234567890123456789012345678901234567890",
             status=initial_status,
-            mint_timestamp=datetime.now(timezone.utc),
         )
         session.add(token)
         await session.flush()
@@ -162,9 +154,7 @@ async def test_cannot_transition_from_terminal_states(session):
     token_revealed = Token(
         token_id=1000,
         author_id=author.id,
-        minter_address="0x1234567890123456789012345678901234567890",
         status=TokenStatus.REVEALED,
-        mint_timestamp=datetime.now(timezone.utc),
     )
     session.add(token_revealed)
 
@@ -176,9 +166,7 @@ async def test_cannot_transition_from_terminal_states(session):
     token_failed = Token(
         token_id=1001,
         author_id=author.id,
-        minter_address="0x1234567890123456789012345678901234567890",
         status=TokenStatus.FAILED,
-        mint_timestamp=datetime.now(timezone.utc),
     )
     session.add(token_failed)
 
