@@ -8,16 +8,15 @@ This module provides the TokenRecoveryService which:
 """
 
 import asyncio
-import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from pathlib import Path
 
 import structlog
 from sqlalchemy.exc import IntegrityError
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput, ContractLogicError
 
+from glisk.abi import get_contract_abi
 from glisk.models.token import Token, TokenStatus
 from glisk.services.exceptions import (
     BlockchainConnectionError,
@@ -57,15 +56,8 @@ class TokenRecoveryService:
         self.w3 = w3
         self.contract_address = Web3.to_checksum_address(contract_address)
 
-        # Load contract ABI
-        abi_path = (
-            Path(__file__).parent.parent.parent.parent.parent.parent
-            / "contracts"
-            / "abi"
-            / "GliskNFT.json"
-        )
-        with open(abi_path, "r") as f:
-            self.contract_abi = json.load(f)
+        # Load contract ABI from package resources
+        self.contract_abi = get_contract_abi()
 
         # Initialize contract
         self.contract = self.w3.eth.contract(address=self.contract_address, abi=self.contract_abi)
@@ -256,7 +248,6 @@ class TokenRecoveryService:
 
             except IntegrityError:
                 # Token already exists (webhook created it concurrently)
-                await uow.session.rollback()  # Rollback this token only
                 skipped_duplicate_count += 1
                 logger.info(
                     "recovery.duplicate_skipped",

@@ -1,7 +1,5 @@
 """Keeper service for batch reveal operations on blockchain."""
 
-import json
-from pathlib import Path
 from typing import Tuple
 
 import structlog
@@ -9,6 +7,7 @@ from eth_account import Account
 from web3 import Web3
 from web3.exceptions import TimeExhausted
 
+from glisk.abi import get_contract_abi
 from glisk.services.exceptions import (
     GasEstimationError,
     TransactionRevertError,
@@ -47,15 +46,8 @@ class KeeperService:
         self.gas_buffer = 1.0 + gas_buffer_percentage
         self.transaction_timeout = transaction_timeout
 
-        # Load contract ABI
-        abi_path = (
-            Path(__file__).parent.parent.parent.parent.parent.parent
-            / "contracts"
-            / "abi"
-            / "GliskNFT.json"
-        )
-        with open(abi_path, "r") as f:
-            self.contract_abi = json.load(f)  # File contains ABI array directly
+        # Load contract ABI from package resources
+        self.contract_abi = get_contract_abi()
 
         # Initialize contract
         self.contract = self.w3.eth.contract(address=self.contract_address, abi=self.contract_abi)

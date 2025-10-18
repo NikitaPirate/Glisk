@@ -2,25 +2,24 @@
 # =============================================================================
 # GliskNFT Minting Script
 # =============================================================================
-# Convenience wrapper for minting GLISK Season 0 NFTs on Base Sepolia
+# Convenience wrapper for minting GLISK Season 0 NFTs
 #
 # Usage:
-#   ./mint.sh <quantity>          # Mint N tokens (1-50)
-#   ./mint.sh                     # Mint 1 token (default)
+#   ./mint.sh -t [quantity]       # Mint on Base Sepolia (testnet)
+#   ./mint.sh -m [quantity]       # Mint on Base Mainnet
 #
 # Examples:
-#   ./mint.sh 1                   # Quick test (single token)
-#   ./mint.sh 10                  # Batch mint (pipeline test)
-#   ./mint.sh 50                  # Stress test (max batch size)
+#   ./mint.sh -t                  # Mint 1 token on testnet
+#   ./mint.sh -t 10               # Mint 10 tokens on testnet
+#   ./mint.sh -m 1                # Mint 1 token on mainnet
 #
 # Requirements:
 #   - Foundry (forge) installed
 #   - .env file with PRIVATE_KEY configured
-#   - Sufficient ETH balance on Base Sepolia
+#   - Sufficient ETH balance on target network
+#   - Contract deployed (reads address from deployments/)
 #
 # Environment Variables:
-#   QUANTITY        Number of tokens to mint (default: 1)
-#   RPC_URL         Base Sepolia RPC URL (default: base_sepolia from foundry.toml)
 #   DRY_RUN         If set, run without broadcasting (simulation only)
 # =============================================================================
 
@@ -34,7 +33,8 @@ set -e  # Exit on error
 DEFAULT_QUANTITY=1
 MAX_BATCH_SIZE=50
 SCRIPT_PATH="script/Mint.s.sol:MintGliskNFT"
-DEFAULT_RPC_URL="base_sepolia"
+
+# Network configurations (no associative arrays for macOS bash 3.2 compatibility)
 
 # Colors for output
 RED='\033[0;31m'
@@ -71,19 +71,20 @@ print_info() {
 }
 
 show_usage() {
-    echo "Usage: $0 [quantity]"
+    echo "Usage: $0 -t|-m [quantity]"
     echo
     echo "Arguments:"
+    echo "  -t              Mint on Base Sepolia (testnet)"
+    echo "  -m              Mint on Base Mainnet"
     echo "  quantity        Number of NFTs to mint (1-$MAX_BATCH_SIZE, default: $DEFAULT_QUANTITY)"
     echo
     echo "Examples:"
-    echo "  $0              # Mint 1 token (default)"
-    echo "  $0 10           # Mint 10 tokens"
-    echo "  $0 50           # Mint max batch (50 tokens)"
+    echo "  $0 -t           # Mint 1 token on testnet"
+    echo "  $0 -t 10        # Mint 10 tokens on testnet"
+    echo "  $0 -m 1         # Mint 1 token on mainnet"
     echo
     echo "Environment Variables:"
     echo "  DRY_RUN=1       Simulate without broadcasting"
-    echo "  RPC_URL=<url>   Override RPC URL"
     echo
     exit 1
 }
@@ -131,17 +132,56 @@ validate_quantity() {
 }
 
 # =============================================================================
+# Network Configuration
+# =============================================================================
+
+get_deployment_address() {
+    local deployment_file="$1"
+    local deployment_path="deployments/$deployment_file"
+
+    if [ ! -f "$deployment_path" ]; then
+        print_error "Deployment file not found: $deployment_path"
+        echo "Deploy the contract first or check the file path"
+        exit 1
+    fi
+
+    # Extract contract address from deployment JSON
+    local contract_address=$(python3 -c "
+import json
+with open('$deployment_path') as f:
+    data = json.load(f)
+    print(data['contractAddress'])
+" 2>/dev/null)
+
+    if [ -z "$contract_address" ]; then
+        print_error "Failed to read contract address from $deployment_path"
+        exit 1
+    fi
+
+    echo "$contract_address"
+}
+
+# =============================================================================
 # Main Logic
 # =============================================================================
 
 main() {
     print_header
 
-    # Parse arguments
-    local quantity="${1:-$DEFAULT_QUANTITY}"
+    # Parse network flag (required)
+    local network=""
+    local quantity=""
 
-    # Handle help flags
-    if [ "$quantity" = "-h" ] || [ "$quantity" = "--help" ]; then
+    if [ "$1" = "-t" ]; then
+        network="testnet"
+        quantity="${2:-$DEFAULT_QUANTITY}"
+    elif [ "$1" = "-m" ]; then
+        network="mainnet"
+        quantity="${2:-$DEFAULT_QUANTITY}"
+    elif [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ -z "$1" ]; then
+        show_usage
+    else
+        print_error "Invalid network flag: $1"
         show_usage
     fi
 
@@ -149,16 +189,34 @@ main() {
     check_requirements
     validate_quantity "$quantity"
 
-    # Get RPC URL (from env or default)
-    local rpc_url="${RPC_URL:-$DEFAULT_RPC_URL}"
+    # Get network configuration (simple if/else instead of associative arrays)
+    local rpc_url=""
+    local deployment_file=""
+    local network_name=""
+
+    if [ "$network" = "testnet" ]; then
+        rpc_url="base_sepolia"
+        deployment_file="base-sepolia.json"
+        network_name="Base Sepolia"
+    else
+        rpc_url="base"
+        deployment_file="base-mainnet.json"
+        network_name="Base Mainnet"
+    fi
+
+    # Read contract address from deployment file
+    local contract_address=$(get_deployment_address "$deployment_file")
+
+    print_info "Network: $network_name"
+    print_info "Contract: $contract_address"
 
     # Determine function signature
     local function_sig
     if [ "$quantity" -eq 1 ]; then
-        function_sig="mintSingle()"
+        function_sig="mintSingle(address)"
         print_info "Minting 1 token (single mint)"
     else
-        function_sig="mintBatch(uint256)"
+        function_sig="mintBatch(address,uint256)"
         print_info "Minting $quantity tokens (batch mint)"
     fi
 
@@ -166,6 +224,7 @@ main() {
     local forge_cmd=(
         forge script "$SCRIPT_PATH"
         --sig "$function_sig"
+        "$contract_address"
     )
 
     # Add quantity argument for batch mint
@@ -179,7 +238,7 @@ main() {
     # Add broadcast flag unless DRY_RUN is set
     if [ -z "$DRY_RUN" ]; then
         forge_cmd+=(--broadcast)
-        print_info "Broadcasting transaction to $rpc_url"
+        print_info "Broadcasting transaction to $network_name"
     else
         print_warning "DRY RUN mode - transaction will NOT be broadcast"
     fi

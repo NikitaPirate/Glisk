@@ -140,6 +140,14 @@ forge clean && forge build  # Clean build
     └── {audit-id}-findings.json
 ```
 
+## Smart Contract Development
+
+After modifying contracts, sync the ABI to backend:
+
+```bash
+./sync-abi.sh
+```
+
 ## Code Style
 Solidity ^0.8.20: Follow standard conventions
 
