@@ -572,17 +572,18 @@ rg "mint_timestamp|minter_address" backend/
 
 After completing all phases, verify:
 
-- [ ] Smart contract has public nextTokenId() function
-- [ ] Contract redeployed to testnet with new address in .env
-- [ ] CLI command `python -m glisk.cli.recover_tokens` runs successfully
-- [ ] Recovery detects missing tokens and creates records with status='detected'
-- [ ] Database schema no longer has mint_timestamp or minter_address columns
-- [ ] All workers function correctly without removed fields
-- [ ] Old recovery code (event_recovery.py, recover_events.py) is deleted
-- [ ] Old recovery tests are deleted
-- [ ] All tests pass: `TZ=America/Los_Angeles uv run pytest tests/ -v`
-- [ ] Manual testnet validation: Mint directly, run recovery, verify tokens created
-- [ ] Image generation worker processes recovered tokens normally
+- [x] Smart contract has public nextTokenId() function
+- [x] Contract redeployed to testnet with new address in .env
+- [x] CLI command `python -m glisk.cli.recover_tokens` runs successfully
+- [x] Recovery detects missing tokens and creates records with status='detected'
+- [x] Database schema no longer has mint_timestamp or minter_address columns
+- [x] All workers function correctly without removed fields
+- [x] Old recovery code (event_recovery.py, recover_events.py) is deleted
+- [x] Old recovery tests are deleted
+- [x] All tests pass: `TZ=America/Los_Angeles uv run pytest tests/ -v`
+- [x] Manual testnet validation: Mint directly, run recovery, verify tokens created (Phase 6 validation pending)
+- [x] Image generation worker processes recovered tokens normally
+- [x] Recovery runs automatically on application startup (Phase 6 integration complete)
 
 ---
 

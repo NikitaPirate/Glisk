@@ -24,7 +24,7 @@ class UnitOfWork:
     Use as async context manager for automatic commit/rollback.
 
     Example:
-        async with uow_factory() as uow:
+        async with await uow_factory() as uow:
             author = await uow.authors.get_by_wallet(wallet)
             token = await uow.tokens.get_by_id(token_id)
             token.mark_generating()

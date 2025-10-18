@@ -8,11 +8,13 @@ import structlog
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
+from web3 import Web3
 
 from glisk.api.routes import webhooks
 from glisk.core import timezone  # noqa: F401
 from glisk.core.config import Settings, configure_logging
 from glisk.core.database import setup_db_session
+from glisk.services.blockchain.token_recovery import TokenRecoveryService
 from glisk.uow import create_uow_factory
 from glisk.workers.image_generation_worker import run_image_generation_worker
 from glisk.workers.ipfs_upload_worker import run_ipfs_upload_worker
@@ -121,6 +123,60 @@ async def lifespan(app: FastAPI):
     # Store in app.state for access in routes
     app.state.session_factory = session_factory
     app.state.uow_factory = uow_factory
+
+    # Run token recovery before starting workers (004-recovery-1-nexttokenid)
+    # This ensures database is consistent with on-chain state before workers start processing
+    try:
+        # Initialize Web3 connection for recovery
+        network_url_mapping = {
+            "BASE_SEPOLIA": f"https://base-sepolia.g.alchemy.com/v2/{settings.alchemy_api_key}",
+            "BASE_MAINNET": f"https://base-mainnet.g.alchemy.com/v2/{settings.alchemy_api_key}",
+        }
+
+        if settings.network in network_url_mapping:
+            alchemy_url = network_url_mapping[settings.network]
+            w3 = Web3(Web3.HTTPProvider(alchemy_url))
+
+            if w3.is_connected():
+                # Initialize recovery service
+                recovery_service = TokenRecoveryService(
+                    w3=w3,
+                    contract_address=settings.glisk_nft_contract_address,
+                )
+
+                # Run recovery
+                async with await uow_factory() as uow:
+                    result = await recovery_service.recover_missing_tokens(
+                        uow=uow,
+                        limit=settings.recovery_batch_size,
+                    )
+
+                    if result.recovered_count > 0:
+                        logger.info(
+                            "startup.recovery_completed",
+                            recovered=result.recovered_count,
+                            duplicates_skipped=result.skipped_duplicate_count,
+                            failed=len(result.errors),
+                            total_on_chain=result.total_on_chain,
+                        )
+                    else:
+                        logger.debug(
+                            "startup.recovery_no_gaps", total_on_chain=result.total_on_chain
+                        )
+            else:
+                logger.warning("startup.recovery_skipped", reason="web3_connection_failed")
+        else:
+            logger.warning(
+                "startup.recovery_skipped", reason="unsupported_network", network=settings.network
+            )
+    except Exception as e:
+        # Log error but don't prevent startup - workers can still process webhooks
+        logger.error(
+            "startup.recovery_failed",
+            error=str(e),
+            error_type=type(e).__name__,
+            message="Token recovery failed during startup - workers will still start",
+        )
 
     # Create shutdown event for graceful worker termination
     shutdown_event = asyncio.Event()

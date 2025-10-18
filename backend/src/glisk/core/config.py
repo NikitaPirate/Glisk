@@ -64,6 +64,9 @@ class Settings(BaseSettings):
     batch_reveal_wait_seconds: int = Field(default=5, alias="BATCH_REVEAL_WAIT_SECONDS")
     batch_reveal_max_tokens: int = Field(default=50, alias="BATCH_REVEAL_MAX_TOKENS")
 
+    # Token Recovery - 004-recovery-1-nexttokenid
+    recovery_batch_size: int = Field(default=1000, alias="RECOVERY_BATCH_SIZE")
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""
