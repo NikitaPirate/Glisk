@@ -8,8 +8,6 @@ Auto-generated from all feature plans. Last updated: 2025-10-10
 - File-based (audit history in `.audit/` directory, results as markdown reports) (002-smart-contract-audit)
 - Python 3.14 (standard GIL-enabled version) + FastAPI, SQLModel, psycopg3 (async), Alembic, Pydantic BaseSettings, structlog, pytest, testcontainers (003-003a-backend-foundation)
 - PostgreSQL 14+ with 200 connection pool, UTC timestamps, JSONB suppor (003-003a-backend-foundation)
-- Python 3.14 (standard GIL-enabled version) + FastAPI, Alchemy SDK (py-alchemy-sdk), hmac (stdlib), SQLModel, psycopg3 (async), Pydantic BaseSettings (003-003b-event-detection)
-- PostgreSQL 14+ with JSONB support (tables: mint_events, tokens_s0, authors, system_state from 003a) (003-003b-event-detection)
 
 ## Project Structure
 ```
@@ -580,9 +578,9 @@ detected → generating → uploading → ready → revealed
 - 003-003g: Advanced gas optimization strategies
 
 ## Recent Changes
+- 004-recovery-1-nexttokenid: Added Python 3.14 (backend), Solidity ^0.8.20 (smart contract) + web3.py (blockchain interaction), SQLModel + psycopg3 (async database), Alembic (migrations)
 - 003-003d-ipfs-reveal: Added Python 3.14 (standard GIL-enabled version)
 - 003-003c-image-generation: Added Python 3.14 (standard GIL-enabled version) + FastAPI (lifecycle hooks), Replicate Python SDK, SQLModel, psycopg3 (async), structlog
-- 003-003b-event-detection: ✅ COMPLETE - Mint event detection system with webhooks and recovery CLI
 
 <!-- MANUAL ADDITIONS START -->
 
