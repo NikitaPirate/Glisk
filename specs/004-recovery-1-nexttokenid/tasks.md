@@ -107,19 +107,19 @@
 
 ### Implementation for User Story 3
 
-- [ ] T030 [P] [US3] Delete backend/src/glisk/services/blockchain/event_recovery.py
-- [ ] T031 [P] [US3] Delete backend/src/glisk/cli/recover_events.py
-- [ ] T032 [P] [US3] Delete backend/tests/unit/services/blockchain/test_event_recovery.py if exists
-- [ ] T033 [P] [US3] Delete backend/tests/unit/cli/test_recover_events.py if exists
-- [ ] T034 [US3] Grep codebase for imports of deleted modules: `rg "event_recovery|recover_events" backend/` and remove any remaining references
-- [ ] T035 [US3] Update CLAUDE.md to remove old "Event Recovery CLI" documentation (lines referring to recover_events.py command)
-- [ ] T036 [US3] Add new "Token Recovery CLI" documentation to CLAUDE.md with usage: `python -m glisk.cli.recover_tokens [--limit N] [--dry-run]`
+- [x] T030 [P] [US3] Delete backend/src/glisk/services/blockchain/event_recovery.py
+- [x] T031 [P] [US3] Delete backend/src/glisk/cli/recover_events.py
+- [x] T032 [P] [US3] Delete backend/tests/unit/services/blockchain/test_event_recovery.py if exists
+- [x] T033 [P] [US3] Delete backend/tests/unit/cli/test_recover_events.py if exists
+- [x] T034 [US3] Grep codebase for imports of deleted modules: `rg "event_recovery|recover_events" backend/` and remove any remaining references
+- [x] T035 [US3] Update CLAUDE.md to remove old "Event Recovery CLI" documentation (lines referring to recover_events.py command)
+- [x] T036 [US3] Add new "Token Recovery CLI" documentation to CLAUDE.md with usage: `python -m glisk.cli.recover_tokens [--limit N] [--dry-run]`
 
 ### Verification for User Story 3
 
-- [ ] T037 [P] [US3] Run full test suite to verify nothing broke: `cd backend && TZ=America/Los_Angeles uv run pytest tests/ -v`
-- [ ] T038 [P] [US3] Count lines of code removed: `git diff --stat` should show ~200+ LOC deleted
-- [ ] T039 [US3] Verify attempting to run old CLI fails appropriately: `python -m glisk.cli.recover_events` should raise ModuleNotFoundError
+- [x] T037 [P] [US3] Run full test suite to verify nothing broke: `cd backend && TZ=America/Los_Angeles uv run pytest tests/ -v`
+- [x] T038 [P] [US3] Count lines of code removed: `git diff --stat` should show ~200+ LOC deleted (actual: 1082 LOC deleted!)
+- [x] T039 [US3] Verify attempting to run old CLI fails appropriately: `python -m glisk.cli.recover_events` should raise ModuleNotFoundError
 
 **Checkpoint**: Old recovery code is completely removed, test suite passes, codebase is simpler
 
