@@ -5,7 +5,7 @@ Provides data access methods for Token entities with worker coordination via FOR
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from glisk.models.token import Token, TokenStatus
@@ -67,13 +67,13 @@ class TokenRepository:
         """Retrieve tokens pending image generation with row-level locking.
 
         Uses FOR UPDATE SKIP LOCKED to ensure concurrent workers receive
-        non-overlapping sets of tokens. Orders by mint_timestamp ASC to
+        non-overlapping sets of tokens. Orders by created_at ASC to
         process oldest tokens first (FIFO).
 
         Query explanation:
         - WHERE status = 'detected': Only unprocessed tokens
         - WHERE generation_attempts < 3: Only tokens with retry budget remaining
-        - ORDER BY mint_timestamp ASC: Process oldest first
+        - ORDER BY created_at ASC: Process oldest first
         - LIMIT: Batch size for worker
         - FOR UPDATE SKIP LOCKED: Lock rows, skip already locked ones
 
@@ -88,7 +88,7 @@ class TokenRepository:
             select(Token)
             .where(Token.status == TokenStatus.DETECTED)  # type: ignore[arg-type]
             .where(Token.generation_attempts < 3)  # type: ignore[attr-defined]
-            .order_by(Token.mint_timestamp.asc())  # type: ignore[attr-defined]
+            .order_by(Token.created_at.asc())  # type: ignore[attr-defined]
             .limit(limit)
             .with_for_update(skip_locked=True)
         )
@@ -120,7 +120,7 @@ class TokenRepository:
 
         Query explanation:
         - WHERE status = 'uploading': Tokens ready for IPFS upload
-        - ORDER BY mint_timestamp ASC: Process oldest first
+        - ORDER BY created_at ASC: Process oldest first
         - LIMIT: Batch size for worker
         - FOR UPDATE SKIP LOCKED: Lock rows, skip already locked ones
 
@@ -134,7 +134,7 @@ class TokenRepository:
         result = await self.session.execute(
             select(Token)
             .where(Token.status == TokenStatus.UPLOADING)  # type: ignore[arg-type]
-            .order_by(Token.mint_timestamp.asc())  # type: ignore[attr-defined]
+            .order_by(Token.created_at.asc())  # type: ignore[attr-defined]
             .limit(limit)
             .with_for_update(skip_locked=True)
         )
@@ -148,7 +148,7 @@ class TokenRepository:
 
         Query explanation:
         - WHERE status = 'ready': Tokens with metadata uploaded
-        - ORDER BY mint_timestamp ASC: Process oldest first
+        - ORDER BY created_at ASC: Process oldest first
         - LIMIT: Batch size for reveal transaction
         - FOR UPDATE SKIP LOCKED: Lock rows, skip already locked ones
 
@@ -162,7 +162,7 @@ class TokenRepository:
         result = await self.session.execute(
             select(Token)
             .where(Token.status == TokenStatus.READY)  # type: ignore[arg-type]
-            .order_by(Token.mint_timestamp.asc())  # type: ignore[attr-defined]
+            .order_by(Token.created_at.asc())  # type: ignore[attr-defined]
             .limit(limit)
             .with_for_update(skip_locked=True)
         )
@@ -179,12 +179,12 @@ class TokenRepository:
             offset: Number of tokens to skip (default: 0)
 
         Returns:
-            List of tokens ordered by mint timestamp (newest first)
+            List of tokens ordered by created_at timestamp (newest first)
         """
         result = await self.session.execute(
             select(Token)
             .where(Token.author_id == author_id)  # type: ignore[arg-type]
-            .order_by(Token.mint_timestamp.desc())  # type: ignore[attr-defined]
+            .order_by(Token.created_at.desc())  # type: ignore[attr-defined]
             .limit(limit)
             .offset(offset)
         )
@@ -201,12 +201,12 @@ class TokenRepository:
             offset: Number of tokens to skip (default: 0)
 
         Returns:
-            List of tokens ordered by mint timestamp (oldest first)
+            List of tokens ordered by created_at timestamp (oldest first)
         """
         result = await self.session.execute(
             select(Token)
             .where(Token.status == status)  # type: ignore[arg-type]
-            .order_by(Token.mint_timestamp.asc())  # type: ignore[attr-defined]
+            .order_by(Token.created_at.asc())  # type: ignore[attr-defined]
             .limit(limit)
             .offset(offset)
         )
@@ -278,3 +278,40 @@ class TokenRepository:
         self.session.add(token)
         await self.session.flush()
         await self.session.refresh(token)
+
+    async def get_missing_token_ids(self, max_token_id: int, limit: int | None = None) -> list[int]:
+        """Retrieve token IDs that exist on-chain but not in database.
+
+        Uses generate_series() to create expected range [1, max_token_id-1],
+        then LEFT JOIN to find missing IDs. Token IDs start at 1 (not 0).
+
+        Args:
+            max_token_id: Upper bound from contract.nextTokenId() (exclusive)
+            limit: Optional cap on number of results (for batching large gaps)
+
+        Returns:
+            List of missing token IDs in ascending order
+
+        Example:
+            If max_token_id=11 (tokens 1-10 should exist) and DB has [1,2,3,6,7,8],
+            returns [4,5,9,10]
+        """
+        # Build query with generate_series and LEFT JOIN
+        query_text = """
+            SELECT series.token_id
+            FROM generate_series(1, :max_token_id - 1) AS series(token_id)
+            LEFT JOIN tokens_s0 ON series.token_id = tokens_s0.token_id
+            WHERE tokens_s0.token_id IS NULL
+            ORDER BY series.token_id ASC
+        """
+
+        if limit is not None:
+            query_text += " LIMIT :limit"
+
+        # Execute raw SQL query
+        params = {"max_token_id": max_token_id}
+        if limit is not None:
+            params["limit"] = limit
+
+        result = await self.session.execute(text(query_text), params)
+        return [row[0] for row in result.fetchall()]

@@ -8,8 +8,6 @@ Auto-generated from all feature plans. Last updated: 2025-10-10
 - File-based (audit history in `.audit/` directory, results as markdown reports) (002-smart-contract-audit)
 - Python 3.14 (standard GIL-enabled version) + FastAPI, SQLModel, psycopg3 (async), Alembic, Pydantic BaseSettings, structlog, pytest, testcontainers (003-003a-backend-foundation)
 - PostgreSQL 14+ with 200 connection pool, UTC timestamps, JSONB suppor (003-003a-backend-foundation)
-- Python 3.14 (standard GIL-enabled version) + FastAPI, Alchemy SDK (py-alchemy-sdk), hmac (stdlib), SQLModel, psycopg3 (async), Pydantic BaseSettings (003-003b-event-detection)
-- PostgreSQL 14+ with JSONB support (tables: mint_events, tokens_s0, authors, system_state from 003a) (003-003b-event-detection)
 
 ## Project Structure
 ```
@@ -142,6 +140,14 @@ forge clean && forge build  # Clean build
     └── {audit-id}-findings.json
 ```
 
+## Smart Contract Development
+
+After modifying contracts, sync the ABI to backend:
+
+```bash
+./sync-abi.sh
+```
+
 ## Code Style
 Solidity ^0.8.20: Follow standard conventions
 
@@ -151,21 +157,18 @@ Solidity ^0.8.20: Follow standard conventions
 
 **Status**: ✅ Complete (Phases 1-6 implemented)
 
-**Purpose**: Real-time blockchain event detection for NFT mints via Alchemy webhooks + historical event recovery via eth_getLogs.
+**Purpose**: Real-time blockchain event detection for NFT mints via Alchemy webhooks.
 
 **Features Implemented**:
 - ✅ Phase 1: Setup (web3.py dependency, Alchemy configuration)
 - ✅ Phase 2: Foundational security (HMAC signature validation with constant-time comparison)
 - ✅ Phase 3: Webhook authentication (signature validation dependency, unit tests)
 - ✅ Phase 4: Real-time mint detection (POST /webhooks/alchemy endpoint, event parsing, database storage)
-- ✅ Phase 5: Event recovery CLI (`python -m glisk.cli.recover_events` with pagination and state management)
 - ✅ Phase 6: Polish (structured logging, quickstart validation tests, code review, documentation)
 
 **Key Files**:
 - `backend/src/glisk/api/routes/webhooks.py` - Webhook endpoint (POST /webhooks/alchemy)
 - `backend/src/glisk/services/blockchain/alchemy_signature.py` - HMAC-SHA256 signature validation
-- `backend/src/glisk/services/blockchain/event_recovery.py` - eth_getLogs recovery mechanism
-- `backend/src/glisk/cli/recover_events.py` - CLI command for historical event recovery
 - `backend/tests/test_quickstart.py` - Quickstart validation test suite
 
 **Usage**:
@@ -175,22 +178,6 @@ Solidity ^0.8.20: Follow standard conventions
 # Endpoint receives Alchemy webhooks at POST /webhooks/alchemy
 # Validates HMAC signature, parses BatchMinted events, stores to database
 # See specs/003-003b-event-detection/quickstart.md for setup
-```
-
-*Event Recovery CLI* (Historical events):
-```bash
-# First-time recovery from contract deployment block
-cd backend
-python -m glisk.cli.recover_events --from-block 12345000
-
-# Resume from last checkpoint
-python -m glisk.cli.recover_events
-
-# Dry run (no database writes)
-python -m glisk.cli.recover_events --from-block 12345000 --dry-run
-
-# Verbose logging
-python -m glisk.cli.recover_events --from-block 12345000 -v
 ```
 
 **Configuration** (.env):
@@ -579,10 +566,90 @@ detected → generating → uploading → ready → revealed
 - 003-003f: Health endpoints and custom monitoring dashboards
 - 003-003g: Advanced gas optimization strategies
 
+---
+
+### Token Recovery via nextTokenId (004-recovery-1-nexttokenid)
+
+**Status**: 🚧 In Progress (Phases 1-4 complete)
+
+**Purpose**: Simplified token recovery mechanism that queries the smart contract's `nextTokenId()` counter to identify missing tokens in the database, then creates records with accurate author attribution from on-chain data.
+
+**Features Implemented**:
+- ✅ Phase 1: Setup (prerequisites verification)
+- ✅ Phase 2: Foundational (nextTokenId() contract getter, redeploy)
+- ✅ Phase 3: User Story 1 - Automatic token discovery with author attribution
+- ✅ Phase 4: User Story 2 - Remove unused metadata fields (mint_timestamp, minter_address)
+- ⏳ Phase 5: User Story 3 - Deprecate event-based recovery (in progress)
+
+**Key Files**:
+- `backend/src/glisk/services/blockchain/token_recovery.py` - Recovery service using nextTokenId
+- `backend/src/glisk/cli/recover_tokens.py` - CLI command for token recovery
+- `backend/src/glisk/repositories/token.py` - get_missing_token_ids() query
+- `contracts/src/GliskNFT.sol` - nextTokenId() public getter
+
+**Usage**:
+
+*Token Recovery CLI*:
+```bash
+cd backend
+
+# Run recovery (automatically queries contract and fills gaps)
+python -m glisk.cli.recover_tokens
+
+# Limit number of tokens to recover
+python -m glisk.cli.recover_tokens --limit 100
+
+# Dry run (preview without persisting changes)
+python -m glisk.cli.recover_tokens --dry-run
+
+# Combined
+python -m glisk.cli.recover_tokens --limit 50 --dry-run
+```
+
+**How It Works**:
+1. Queries `contract.nextTokenId()` to get total minted tokens
+2. Uses PostgreSQL `generate_series()` to find missing token IDs in database
+3. For each missing token, queries `contract.tokenPromptAuthor(tokenId)` for accurate author
+4. Creates token records with `status='detected'` for image generation pipeline
+5. Handles race conditions via database UNIQUE constraint on token_id
+
+**Configuration** (.env):
+```bash
+# Already configured from 003-003b-event-detection
+ALCHEMY_API_KEY=your_api_key
+GLISK_NFT_CONTRACT_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+NETWORK=BASE_SEPOLIA
+```
+
+**Testing**:
+```bash
+# Run all tests
+cd backend
+TZ=America/Los_Angeles uv run pytest tests/ -v
+
+# Run recovery-specific tests only
+TZ=America/Los_Angeles uv run pytest tests/test_token_recovery.py -v
+```
+
+**Advantages over Event-Based Recovery**:
+- ✅ Simpler: No event log parsing, no checkpoint management
+- ✅ Faster: Single contract call + efficient SQL query
+- ✅ Accurate: Author attribution from `tokenPromptAuthor()` mapping
+- ✅ Maintainable: ~60% less code (200+ LOC removed)
+
+**Documentation**:
+- Specification: `specs/004-recovery-1-nexttokenid/spec.md`
+- Implementation Plan: `specs/004-recovery-1-nexttokenid/plan.md`
+- Quickstart Guide: `specs/004-recovery-1-nexttokenid/quickstart.md`
+- Data Model: `specs/004-recovery-1-nexttokenid/data-model.md`
+- Research Notes: `specs/004-recovery-1-nexttokenid/research.md`
+
+---
+
 ## Recent Changes
+- 004-recovery-1-nexttokenid: Added Python 3.14 (backend), Solidity ^0.8.20 (smart contract) + web3.py (blockchain interaction), SQLModel + psycopg3 (async database), Alembic (migrations)
 - 003-003d-ipfs-reveal: Added Python 3.14 (standard GIL-enabled version)
 - 003-003c-image-generation: Added Python 3.14 (standard GIL-enabled version) + FastAPI (lifecycle hooks), Replicate Python SDK, SQLModel, psycopg3 (async), structlog
-- 003-003b-event-detection: ✅ COMPLETE - Mint event detection system with webhooks and recovery CLI
 
 <!-- MANUAL ADDITIONS START -->
 

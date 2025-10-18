@@ -6,24 +6,18 @@ import "../src/GliskNFT.sol";
 
 /**
  * @title GliskNFT Minting Script
- * @notice Foundry script for minting GLISK Season 0 NFTs on Base Sepolia
- * @dev Usage:
+ * @notice Foundry script for minting GLISK Season 0 NFTs
+ * @dev Usage (use mint.sh wrapper instead of calling directly):
  *   Single mint:
- *     forge script script/Mint.s.sol:MintGliskNFT --sig "mintSingle()" --rpc-url base_sepolia --broadcast
+ *     forge script script/Mint.s.sol:MintGliskNFT --sig "mintSingle(address)" <contract_address> --rpc-url base_sepolia --broadcast
  *
  *   Batch mint:
- *     forge script script/Mint.s.sol:MintGliskNFT --sig "mintBatch(uint256)" 10 --rpc-url base_sepolia --broadcast
- *
- *   Stress test (max batch):
- *     forge script script/Mint.s.sol:MintGliskNFT --sig "mintBatch(uint256)" 50 --rpc-url base_sepolia --broadcast
+ *     forge script script/Mint.s.sol:MintGliskNFT --sig "mintBatch(address,uint256)" <contract_address> 10 --rpc-url base_sepolia --broadcast
  */
 contract MintGliskNFT is Script {
     // ============================================
     // CONSTANTS
     // ============================================
-
-    /// @notice Deployed GliskNFT contract address on Base Sepolia
-    address constant NFT_CONTRACT = 0xb43185E67D4Fb27115AC419C9F8A335cC0B837B9;
 
     /// @notice Prompt author address for minted tokens
     /// @dev This is the address that will receive 50% of mint proceeds
@@ -39,21 +33,23 @@ contract MintGliskNFT is Script {
     /**
      * @notice Mint a single NFT for testing
      * @dev Convenience function for quick testing of the pipeline
+     * @param nftContract Address of deployed GliskNFT contract
      */
-    function mintSingle() external {
-        _mint(1);
+    function mintSingle(address nftContract) external {
+        _mint(nftContract, 1);
     }
 
     /**
      * @notice Mint multiple NFTs in a single transaction
      * @dev Main function for batch minting to test the pipeline
+     * @param nftContract Address of deployed GliskNFT contract
      * @param quantity Number of NFTs to mint (1 to MAX_BATCH_SIZE)
      */
-    function mintBatch(uint256 quantity) external {
+    function mintBatch(address nftContract, uint256 quantity) external {
         require(quantity > 0, "Quantity must be greater than 0");
         require(quantity <= MAX_BATCH_SIZE, "Quantity exceeds max batch size");
 
-        _mint(quantity);
+        _mint(nftContract, quantity);
     }
 
     // ============================================
@@ -63,15 +59,16 @@ contract MintGliskNFT is Script {
     /**
      * @notice Internal mint implementation
      * @dev Handles the actual minting logic with proper payment and logging
+     * @param nftContract Address of deployed GliskNFT contract
      * @param quantity Number of NFTs to mint
      */
-    function _mint(uint256 quantity) internal {
+    function _mint(address nftContract, uint256 quantity) internal {
         // Read private key from environment
         uint256 minterPrivateKey = vm.envUint("PRIVATE_KEY");
         address minterAddress = vm.addr(minterPrivateKey);
 
         // Get contract instance
-        GliskNFT nft = GliskNFT(payable(NFT_CONTRACT));
+        GliskNFT nft = GliskNFT(payable(nftContract));
 
         // Read current mint price from contract
         uint256 mintPrice = nft.mintPrice();
@@ -85,7 +82,7 @@ contract MintGliskNFT is Script {
         console.log("");
         console.log("=== GliskNFT Minting ===");
         console.log("Network:", block.chainid);
-        console.log("Contract:", NFT_CONTRACT);
+        console.log("Contract:", nftContract);
         console.log("Minter:", minterAddress);
         console.log("Minter Balance:", minterBalance);
         console.log("Prompt Author:", PROMPT_AUTHOR);
@@ -154,13 +151,14 @@ contract MintGliskNFT is Script {
     /**
      * @notice Check contract state without minting
      * @dev Useful for checking contract state before minting
+     * @param nftContract Address of deployed GliskNFT contract
      */
-    function checkState() external view {
-        GliskNFT nft = GliskNFT(payable(NFT_CONTRACT));
+    function checkState(address nftContract) external view {
+        GliskNFT nft = GliskNFT(payable(nftContract));
 
         console.log("");
         console.log("=== Contract State ===");
-        console.log("Contract Address:", NFT_CONTRACT);
+        console.log("Contract Address:", nftContract);
         console.log("Chain ID:", block.chainid);
         console.log("Mint Price:", nft.mintPrice());
         console.log("Treasury Balance:", nft.treasuryBalance());
@@ -173,12 +171,13 @@ contract MintGliskNFT is Script {
     /**
      * @notice Estimate cost for minting N tokens
      * @dev Calculate total cost without executing mint
+     * @param nftContract Address of deployed GliskNFT contract
      * @param quantity Number of tokens to estimate
      */
-    function estimateCost(uint256 quantity) external view {
+    function estimateCost(address nftContract, uint256 quantity) external view {
         require(quantity > 0 && quantity <= MAX_BATCH_SIZE, "Invalid quantity");
 
-        GliskNFT nft = GliskNFT(payable(NFT_CONTRACT));
+        GliskNFT nft = GliskNFT(payable(nftContract));
         uint256 mintPrice = nft.mintPrice();
         uint256 totalCost = mintPrice * quantity;
 

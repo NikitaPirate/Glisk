@@ -9,6 +9,7 @@ from datetime import datetime
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from web3 import Web3
 
 from glisk.api.dependencies import get_settings, get_uow_factory, validate_webhook_signature
@@ -333,9 +334,7 @@ async def receive_alchemy_webhook(
                     token = Token(
                         token_id=token_id,
                         author_id=author.id,
-                        minter_address=event_data["minter"],
                         status=TokenStatus.DETECTED,
-                        mint_timestamp=datetime.utcnow(),
                     )
                     await uow.tokens.add(token)
                     created_token_ids.append(token_id)
@@ -365,7 +364,35 @@ async def receive_alchemy_webhook(
                 }
             )
 
+        except IntegrityError as e:
+            # Handle duplicate token_id gracefully (expected scenario)
+            error_msg = str(e)
+            if "ix_tokens_s0_token_id" in error_msg or "duplicate key" in error_msg:
+                logger.info(
+                    "webhook.duplicate_token_skipped",
+                    tx_hash=event_data.get("tx_hash"),
+                    detail="Token already exists in database (likely from concurrent processing)",
+                )
+                # Return 200 OK to prevent Alchemy retry
+                return {
+                    "status": "success",
+                    "message": "Token already exists, skipping duplicate",
+                    "tx_hash": event_data.get("tx_hash"),
+                }
+            else:
+                # Other IntegrityError (e.g., foreign key violation) - treat as real error
+                logger.error(
+                    "webhook.integrity_error",
+                    error=error_msg,
+                    tx_hash=event_data.get("tx_hash"),
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Database integrity error: {error_msg}",
+                )
+
         except Exception as e:
+            # Generic error handler for unexpected issues
             logger.error(
                 "webhook.storage_error",
                 error=str(e),
