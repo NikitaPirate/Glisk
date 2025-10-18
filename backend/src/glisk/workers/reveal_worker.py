@@ -72,13 +72,20 @@ async def get_batch(
         additional_tokens = await token_repo.get_ready_for_reveal(limit=remaining_slots)
 
         if additional_tokens:
-            tokens.extend(additional_tokens)
-            logger.debug(
-                "reveal.batch_accumulated",
-                initial_count=token_count,
-                additional_count=len(additional_tokens),
-                final_count=len(tokens),
-            )
+            # Filter out duplicates by token_id
+            # (important: first query may still return same tokens)
+            existing_ids = {t.token_id for t in tokens}
+            unique_additional = [t for t in additional_tokens if t.token_id not in existing_ids]
+
+            if unique_additional:
+                tokens.extend(unique_additional)
+                logger.debug(
+                    "reveal.batch_accumulated",
+                    initial_count=token_count,
+                    additional_count=len(unique_additional),
+                    duplicates_filtered=len(additional_tokens) - len(unique_additional),
+                    final_count=len(tokens),
+                )
 
     return tokens
 
@@ -350,10 +357,6 @@ async def run_reveal_worker(
                                 token_count=len(tokens),
                             )
                             await session.rollback()
-
-                    else:
-                        # No tokens ready, log debug message
-                        logger.debug("reveal.no_tokens_ready")
 
             except asyncio.CancelledError:
                 # Propagate cancellation for graceful shutdown

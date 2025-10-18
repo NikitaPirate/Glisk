@@ -55,8 +55,7 @@ class KeeperService:
             / "GliskNFT.json"
         )
         with open(abi_path, "r") as f:
-            abi_content = json.load(f)
-            self.contract_abi = abi_content["abi"]
+            self.contract_abi = json.load(f)  # File contains ABI array directly
 
         # Initialize contract
         self.contract = self.w3.eth.contract(address=self.contract_address, abi=self.contract_abi)

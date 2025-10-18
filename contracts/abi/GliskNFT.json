@@ -1,170 +1,1363 @@
-
-╭-------------+-------------------------------------------------------------+--------------------------------------------------------------------╮
-| Type        | Signature                                                   | Selector                                                           |
-+================================================================================================================================================+
-| event       | Approval(address,address,uint256)                           | 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925 |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | ApprovalForAll(address,address,bool)                        | 0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31 |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | AuthorClaimed(address,uint256)                              | 0xf16699a137e71c0d60788e62870d8740b7bfd49934df6aa4ab690d477033c38e |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | BatchMinted(address,address,uint256,uint256,uint256)        | 0x20c0d4a5bab7118059cf1d2fd0403c4f29a05e446d435b347f90b80778374c54 |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | DirectPaymentReceived(address,uint256)                      | 0x8f420229d1114b1c87ad21d4b55b95d2265f58ba2a4b1a57b0d14be346f79238 |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | MintPriceUpdated(uint256,uint256)                           | 0x2e1c9e000c6e8dda4d03536adb13b7cb6034ccff90d17f01de381e4d5097b525 |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | PlaceholderURIUpdated(string)                               | 0xab8c8ef7564a59055ab832c6fa8c5473c482865dfdbfb7a538c325aaf27e7116 |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | RoleAdminChanged(bytes32,bytes32,bytes32)                   | 0xbd79b86ffe0ab8e8776151514217cd7cacd52c909f66475c3af44e129f0b00ff |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | RoleGranted(bytes32,address,address)                        | 0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | RoleRevoked(bytes32,address,address)                        | 0xf6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | RoyaltyUpdated(address,uint96)                              | 0x8039bd6e4e7dba001c8840eb2e118d9d131246faa7d0d04335f7305127ec0b10 |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | SeasonEnded(uint256)                                        | 0x71b1ed1af5dc112f73a5ec9d0960e84a848b781220620ccc8fb91814ab3047be |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | TokensRevealed(uint256[])                                   | 0x5f36dfedf769ad12bf71aec843edc397276a255b70d51016d99f5fb020dfd902 |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | Transfer(address,address,uint256)                           | 0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | TreasuryWithdrawn(address,uint256)                          | 0x41fdd680478135993bc53fb2ffaf9560951b57ef62ff6badd02b61e018b4f17f |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | UnclaimedRewardsSwept(uint256,uint256)                      | 0xead8bae71482b3f0e427c86842d5e2a2a47636d622d47d2582873c02aef0a4f2 |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | AccessControlBadConfirmation()                              | 0x6697b232                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | AccessControlUnauthorizedAccount(address,bytes32)           | 0xe2517d3f                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | AlreadyRevealed(uint256)                                    | 0xa3a57894                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC2981InvalidDefaultRoyalty(uint256,uint256)               | 0x6f483d09                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC2981InvalidDefaultRoyaltyReceiver(address)               | 0xb6d9900a                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC2981InvalidTokenRoyalty(uint256,uint256,uint256)         | 0xdfd1fc1b                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC2981InvalidTokenRoyaltyReceiver(uint256,address)         | 0x969f0852                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC721IncorrectOwner(address,uint256,address)               | 0x64283d7b                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC721InsufficientApproval(address,uint256)                 | 0x177e802f                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC721InvalidApprover(address)                              | 0xa9fbf51f                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC721InvalidOperator(address)                              | 0x5b08ba18                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC721InvalidOwner(address)                                 | 0x89c62b64                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC721InvalidReceiver(address)                              | 0x64a0ae92                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC721InvalidSender(address)                                | 0x73c6ac6e                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ERC721NonexistentToken(uint256)                             | 0x7e273289                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ExceedsMaxBatchSize()                                       | 0xd2905bb4                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | InsufficientPayment()                                       | 0xcd1c8867                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | InvalidQuantity()                                           | 0x524f409b                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | LengthMismatch()                                            | 0xff633a38                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | MintingDisabled()                                           | 0xaf79b437                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | NoBalance()                                                 | 0xc2caa2a6                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ReentrancyGuardReentrantCall()                              | 0x3ee5aeb5                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | SeasonAlreadyEnded()                                        | 0xe6c475e6                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | SeasonNotEnded()                                            | 0x7221b37b                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | SweepProtectionActive()                                     | 0x6f8347bd                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | TransferFailed()                                            | 0x90b8ec18                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | DEFAULT_ADMIN_ROLE() view returns (bytes32)                 | 0xa217fddf                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | KEEPER_ROLE() view returns (bytes32)                        | 0x364bc15a                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | MAX_BATCH_SIZE() view returns (uint256)                     | 0xcfdbf254                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | SWEEP_PROTECTION_PERIOD() view returns (uint256)            | 0x246d5829                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | approve(address,uint256) nonpayable                         | 0x095ea7b3                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | authorClaimable(address) view returns (uint256)             | 0x3ecbfe01                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | balanceOf(address) view returns (uint256)                   | 0x70a08231                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | claimAuthorRewards() nonpayable                             | 0x93416375                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | endSeason() nonpayable                                      | 0x3dcdb672                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getApproved(uint256) view returns (address)                 | 0x081812fc                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getRoleAdmin(bytes32) view returns (bytes32)                | 0x248a9ca3                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | grantRole(bytes32,address) nonpayable                       | 0x2f2ff15d                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | hasRole(bytes32,address) view returns (bool)                | 0x91d14854                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | isApprovedForAll(address,address) view returns (bool)       | 0xe985e9c5                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | isRevealed(uint256) view returns (bool)                     | 0x5055fbc3                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | mint(address,uint256) payable                               | 0x40c10f19                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | mintPrice() view returns (uint256)                          | 0x6817c76c                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | name() view returns (string)                                | 0x06fdde03                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | ownerOf(uint256) view returns (address)                     | 0x6352211e                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | renounceRole(bytes32,address) nonpayable                    | 0x36568abe                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | revealTokens(uint256[],string[]) nonpayable                 | 0x53de7804                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | revokeRole(bytes32,address) nonpayable                      | 0xd547741f                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | royaltyInfo(uint256,uint256) view returns (address,uint256) | 0x2a55205a                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | safeTransferFrom(address,address,uint256) nonpayable        | 0x42842e0e                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | safeTransferFrom(address,address,uint256,bytes) nonpayable  | 0xb88d4fde                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | seasonEndTime() view returns (uint256)                      | 0x07ac1a53                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | seasonEnded() view returns (bool)                           | 0x66eb623e                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | setApprovalForAll(address,bool) nonpayable                  | 0xa22cb465                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | setDefaultRoyalty(address,uint96) nonpayable                | 0x04634d8d                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | setMintPrice(uint256) nonpayable                            | 0xf4a0a528                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | setPlaceholderURI(string) nonpayable                        | 0x3574a2dd                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | supportsInterface(bytes4) view returns (bool)               | 0x01ffc9a7                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | sweepUnclaimedRewards(address[]) nonpayable                 | 0xe4ef9ab1                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | symbol() view returns (string)                              | 0x95d89b41                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | tokenPromptAuthor(uint256) view returns (address)           | 0x7c407c92                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | tokenURI(uint256) view returns (string)                     | 0xc87b56dd                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | transferFrom(address,address,uint256) nonpayable            | 0x23b872dd                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | treasuryBalance() view returns (uint256)                    | 0x313dab20                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | withdrawTreasury() nonpayable                               | 0x166bab95                                                         |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| constructor | constructor(string,string,string,uint256) nonpayable        |                                                                    |
-|-------------+-------------------------------------------------------------+--------------------------------------------------------------------|
-| receive     | receive() payable                                           |                                                                    |
-╰-------------+-------------------------------------------------------------+--------------------------------------------------------------------╯
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "name_",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "symbol_",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "placeholderURI_",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "initialMintPrice_",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "DEFAULT_ADMIN_ROLE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "KEEPER_ROLE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_BATCH_SIZE",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "SWEEP_PROTECTION_PERIOD",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "approve",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "authorClaimable",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "balanceOf",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "claimAuthorRewards",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "endSeason",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getApproved",
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getRoleAdmin",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "grantRole",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "hasRole",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isApprovedForAll",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "operator",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "isRevealed",
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "mint",
+    "inputs": [
+      {
+        "name": "promptAuthor",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "quantity",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "mintPrice",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "name",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "ownerOf",
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "recoverERC20",
+    "inputs": [
+      {
+        "name": "tokenAddress",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "renounceRole",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "callerConfirmation",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "revealTokens",
+    "inputs": [
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "uris",
+        "type": "string[]",
+        "internalType": "string[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "revokeRole",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "royaltyInfo",
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "salePrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "safeTransferFrom",
+    "inputs": [
+      {
+        "name": "from",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "safeTransferFrom",
+    "inputs": [
+      {
+        "name": "from",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "data",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "seasonEndTime",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "seasonEnded",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "setApprovalForAll",
+    "inputs": [
+      {
+        "name": "operator",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "approved",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setDefaultRoyalty",
+    "inputs": [
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "feeNumerator",
+        "type": "uint96",
+        "internalType": "uint96"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMintPrice",
+    "inputs": [
+      {
+        "name": "newPrice",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setPlaceholderURI",
+    "inputs": [
+      {
+        "name": "newURI",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "supportsInterface",
+    "inputs": [
+      {
+        "name": "interfaceId",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "sweepUnclaimedRewards",
+    "inputs": [
+      {
+        "name": "authors",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "symbol",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tokenPromptAuthor",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tokenURI",
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "transferFrom",
+    "inputs": [
+      {
+        "name": "from",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "treasuryBalance",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "withdrawTreasury",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "Approval",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "approved",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ApprovalForAll",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "operator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "approved",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "AuthorClaimed",
+    "inputs": [
+      {
+        "name": "author",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "BatchMinted",
+    "inputs": [
+      {
+        "name": "minter",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "promptAuthor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "startTokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "quantity",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalPaid",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "DirectPaymentReceived",
+    "inputs": [
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ERC20Recovered",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MintPriceUpdated",
+    "inputs": [
+      {
+        "name": "oldPrice",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "newPrice",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PlaceholderURIUpdated",
+    "inputs": [
+      {
+        "name": "newURI",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RoleAdminChanged",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "previousAdminRole",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "newAdminRole",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RoleGranted",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RoleRevoked",
+    "inputs": [
+      {
+        "name": "role",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RoyaltyUpdated",
+    "inputs": [
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "feeNumerator",
+        "type": "uint96",
+        "indexed": false,
+        "internalType": "uint96"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SeasonEnded",
+    "inputs": [
+      {
+        "name": "timestamp",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TokensRevealed",
+    "inputs": [
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Transfer",
+    "inputs": [
+      {
+        "name": "from",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TreasuryWithdrawn",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "UnclaimedRewardsSwept",
+    "inputs": [
+      {
+        "name": "totalAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "authorsCount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "AccessControlBadConfirmation",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "AccessControlUnauthorizedAccount",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "neededRole",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "AddressEmptyCode",
+    "inputs": [
+      {
+        "name": "target",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "AddressInsufficientBalance",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "AlreadyRevealed",
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC2981InvalidDefaultRoyalty",
+    "inputs": [
+      {
+        "name": "numerator",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "denominator",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC2981InvalidDefaultRoyaltyReceiver",
+    "inputs": [
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC2981InvalidTokenRoyalty",
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "numerator",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "denominator",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC2981InvalidTokenRoyaltyReceiver",
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC721IncorrectOwner",
+    "inputs": [
+      {
+        "name": "sender",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC721InsufficientApproval",
+    "inputs": [
+      {
+        "name": "operator",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC721InvalidApprover",
+    "inputs": [
+      {
+        "name": "approver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC721InvalidOperator",
+    "inputs": [
+      {
+        "name": "operator",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC721InvalidOwner",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC721InvalidReceiver",
+    "inputs": [
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC721InvalidSender",
+    "inputs": [
+      {
+        "name": "sender",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC721NonexistentToken",
+    "inputs": [
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ExceedsMaxBatchSize",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "FailedInnerCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InsufficientPayment",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidQuantity",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "LengthMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MintingDisabled",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoBalance",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SafeERC20FailedOperation",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "SeasonAlreadyEnded",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SeasonNotEnded",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SweepProtectionActive",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TransferFailed",
+    "inputs": []
+  }
+]

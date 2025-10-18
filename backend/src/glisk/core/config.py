@@ -70,10 +70,10 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.cors_origins.split(",")]
 
     @model_validator(mode="after")
-    def validate_image_generation_config(self) -> "Settings":
-        """Validate image generation configuration on startup.
+    def validate_required_config(self) -> "Settings":
+        """Validate required configuration on startup.
 
-        Ensures required environment variables are set for the worker to function.
+        Ensures ALL required environment variables are set for the application to function.
         Fails fast with clear error messages if configuration is incomplete.
 
         Validation is skipped in test/development environments to avoid breaking tests.
@@ -82,51 +82,35 @@ class Settings(BaseSettings):
         if self.app_env in ("test", "testing"):
             return self
 
-        # REPLICATE_API_TOKEN is required for image generation worker in production
+        # Collect all missing required variables
+        missing = []
+
+        # REPLICATE_API_TOKEN is required for image generation worker
         if not self.replicate_api_token:
-            structlog.get_logger().warning(
-                "config.validation.warning",
-                message="REPLICATE_API_TOKEN not set - image generation worker will fail",
-                hint="Get your API token from https://replicate.com/account/api-tokens",
+            missing.append(
+                "REPLICATE_API_TOKEN: Get your API token from https://replicate.com/account/api-tokens"
             )
-
-        # FALLBACK_CENSORED_PROMPT should be non-empty (has default, just warn)
-        if not self.fallback_censored_prompt:
-            structlog.get_logger().warning(
-                "config.validation.warning",
-                message="FALLBACK_CENSORED_PROMPT not set - using default",
-            )
-
-        return self
-
-    @model_validator(mode="after")
-    def validate_ipfs_reveal_config(self) -> "Settings":
-        """Validate IPFS and reveal configuration on startup.
-
-        Ensures required environment variables are set for IPFS upload and reveal workers.
-        Emits warnings if configuration is incomplete.
-
-        Validation is skipped in test/development environments to avoid breaking tests.
-        """
-        # Skip validation in test environments
-        if self.app_env in ("test", "testing"):
-            return self
 
         # PINATA_JWT is required for IPFS upload worker
         if not self.pinata_jwt:
-            structlog.get_logger().warning(
-                "config.validation.warning",
-                message="PINATA_JWT not set - IPFS upload worker will fail",
-                hint="Get your JWT token from https://pinata.cloud",
-            )
+            missing.append("PINATA_JWT: Get your JWT token from https://pinata.cloud")
 
         # KEEPER_PRIVATE_KEY is required for reveal worker
         if not self.keeper_private_key:
-            structlog.get_logger().warning(
-                "config.validation.warning",
-                message="KEEPER_PRIVATE_KEY not set - reveal worker will fail",
-                hint="Generate a keeper wallet and fund with ETH for gas",
+            missing.append("KEEPER_PRIVATE_KEY: Generate a keeper wallet and fund with ETH for gas")
+
+        # GLISK_NFT_CONTRACT_ADDRESS is required for all workers
+        if not self.glisk_nft_contract_address:
+            missing.append("GLISK_NFT_CONTRACT_ADDRESS: Deploy contract or use existing address")
+
+        # If any required variables are missing, fail fast
+        if missing:
+            error_msg = "CRITICAL: Missing required environment variables:\n\n" + "\n".join(
+                f"  - {m}" for m in missing
             )
+            error_msg += "\n\nThe application cannot start without these variables."
+            error_msg += "\nPlease update your .env file and restart."
+            raise ValueError(error_msg)
 
         return self
 

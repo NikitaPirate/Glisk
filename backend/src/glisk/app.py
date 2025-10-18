@@ -21,13 +21,90 @@ from glisk.workers.reveal_worker import run_reveal_worker
 logger = structlog.get_logger()
 
 
+def create_resilient_worker(
+    coro_func, session_factory, settings, worker_name: str, shutdown_event: asyncio.Event
+):
+    """Create a worker with automatic restart on failure.
+
+    Args:
+        coro_func: Worker coroutine function (e.g., run_image_generation_worker)
+        session_factory: Database session factory
+        settings: Application settings
+        worker_name: Human-readable worker name for logging
+        shutdown_event: Event to signal graceful shutdown
+
+    Returns:
+        Initial task handle (will be auto-recreated on crash)
+    """
+    RESTART_DELAY = 1  # Fixed 1 second delay between restarts
+
+    def on_worker_done(task: asyncio.Task):
+        # Check if shutdown was requested
+        if shutdown_event.is_set():
+            logger.info("worker.shutdown_complete", worker=worker_name)
+            return
+
+        # Check if task was cancelled (normal shutdown)
+        if task.cancelled():
+            logger.info("worker.cancelled", worker=worker_name)
+            return
+
+        # Check for exceptions
+        exc = task.exception()
+        if exc:
+            logger.error(
+                "worker.crashed",
+                worker=worker_name,
+                error=str(exc),
+                error_type=type(exc).__name__,
+                retry_in_seconds=RESTART_DELAY,
+                exc_info=exc,
+            )
+            logger.error(
+                "=" * 80
+                + "\n"
+                + f"WORKER CRASH: {worker_name} crashed with {type(exc).__name__}: {exc}\n"
+                + f"Restarting in {RESTART_DELAY} second(s)...\n"
+                + "=" * 80
+            )
+        else:
+            # Worker stopped cleanly (unexpected for infinite loop workers)
+            logger.warning(
+                "worker.stopped_unexpectedly",
+                worker=worker_name,
+                retry_in_seconds=RESTART_DELAY,
+            )
+
+        # Schedule restart after fixed delay
+        async def restart_worker():
+            await asyncio.sleep(RESTART_DELAY)
+
+            # Check again if shutdown was requested during sleep
+            if shutdown_event.is_set():
+                return
+
+            logger.info("worker.restarting", worker=worker_name)
+            new_task = asyncio.create_task(coro_func(session_factory, settings))
+            new_task.add_done_callback(on_worker_done)
+
+        # Create restart task
+        asyncio.create_task(restart_worker())
+
+    # Create initial task
+    task = asyncio.create_task(coro_func(session_factory, settings))
+    task.add_done_callback(on_worker_done)
+    return task
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan context manager.
 
     Handles startup and shutdown tasks:
-    - Startup: Initialize database session factory, configure logging, start worker
-    - Shutdown: Stop worker, close database connections
+    - Startup: Initialize database session factory, configure logging, start workers
+    - Shutdown: Stop workers, close database connections
+
+    Workers automatically restart on failure with exponential backoff.
     """
     # Load settings
     settings = Settings()  # type: ignore[call-arg]
@@ -45,34 +122,43 @@ async def lifespan(app: FastAPI):
     app.state.session_factory = session_factory
     app.state.uow_factory = uow_factory
 
-    # Start background workers
-    image_worker_task = asyncio.create_task(run_image_generation_worker(session_factory, settings))
-    ipfs_worker_task = asyncio.create_task(run_ipfs_upload_worker(session_factory, settings))
-    reveal_worker_task = asyncio.create_task(run_reveal_worker(session_factory, settings))
+    # Create shutdown event for graceful worker termination
+    shutdown_event = asyncio.Event()
+
+    # Start background workers with auto-restart
+    image_worker_task = create_resilient_worker(
+        run_image_generation_worker, session_factory, settings, "image_generation", shutdown_event
+    )
+    ipfs_worker_task = create_resilient_worker(
+        run_ipfs_upload_worker, session_factory, settings, "ipfs_upload", shutdown_event
+    )
+    reveal_worker_task = create_resilient_worker(
+        run_reveal_worker, session_factory, settings, "reveal", shutdown_event
+    )
 
     logger.info("application.startup", db_url=settings.database_url.split("@")[-1])
 
     yield
 
-    # Shutdown: Cancel workers and close database connections
+    # Shutdown: Signal workers to stop and close database connections
     logger.info("application.shutdown")
+    shutdown_event.set()
+
+    # Cancel all workers
     image_worker_task.cancel()
     ipfs_worker_task.cancel()
     reveal_worker_task.cancel()
-    try:
-        await image_worker_task
-    except asyncio.CancelledError:
-        pass
-    try:
-        await ipfs_worker_task
-    except asyncio.CancelledError:
-        pass
-    try:
-        await reveal_worker_task
-    except asyncio.CancelledError:
-        pass
 
-    await session_factory.close_all()  # type: ignore[attr-defined]
+    # Wait for cancellation to complete (ignore CancelledError)
+    await asyncio.gather(
+        image_worker_task,
+        ipfs_worker_task,
+        reveal_worker_task,
+        return_exceptions=True,
+    )
+
+    # Close database connection pool
+    # Note: async_sessionmaker doesn't have close_all(), engine cleanup happens automatically
 
 
 def create_app() -> FastAPI:

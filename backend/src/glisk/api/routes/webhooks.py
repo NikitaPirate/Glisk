@@ -20,8 +20,8 @@ logger = structlog.get_logger()
 router = APIRouter()
 
 
-def decode_batch_minted_event(log_data: dict) -> dict:
-    """Decode BatchMinted event from Alchemy webhook log.
+def decode_batch_minted_event(log_data: dict, block_number: int) -> dict:
+    """Decode BatchMinted event from Alchemy GraphQL webhook log.
 
     BatchMinted event structure:
         event BatchMinted(
@@ -33,7 +33,8 @@ def decode_batch_minted_event(log_data: dict) -> dict:
         );
 
     Args:
-        log_data: Log entry from Alchemy webhook payload
+        log_data: Log entry from Alchemy GraphQL webhook payload
+        block_number: Block number (from block.number field)
 
     Returns:
         Decoded event dictionary with keys:
@@ -76,18 +77,17 @@ def decode_batch_minted_event(log_data: dict) -> dict:
         quantity = int(data_bytes[0:64], 16)
         total_paid = int(data_bytes[64:128], 16)
 
-        # Extract transaction metadata
-        tx_hash = log_data.get("transactionHash", "")
+        # Extract transaction metadata from GraphQL structure
+        # tx_hash is in log.transaction.hash
+        transaction = log_data.get("transaction", {})
+        tx_hash = transaction.get("hash", "")
         if not tx_hash:
-            raise ValueError("Missing transactionHash in log data")
+            raise ValueError("Missing transaction.hash in log data")
 
-        block_number_hex = log_data.get("blockNumber", "0x0")
-        block_number = (
-            int(block_number_hex, 16) if isinstance(block_number_hex, str) else block_number_hex
-        )
-
-        log_index_hex = log_data.get("logIndex", "0x0")
-        log_index = int(log_index_hex, 16) if isinstance(log_index_hex, str) else log_index_hex
+        # log_index is in log.index (GraphQL returns int, not hex)
+        log_index = log_data.get("index")
+        if log_index is None:
+            raise ValueError("Missing index in log data")
 
         return {
             "minter": minter,
@@ -155,19 +155,36 @@ async def receive_alchemy_webhook(
         event_type=payload.get("type"),
     )
 
-    # Extract logs from payload
+    # DEBUG: Log full payload structure to understand Alchemy's format
+    logger.info(
+        "webhook.payload_debug",
+        payload_keys=list(payload.keys()),
+        full_payload=json.dumps(payload, indent=2)[:2000],  # First 2000 chars
+    )
+
+    # Extract block and logs from GraphQL payload
     try:
-        logs = payload["event"]["data"]["block"]["logs"]
-    except KeyError as e:
-        logger.error("webhook.malformed", missing_field=str(e))
+        block = payload["event"]["data"]["block"]
+        logs = block["logs"]
+        block_number = block.get("number")
+        if block_number is None:
+            raise ValueError("Missing block.number in payload")
+    except (KeyError, ValueError) as e:
+        logger.error(
+            "webhook.malformed",
+            missing_field=str(e),
+            payload_structure=json.dumps(payload, indent=2)[:1000],
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Missing required field in payload: {str(e)}",
         )
 
-    # Filter logs by contract address
+    # Filter logs by contract address (GraphQL uses log.account.address)
     contract_address = settings.glisk_nft_contract_address.lower()
-    matching_logs = [log for log in logs if log.get("address", "").lower() == contract_address]
+    matching_logs = [
+        log for log in logs if log.get("account", {}).get("address", "").lower() == contract_address
+    ]
 
     if not matching_logs:
         # No events for our contract - return 200 OK (not an error)
@@ -178,31 +195,60 @@ async def receive_alchemy_webhook(
         )
         return {"status": "success", "message": "No matching events for this contract"}
 
-    # Calculate BatchMinted event signature
-    event_signature = Web3.keccak(text="BatchMinted(address,address,uint256,uint256,uint256)").hex()
+    logger.info(
+        "webhook.matching_logs_found",
+        count=len(matching_logs),
+        contract_address=contract_address,
+    )
+
+    # Calculate BatchMinted event signature (with 0x prefix to match GraphQL format)
+    event_signature = (
+        "0x" + Web3.keccak(text="BatchMinted(address,address,uint256,uint256,uint256)").hex()
+    )
 
     # Process each matching log
     processed_events = []
-    for log in matching_logs:
+    for log_idx, log in enumerate(matching_logs):
         # Check if this is a BatchMinted event
         topics = log.get("topics", [])
         if not topics or topics[0] != event_signature:
+            logger.info(
+                "webhook.skip_non_batchminted",
+                log_index=log_idx,
+                topics_length=len(topics),
+                expected_signature=event_signature,
+                actual_signature=topics[0] if topics else None,
+            )
             continue  # Skip non-BatchMinted events
 
-        # Check if transaction was successful
-        tx_status = payload["event"]["data"].get("transaction", {}).get("status")
+        logger.info(
+            "webhook.processing_batchminted",
+            log_index=log_idx,
+            tx_hash=log.get("transaction", {}).get("hash"),
+        )
+
+        # Check if transaction was successful (GraphQL: log.transaction.status)
+        tx_status = log.get("transaction", {}).get("status")
         if tx_status != 1:
-            logger.warning("webhook.failed_transaction", tx_hash=log.get("transactionHash"))
+            tx_hash = log.get("transaction", {}).get("hash", "unknown")
+            logger.warning("webhook.failed_transaction", tx_hash=tx_hash, tx_status=tx_status)
             continue  # Skip failed transactions
 
-        # Check for chain reorg
+        # Check for chain reorg (may not be available in GraphQL response)
         if log.get("removed", False):
-            logger.warning("webhook.removed_log", tx_hash=log.get("transactionHash"))
+            tx_hash = log.get("transaction", {}).get("hash", "unknown")
+            logger.warning("webhook.removed_log", tx_hash=tx_hash)
             continue  # Skip removed logs
 
-        # Decode event
+        # Decode event (pass block_number from block level)
         try:
-            event_data = decode_batch_minted_event(log)
+            event_data = decode_batch_minted_event(log, block_number)
+            logger.info(
+                "webhook.event_decoded",
+                token_id=event_data["start_token_id"],
+                tx_hash=event_data["tx_hash"],
+                minter=event_data["minter"],
+            )
         except ValueError as e:
             logger.error("webhook.decode_error", error=str(e), log=log)
             raise HTTPException(
@@ -212,6 +258,7 @@ async def receive_alchemy_webhook(
 
         # Store event and create token (atomic transaction)
         try:
+            logger.info("webhook.checking_duplicate", tx_hash=event_data["tx_hash"])
             async with await uow_factory() as uow:
                 # Check for duplicates
                 event_exists = await uow.mint_events.exists(
@@ -232,10 +279,16 @@ async def receive_alchemy_webhook(
                         "log_index": event_data["log_index"],
                     }
 
+                logger.info("webhook.looking_up_author", author_wallet=event_data["prompt_author"])
                 # Lookup author by wallet (case-insensitive)
                 author = await uow.authors.get_by_wallet(event_data["prompt_author"])
 
                 if not author:
+                    logger.info(
+                        "webhook.author_not_found_using_default",
+                        author_wallet=event_data["prompt_author"],
+                        default_wallet=settings.glisk_default_author_wallet,
+                    )
                     # Use default author if not found
                     author = await uow.authors.get_by_wallet(settings.glisk_default_author_wallet)
                     if not author:
@@ -247,6 +300,12 @@ async def receive_alchemy_webhook(
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail="Default author not configured",
                         )
+
+                logger.info(
+                    "webhook.creating_records",
+                    token_id=event_data["start_token_id"],
+                    author_id=author.id,
+                )
 
                 # Create MintEvent record
                 mint_event = MintEvent(
@@ -261,6 +320,7 @@ async def receive_alchemy_webhook(
                 )
 
                 await uow.mint_events.add(mint_event)
+                logger.info("webhook.mint_event_added", tx_hash=event_data["tx_hash"])
 
                 # Create Token record with status='detected'
                 token = Token(
@@ -272,6 +332,7 @@ async def receive_alchemy_webhook(
                 )
 
                 await uow.tokens.add(token)
+                logger.info("webhook.token_added", token_id=event_data["start_token_id"])
 
                 # Commit transaction (happens automatically on context exit)
 
@@ -301,9 +362,13 @@ async def receive_alchemy_webhook(
                 detail=f"Failed to store event: {str(e)}",
             )
 
+    logger.info("webhook.processing_complete", processed_count=len(processed_events))
+
     if not processed_events:
+        logger.info("webhook.no_new_events")
         return {"status": "success", "message": "No new events to process"}
 
+    logger.info("webhook.success", events_count=len(processed_events))
     return {
         "status": "success",
         "message": "Event processed successfully",
