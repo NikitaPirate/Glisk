@@ -5,7 +5,7 @@ Provides data access methods for Token entities with worker coordination via FOR
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from glisk.models.token import Token, TokenStatus
@@ -278,3 +278,40 @@ class TokenRepository:
         self.session.add(token)
         await self.session.flush()
         await self.session.refresh(token)
+
+    async def get_missing_token_ids(self, max_token_id: int, limit: int | None = None) -> list[int]:
+        """Retrieve token IDs that exist on-chain but not in database.
+
+        Uses generate_series() to create expected range [1, max_token_id-1],
+        then LEFT JOIN to find missing IDs. Token IDs start at 1 (not 0).
+
+        Args:
+            max_token_id: Upper bound from contract.nextTokenId() (exclusive)
+            limit: Optional cap on number of results (for batching large gaps)
+
+        Returns:
+            List of missing token IDs in ascending order
+
+        Example:
+            If max_token_id=11 (tokens 1-10 should exist) and DB has [1,2,3,6,7,8],
+            returns [4,5,9,10]
+        """
+        # Build query with generate_series and LEFT JOIN
+        query_text = """
+            SELECT series.token_id
+            FROM generate_series(1, :max_token_id - 1) AS series(token_id)
+            LEFT JOIN tokens_s0 ON series.token_id = tokens_s0.token_id
+            WHERE tokens_s0.token_id IS NULL
+            ORDER BY series.token_id ASC
+        """
+
+        if limit is not None:
+            query_text += " LIMIT :limit"
+
+        # Execute raw SQL query
+        params = {"max_token_id": max_token_id}
+        if limit is not None:
+            params["limit"] = limit
+
+        result = await self.session.execute(text(query_text), params)
+        return [row[0] for row in result.fetchall()]

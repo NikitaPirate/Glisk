@@ -100,3 +100,28 @@ class TransactionRevertError(PermanentError):
     """Transaction reverted on-chain."""
 
     pass
+
+
+# Token Recovery-specific errors
+class RecoveryError(ServiceError):
+    """Base exception for token recovery errors."""
+
+    pass
+
+
+class BlockchainConnectionError(TransientError):
+    """Failed to connect to blockchain RPC endpoint."""
+
+    pass
+
+
+class ContractNotFoundError(PermanentError):
+    """Smart contract not found at specified address."""
+
+    pass
+
+
+class DefaultAuthorNotFoundError(PermanentError):
+    """Default author wallet not found in authors table."""
+
+    pass

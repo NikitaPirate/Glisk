@@ -53,19 +53,19 @@
 
 ### Implementation for User Story 1
 
-- [ ] T008 [P] [US1] Create custom exception hierarchy in backend/src/glisk/services/exceptions.py: Add RecoveryError, BlockchainConnectionError, ContractNotFoundError, DefaultAuthorNotFoundError
-- [ ] T009 [P] [US1] Add get_missing_token_ids() method to backend/src/glisk/repositories/token.py: Use generate_series(1, max_token_id-1) LEFT JOIN to find gaps, return list[int]
-- [ ] T010 [US1] Create TokenRecoveryService in backend/src/glisk/services/blockchain/token_recovery.py: Implement get_next_token_id() with retry logic and recover_missing_tokens() with author lookup from contract
-- [ ] T011 [US1] Create CLI command in backend/src/glisk/cli/recover_tokens.py: Accept --limit and --dry-run flags, instantiate TokenRecoveryService, print RecoveryResult summary
-- [ ] T012 [US1] Add author lookup method to backend/src/glisk/repositories/author.py: get_by_wallet(wallet_address) if not already exists
-- [ ] T013 [US1] Update TokenRecoveryService to query tokenPromptAuthor(tokenId) from contract for each missing token and lookup/create author in database
-- [ ] T014 [US1] Add structured logging events to TokenRecoveryService: recovery.started, recovery.gaps_detected, recovery.token_created, recovery.duplicate_skipped, recovery.completed, recovery.failed
+- [x] T008 [P] [US1] Create custom exception hierarchy in backend/src/glisk/services/exceptions.py: Add RecoveryError, BlockchainConnectionError, ContractNotFoundError, DefaultAuthorNotFoundError
+- [x] T009 [P] [US1] Add get_missing_token_ids() method to backend/src/glisk/repositories/token.py: Use generate_series(1, max_token_id-1) LEFT JOIN to find gaps, return list[int]
+- [x] T010 [US1] Create TokenRecoveryService in backend/src/glisk/services/blockchain/token_recovery.py: Implement get_next_token_id() with retry logic and recover_missing_tokens() with author lookup from contract
+- [x] T011 [US1] Create CLI command in backend/src/glisk/cli/recover_tokens.py: Accept --limit and --dry-run flags, instantiate TokenRecoveryService, print RecoveryResult summary
+- [x] T012 [US1] Add author lookup method to backend/src/glisk/repositories/author.py: get_by_wallet(wallet_address) if not already exists (integrated into T010)
+- [x] T013 [US1] Update TokenRecoveryService to query tokenPromptAuthor(tokenId) from contract for each missing token and lookup/create author in database (integrated into T010)
+- [x] T014 [US1] Add structured logging events to TokenRecoveryService: recovery.started, recovery.gaps_detected, recovery.token_created, recovery.duplicate_skipped, recovery.completed, recovery.failed (integrated into T010)
 
 ### Verification for User Story 1
 
-- [ ] T015 [P] [US1] Write unit test for get_missing_token_ids() in backend/tests/unit/repositories/test_token.py: Test empty DB, partial gaps, no gaps, single missing, large gap (1000+ tokens)
-- [ ] T016 [P] [US1] Write unit test for TokenRecoveryService.get_next_token_id() in backend/tests/unit/services/blockchain/test_token_recovery.py: Mock web3 responses, test retry logic, test ContractNotFoundError
-- [ ] T017 [P] [US1] Write integration test for full recovery flow in backend/tests/integration/test_token_recovery.py: Use testcontainer PostgreSQL, seed with gaps, run recovery, verify all tokens created with status='detected' and correct author_id
+- [x] T015 [P] [US1] Write unit test for get_missing_token_ids() in backend/tests/test_token_recovery.py: Test empty DB, partial gaps, no gaps, single missing, large gap (1000+ tokens)
+- [x] T016 [P] [US1] Write unit test for TokenRecoveryService.get_next_token_id() in backend/tests/test_token_recovery.py: Mock web3 responses, test retry logic, test ContractNotFoundError
+- [x] T017 [P] [US1] Write integration test for full recovery flow in backend/tests/test_token_recovery.py: Use testcontainer PostgreSQL, seed with gaps, run recovery, verify all tokens created with status='detected' and correct author_id
 - [ ] T018 [US1] Manual testnet validation per quickstart.md Step 9: Mint tokens directly via Etherscan/cast, run recovery CLI, verify tokens in DB, verify image generation worker processes them
 
 **Checkpoint**: User Story 1 is fully functional - recovery mechanism discovers missing tokens with accurate author attribution and creates database records
