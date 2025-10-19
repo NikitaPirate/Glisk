@@ -61,6 +61,7 @@ class Settings(BaseSettings):
     keeper_private_key: str = Field(default="", alias="KEEPER_PRIVATE_KEY")
     keeper_gas_strategy: str = Field(default="medium", alias="KEEPER_GAS_STRATEGY")
     reveal_gas_buffer: float = Field(default=1.2, alias="REVEAL_GAS_BUFFER")
+    reveal_max_gas_price_gwei: float | None = Field(default=0.01, alias="REVEAL_MAX_GAS_PRICE_GWEI")
     transaction_timeout_seconds: int = Field(default=180, alias="TRANSACTION_TIMEOUT_SECONDS")
 
     # Reveal Worker - 003-003d-ipfs-reveal

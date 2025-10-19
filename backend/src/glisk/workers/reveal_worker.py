@@ -286,6 +286,7 @@ async def run_reveal_worker(
         keeper_private_key=settings.keeper_private_key,
         gas_buffer_percentage=settings.reveal_gas_buffer - 1.0,  # Convert 1.2 -> 0.2
         transaction_timeout=settings.transaction_timeout_seconds,
+        max_gas_price_gwei=settings.reveal_max_gas_price_gwei,
     )
 
     # Startup recovery: check for orphaned pending transactions

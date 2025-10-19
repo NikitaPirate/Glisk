@@ -29,6 +29,7 @@ class KeeperService:
         keeper_private_key: str,
         gas_buffer_percentage: float = 0.20,
         transaction_timeout: int = 180,
+        max_gas_price_gwei: float | None = None,
     ):
         """
         Initialize keeper service.
@@ -39,12 +40,16 @@ class KeeperService:
             keeper_private_key: Private key for keeper wallet (0x-prefixed hex)
             gas_buffer_percentage: Safety buffer for gas estimation (default: 0.20 = 20%)
             transaction_timeout: Max wait time for confirmation in seconds (default: 180)
+            max_gas_price_gwei: Optional max gas price cap in Gwei. Transactions exceeding this
+                will be rejected with TransientError to wait for lower gas prices. If None,
+                no cap is applied (default: None)
         """
         self.w3 = w3
         self.contract_address = Web3.to_checksum_address(contract_address)
         self.keeper_private_key = keeper_private_key
         self.gas_buffer = 1.0 + gas_buffer_percentage
         self.transaction_timeout = transaction_timeout
+        self.max_gas_price_wei = int(max_gas_price_gwei * 10**9) if max_gas_price_gwei else None
 
         # Load contract ABI from package resources
         self.contract_abi = get_contract_abi()
@@ -62,6 +67,7 @@ class KeeperService:
             contract_address=self.contract_address,
             gas_buffer=self.gas_buffer,
             timeout=transaction_timeout,
+            max_gas_price_gwei=max_gas_price_gwei,
         )
 
     def get_keeper_address(self) -> str:
@@ -122,6 +128,22 @@ class KeeperService:
                 max_priority_fee_buffered=max_priority_fee_buffered,
                 max_fee_per_gas=max_fee_per_gas,
             )
+
+            # Check if gas price exceeds configured cap
+            if self.max_gas_price_wei and max_fee_per_gas > self.max_gas_price_wei:
+                max_gas_price_gwei = self.max_gas_price_wei / 10**9
+                calculated_gwei = max_fee_per_gas / 10**9
+                logger.warning(
+                    "keeper.gas_price_too_high",
+                    calculated_max_fee_gwei=calculated_gwei,
+                    cap_gwei=max_gas_price_gwei,
+                    base_fee_gwei=base_fee / 10**9,
+                    token_count=len(token_ids),
+                )
+                raise TransientError(
+                    f"Gas price too high ({calculated_gwei:.2f} Gwei > cap {max_gas_price_gwei:.2f} Gwei). "  # noqa: E501
+                    f"Waiting for lower gas prices."
+                )
 
             return gas_limit, max_fee_per_gas, max_priority_fee_buffered
 

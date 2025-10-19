@@ -401,6 +401,7 @@ PINATA_GATEWAY=gateway.pinata.cloud
 KEEPER_PRIVATE_KEY=0xYOUR_KEEPER_PRIVATE_KEY_HERE_64_HEX_CHARS
 KEEPER_GAS_STRATEGY=medium
 REVEAL_GAS_BUFFER=1.2
+REVEAL_MAX_GAS_PRICE_GWEI=50  # Optional: Skip reveals when gas exceeds this (prevents overpaying)
 TRANSACTION_TIMEOUT_SECONDS=180
 
 # Worker Configuration - Optional
@@ -517,6 +518,9 @@ BATCH_REVEAL_WAIT_SECONDS=10  # Default: 5 (wait longer for fuller batches)
 # Increase gas safety buffer for volatile gas markets
 REVEAL_GAS_BUFFER=1.5  # Default: 1.2 (20% buffer)
 
+# Prevent overpaying during gas spikes (skip reveals until gas drops)
+REVEAL_MAX_GAS_PRICE_GWEI=50  # Optional: Reject transactions exceeding this price
+
 # Reduce transaction timeout for faster failure detection
 TRANSACTION_TIMEOUT_SECONDS=120  # Default: 180
 ```
@@ -529,7 +533,8 @@ TRANSACTION_TIMEOUT_SECONDS=120  # Default: 180
 | IPFS upload 401/403 errors | Invalid/expired JWT | Check `PINATA_JWT` configuration, regenerate at pinata.cloud |
 | Reveal transaction reverts | Invalid token IDs | Check token state on-chain at basescan.org |
 | Keeper wallet insufficient funds | Low ETH balance | Fund keeper wallet with ETH for gas |
-| Slow reveal confirmations | Network congestion | Increase `REVEAL_GAS_BUFFER` or wait for lower gas prices |
+| Slow reveal confirmations | Network congestion | Set `REVEAL_MAX_GAS_PRICE_GWEI` to skip during high gas, or increase `REVEAL_GAS_BUFFER` |
+| Reveals skipped during gas spikes | High gas prices | Normal behavior if `REVEAL_MAX_GAS_PRICE_GWEI` set. Reveals resume when gas drops |
 | Orphaned pending transactions | Worker restart during tx | Worker auto-recovers on startup, checks blockchain receipts |
 
 **Error Messages Guide**:
@@ -539,6 +544,7 @@ The system provides actionable error messages:
 - **401 Unauthorized (IPFS)**: "Check PINATA_JWT configuration in .env file. Verify JWT token is active at https://app.pinata.cloud/developers/api-keys"
 - **403 Forbidden (IPFS)**: "Check PINATA_JWT permissions (requires pinFileToIPFS access). Verify account status and quota limits at https://app.pinata.cloud/billing"
 - **Gas estimation failure**: "Keeper wallet has insufficient balance for gas. Check balance at {keeper_address}. Fund wallet or adjust REVEAL_GAS_BUFFER setting."
+- **Gas price too high**: "Gas price too high (X.XX Gwei > cap Y.YY Gwei). Waiting for lower gas prices." - Reveals will be skipped until gas drops below configured REVEAL_MAX_GAS_PRICE_GWEI
 - **Transaction revert**: "Verify token IDs are valid and metadata URIs match format 'ipfs://<CID>'. Check transaction details at https://sepolia.basescan.org/tx/{tx_hash}"
 
 **State Transitions**:
