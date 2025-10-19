@@ -1,5 +1,6 @@
 """Pinata IPFS client for uploading images and metadata."""
 
+import json
 from typing import Any
 
 import httpx
@@ -31,11 +32,12 @@ class PinataClient:
             "Content-Type": "application/json",
         }
 
-    async def upload_image(self, image_url: str) -> str:
+    async def upload_image(self, image_url: str, token_id: int) -> str:
         """Download image from URL and upload to IPFS via Pinata.
 
         Args:
             image_url: HTTP/HTTPS URL of image to upload (e.g., Replicate CDN URL)
+            token_id: Token ID for semantic filename (e.g., s0-token-123.png)
 
         Returns:
             IPFS CID (Content Identifier) as string (CIDv1 format, e.g., "bafkrei...")
@@ -51,18 +53,28 @@ class PinataClient:
                 image_response.raise_for_status()
                 image_data = image_response.content
 
-            # Upload to Pinata
+            # Upload to Pinata with semantic filename
+            filename = f"s0-token-{token_id}.png"
             async with httpx.AsyncClient(timeout=30.0) as client:
-                files = {"file": ("image.png", image_data, "image/png")}
+                files = {"file": (filename, image_data, "image/png")}
                 headers_copy = self.headers.copy()
                 # Remove Content-Type for multipart upload
                 del headers_copy["Content-Type"]
+
+                # Prepare metadata for Pinata dashboard organization
+                pinata_metadata = {
+                    "name": filename,
+                    "keyvalues": {"season": "0", "token_id": str(token_id)},
+                }
 
                 response = await client.post(
                     f"{self.base_url}/pinning/pinFileToIPFS",
                     headers=headers_copy,
                     files=files,
-                    data={"pinataOptions": '{"cidVersion": 1}'},
+                    data={
+                        "pinataOptions": '{"cidVersion": 1}',
+                        "pinataMetadata": json.dumps(pinata_metadata),
+                    },
                 )
 
                 # Error classification
@@ -99,7 +111,7 @@ class PinataClient:
                 raise
             raise IPFSNetworkError(f"Network error: {str(e)}")
 
-    async def upload_metadata(self, metadata: dict[str, Any]) -> str:
+    async def upload_metadata(self, metadata: dict[str, Any], token_id: int) -> str:
         """Upload metadata JSON to IPFS via Pinata.
 
         Args:
@@ -108,6 +120,7 @@ class PinataClient:
                 - description (str): Token description
                 - image (str): IPFS URI (ipfs://<CID>)
                 - attributes (list, optional): Array of trait objects
+            token_id: Token ID for semantic filename (e.g., s0-token-123-metadata.json)
 
         Returns:
             IPFS CID (Content Identifier) as string (CIDv1 format)
@@ -118,9 +131,14 @@ class PinataClient:
         """
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
+                metadata_filename = f"s0-token-{token_id}-metadata.json"
                 payload = {
                     "pinataContent": metadata,
                     "pinataOptions": {"cidVersion": 1},
+                    "pinataMetadata": {
+                        "name": metadata_filename,
+                        "keyvalues": {"season": "0", "token_id": str(token_id)},
+                    },
                 }
 
                 response = await client.post(

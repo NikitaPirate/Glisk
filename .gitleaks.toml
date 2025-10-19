@@ -1,0 +1,61 @@
+# Gitleaks Configuration for GLISK
+# Detects secrets while allowing public blockchain addresses and test data
+
+title = "GLISK Secret Scanner"
+
+[extend]
+# Use default gitleaks rules as base
+useDefault = true
+
+[allowlist]
+description = "Allowlist for public addresses, examples, and test data"
+
+# Paths to ignore (public examples and documentation)
+paths = [
+    # Example files with placeholder secrets
+    '''.env.example$''',
+    '''contracts/.env.example$''',
+
+    # Documentation and specifications with example addresses
+    '''.*\.md$''',
+
+    # Test files with test wallets and mock data
+    '''tests/.*''',
+    '''test_.*\.py$''',
+    '''specs/.*''',
+
+    # Broadcast deployment artifacts (public contract addresses)
+    '''broadcast/.*''',
+    '''deployments/.*''',
+]
+
+# Specific regexes to allow (known public data)
+regexes = [
+    # Deployed contract address (Base Sepolia - public)
+    '''0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0''',
+
+    # Default author wallet (zero address variant - public constant)
+    '''0x0000000000000000000000000000000000000001''',
+
+    # Placeholder strings in .env.example
+    '''your_.*_here''',
+    '''changeme_in_production''',
+    '''0xYOUR_KEEPER_PRIVATE_KEY_HERE_64_HEX_CHARS''',
+    '''r8_your_replicate_api_token_here''',
+    '''your_alchemy_api_key_here''',
+    '''your_webhook_signing_key_here''',
+    '''your_pinata_jwt_token_here''',
+
+    # Example/test Ethereum addresses (common test addresses)
+    '''0x[fF]{40}''',  # All F's address (burn address)
+    '''0x0{40}''',     # Zero address
+]
+
+# Common false positives in blockchain development
+stopwords = [
+    "contract",
+    "address",
+    "wallet",
+    "public",
+    "checksummed",
+]

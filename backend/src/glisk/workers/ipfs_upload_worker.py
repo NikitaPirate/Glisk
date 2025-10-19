@@ -15,9 +15,7 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from glisk.core.config import Settings
-from glisk.models.author import Author
 from glisk.models.token import Token
-from glisk.repositories.author import AuthorRepository
 from glisk.repositories.ipfs_record import IPFSUploadRecordRepository
 from glisk.repositories.token import TokenRepository
 from glisk.services.exceptions import PermanentError, TransientError
@@ -26,26 +24,25 @@ from glisk.services.ipfs.pinata_client import PinataClient
 logger = structlog.get_logger(__name__)
 
 
-def build_metadata(token: Token, image_cid: str, author: Author) -> dict:
+def build_metadata(token: Token, image_cid: str) -> dict:
     """Build ERC721 metadata JSON for token.
 
     Args:
         token: Token model instance
         image_cid: IPFS CID of uploaded image
-        author: Author model instance (for prompt text)
 
     Returns:
         ERC721 metadata dictionary with keys:
-        - name (str): Token name
-        - description (str): Token description
+        - name (str): Token name (e.g., "GLISK S0 #123")
+        - description (str): Token description with social link
         - image (str): IPFS URI (ipfs://<image_cid>)
-        - attributes (list): Empty array for MVP (future: prompt, author, generation params)
+        - attributes (list): Empty array for MVP
     """
     return {
-        "name": f"Token #{token.token_id}",
-        "description": f'Generated NFT from Season 0 - Prompt: "{author.prompt_text}"',
+        "name": f"GLISK S0 #{token.token_id}",
+        "description": "GLISK Season 0. https://x.com/getglisk",
         "image": f"ipfs://{image_cid}",
-        "attributes": [],  # Future: Add generation params, author info
+        "attributes": [],
     }
 
 
@@ -82,7 +79,6 @@ async def process_single_token(
     # Create dedicated session for this token's processing
     async with session_factory() as session:
         token_repo = TokenRepository(session)
-        author_repo = AuthorRepository(session)
         ipfs_repo = IPFSUploadRecordRepository(session)
 
         # Step 1: Fetch token by ID (attach to this session)
@@ -110,7 +106,7 @@ async def process_single_token(
             if not attached_token.image_url:
                 raise ValueError(f"Token {attached_token.token_id} has no image_url")
 
-            image_cid = await pinata.upload_image(attached_token.image_url)
+            image_cid = await pinata.upload_image(attached_token.image_url, attached_token.token_id)
             logger.info(
                 "ipfs.image_uploaded",
                 token_id=attached_token.token_id,
@@ -128,14 +124,10 @@ async def process_single_token(
             )
 
             # Step 3: Build metadata
-            author = await author_repo.get_by_id(attached_token.author_id)
-            if not author:
-                raise ValueError(f"Author not found for token {attached_token.token_id}")
-
-            metadata = build_metadata(attached_token, image_cid, author)
+            metadata = build_metadata(attached_token, image_cid)
 
             # Step 4: Upload metadata to IPFS
-            metadata_cid = await pinata.upload_metadata(metadata)
+            metadata_cid = await pinata.upload_metadata(metadata, attached_token.token_id)
             logger.info(
                 "ipfs.metadata_uploaded",
                 token_id=attached_token.token_id,
