@@ -117,6 +117,7 @@ async def async_main() -> int:
     recovery_service = TokenRecoveryService(
         w3=w3,
         contract_address=settings.glisk_nft_contract_address,
+        settings=settings,
     )
 
     try:

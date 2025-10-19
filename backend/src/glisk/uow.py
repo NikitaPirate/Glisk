@@ -68,14 +68,18 @@ class UnitOfWork:
         Returns:
             False: Always re-raise exceptions after rollback
         """
-        if exc_type is None:
-            # No exception - commit changes
-            await self.session.commit()
-            logger.info("transaction.committed")
-        else:
-            # Exception occurred - rollback changes
-            await self.session.rollback()
-            logger.info("transaction.rolled_back", exc_type=exc_type.__name__)
+        try:
+            if exc_type is None:
+                # No exception - commit changes
+                await self.session.commit()
+                logger.info("transaction.committed")
+            else:
+                # Exception occurred - rollback changes
+                await self.session.rollback()
+                logger.info("transaction.rolled_back", exc_type=exc_type.__name__)
+        finally:
+            # Always close session to prevent connection leaks
+            await self.session.close()
 
         # Return False to re-raise the exception (if any)
         # This ensures errors are not silently swallowed

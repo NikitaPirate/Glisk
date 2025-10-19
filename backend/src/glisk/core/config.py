@@ -44,7 +44,10 @@ class Settings(BaseSettings):
         default="black-forest-labs/flux-schnell", alias="REPLICATE_MODEL_VERSION"
     )
     fallback_censored_prompt: str = Field(
-        default="Cute kittens playing with yarn balls in a sunny meadow with flowers",
+        default=(
+            "Cute kittens and flowers in a peaceful garden, "
+            "with text overlay saying 'Original prompt was censored by AI service'"
+        ),
         alias="FALLBACK_CENSORED_PROMPT",
     )
     poll_interval_seconds: int = Field(default=1, alias="POLL_INTERVAL_SECONDS")

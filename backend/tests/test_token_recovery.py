@@ -9,6 +9,7 @@ Tests cover:
 from unittest.mock import Mock, patch
 
 import pytest
+from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
 
 from glisk.models.author import Author
@@ -16,6 +17,19 @@ from glisk.models.token import Token, TokenStatus
 from glisk.repositories.token import TokenRepository
 from glisk.services.blockchain.token_recovery import TokenRecoveryService
 from glisk.services.exceptions import BlockchainConnectionError, ContractNotFoundError
+
+# ====================
+# Fixtures
+# ====================
+
+
+@pytest.fixture
+def mock_settings():
+    """Create mock settings for TokenRecoveryService."""
+    settings = Mock()
+    settings.glisk_default_author_wallet = "0x0000000000000000000000000000000000000001"
+    return settings
+
 
 # ====================
 # T015: Unit tests for TokenRepository.get_missing_token_ids()
@@ -192,7 +206,7 @@ async def test_get_missing_token_ids_large_gap(session):
 
 
 @pytest.mark.asyncio
-async def test_get_next_token_id_success():
+async def test_get_next_token_id_success(mock_settings):
     """Test get_next_token_id() with successful RPC call.
 
     Scenario:
@@ -213,6 +227,7 @@ async def test_get_next_token_id_success():
         service = TokenRecoveryService(
             w3=mock_w3,
             contract_address="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+            settings=mock_settings,
         )
         service.contract = mock_contract  # Override with mock
 
@@ -223,7 +238,7 @@ async def test_get_next_token_id_success():
 
 
 @pytest.mark.asyncio
-async def test_get_next_token_id_contract_not_found():
+async def test_get_next_token_id_contract_not_found(mock_settings):
     """Test get_next_token_id() with contract not found error.
 
     Scenario:
@@ -244,6 +259,7 @@ async def test_get_next_token_id_contract_not_found():
         service = TokenRecoveryService(
             w3=mock_w3,
             contract_address="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+            settings=mock_settings,
         )
         service.contract = mock_contract
 
@@ -255,7 +271,7 @@ async def test_get_next_token_id_contract_not_found():
 
 
 @pytest.mark.asyncio
-async def test_get_next_token_id_retry_logic():
+async def test_get_next_token_id_retry_logic(mock_settings):
     """Test get_next_token_id() retry logic with transient errors.
 
     Scenario:
@@ -279,6 +295,7 @@ async def test_get_next_token_id_retry_logic():
         service = TokenRecoveryService(
             w3=mock_w3,
             contract_address="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+            settings=mock_settings,
         )
         service.contract = mock_contract
 
@@ -289,7 +306,7 @@ async def test_get_next_token_id_retry_logic():
 
 
 @pytest.mark.asyncio
-async def test_get_next_token_id_retry_exhausted():
+async def test_get_next_token_id_retry_exhausted(mock_settings):
     """Test get_next_token_id() when all retries exhausted.
 
     Scenario:
@@ -310,6 +327,7 @@ async def test_get_next_token_id_retry_exhausted():
         service = TokenRecoveryService(
             w3=mock_w3,
             contract_address="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+            settings=mock_settings,
         )
         service.contract = mock_contract
 
@@ -325,11 +343,11 @@ async def test_get_next_token_id_retry_exhausted():
 
 
 @pytest.mark.asyncio
-async def test_full_recovery_flow_integration(uow_factory):
+async def test_full_recovery_flow_integration(uow_factory, mock_settings):
     """Integration test for full token recovery flow.
 
     Scenario:
-    1. Seed database with tokens [1, 2, 3, 6, 7, 8] and default author
+    1. Seed database with tokens [1, 2, 3, 6, 7, 8] and authors
     2. Mock contract.nextTokenId() to return 11 (tokens 1-10 should exist)
     3. Mock contract.tokenPromptAuthor() to return author addresses
     4. Run recovery
@@ -381,11 +399,13 @@ async def test_full_recovery_flow_integration(uow_factory):
 
     # Initialize recovery service with mocked contract
     with patch("glisk.services.blockchain.token_recovery.Web3") as MockWeb3:
-        MockWeb3.to_checksum_address.return_value = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0"
+        # Use side_effect to actually checksum addresses (passthrough)
+        MockWeb3.to_checksum_address.side_effect = lambda addr: Web3.to_checksum_address(addr)
 
         service = TokenRecoveryService(
             w3=mock_w3,
             contract_address="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+            settings=mock_settings,
         )
         service.contract = mock_contract
 
@@ -426,7 +446,7 @@ async def test_full_recovery_flow_integration(uow_factory):
 
 
 @pytest.mark.asyncio
-async def test_recovery_with_no_gaps(uow_factory):
+async def test_recovery_with_no_gaps(uow_factory, mock_settings):
     """Test recovery when no tokens are missing.
 
     Scenario:
@@ -470,6 +490,7 @@ async def test_recovery_with_no_gaps(uow_factory):
         service = TokenRecoveryService(
             w3=mock_w3,
             contract_address="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+            settings=mock_settings,
         )
         service.contract = mock_contract
 

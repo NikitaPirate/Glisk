@@ -161,50 +161,24 @@ async def process_single_token(
 
         except TransientError as e:
             # Transient error (network timeout, rate limit, service unavailable)
+            # Retry infinitely via natural poll loop - no retry limits
             await session.rollback()
 
-            # Check if max retries exceeded
-            if attached_token.generation_attempts >= 2:  # 0-indexed, so >= 2 means 3rd attempt
-                # Max retries exhausted
-                await token_repo.mark_failed(attached_token, f"Max IPFS retries exceeded: {str(e)}")
-                await session.commit()
+            # Increment attempts and keep status='uploading' for retry
+            # (monitoring only, not used for business logic)
+            attached_token.generation_attempts += 1
+            attached_token.generation_error = str(e)[:1000]
+            session.add(attached_token)
+            await session.commit()
 
-                # Create audit record for failure
-                await ipfs_repo.create(
-                    token_id=attached_token.id,
-                    record_type="metadata",  # Last attempted operation
-                    cid=None,
-                    status="failed",
-                    retry_count=attached_token.generation_attempts,
-                )
-                await session.commit()
-
-                logger.error(
-                    "ipfs.upload.exhausted",
-                    token_id=attached_token.token_id,
-                    attempts=attached_token.generation_attempts + 1,
-                    last_error=str(e),
-                )
-            else:
-                # Increment attempts and keep status='uploading' for retry
-                attached_token.generation_attempts += 1
-                attached_token.generation_error = str(e)[:1000]
-                session.add(attached_token)
-                await session.commit()
-
-                # Exponential backoff: 2^attempts seconds (1s, 2s, 4s)
-                backoff_seconds = 2**attached_token.generation_attempts
-                await asyncio.sleep(backoff_seconds)
-
-                logger.warning(
-                    "ipfs.transient_error",
-                    token_id=attached_token.token_id,
-                    error_type="TransientError",
-                    error_message=str(e),
-                    attempt_number=attempt_number,
-                    max_attempts=3,
-                    backoff_seconds=backoff_seconds,
-                )
+            logger.warning(
+                "ipfs.transient_error",
+                token_id=attached_token.token_id,
+                error_type="TransientError",
+                error_message=str(e),
+                attempt_number=attempt_number,
+            )
+            # Return immediately - next poll will retry
 
         except PermanentError as e:
             # Permanent error (authentication, validation)

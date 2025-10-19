@@ -12,7 +12,7 @@ from web3 import Web3
 
 from glisk.core.config import Settings
 from glisk.models.reveal_tx import RevealTransaction
-from glisk.models.token import Token
+from glisk.models.token import Token, TokenStatus
 from glisk.repositories.reveal_tx import RevealTransactionRepository
 from glisk.repositories.token import TokenRepository
 from glisk.services.blockchain.keeper import KeeperService
@@ -207,7 +207,7 @@ async def recover_orphaned_transactions(
                 # Update all tokens in batch
                 for token_id in tx_record.token_ids:
                     token = await token_repo.get_by_id(token_id)
-                    if token and token.status == "ready" and tx_record.tx_hash:
+                    if token and token.status == TokenStatus.READY and tx_record.tx_hash:
                         await token_repo.mark_revealed(token, tx_record.tx_hash)
 
                 recovered_count += 1

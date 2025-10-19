@@ -131,9 +131,8 @@ async def receive_alchemy_webhook(
         JSON response with status and event details
 
     HTTP Status Codes:
-        200: Event processed successfully
+        200: Event processed successfully (including duplicates)
         400: Malformed payload or invalid event data
-        409: Duplicate event (already processed)
         500: Internal server error (triggers Alchemy retry)
     """
     # Parse JSON payload
@@ -244,12 +243,13 @@ async def receive_alchemy_webhook(
         # Decode event (pass block_number from block level)
         try:
             event_data = decode_batch_minted_event(log, block_number)
+            start_id = event_data["start_token_id"]
+            end_id = start_id + event_data["quantity"] - 1
             logger.info(
                 "webhook.event_decoded",
-                start_token_id=event_data["start_token_id"],
+                start_token_id=start_id,
                 quantity=event_data["quantity"],
-                token_range=f"{event_data['start_token_id']}-\
-                    {event_data['start_token_id'] + event_data['quantity'] - 1}",
+                token_range=f"{start_id}-{end_id}",
                 tx_hash=event_data["tx_hash"],
                 minter=event_data["minter"],
             )

@@ -187,6 +187,36 @@ SELECT * FROM authors;       # Query data
 \q                           # Exit
 ```
 
+### Initial Database Setup
+
+**Required**: Create default author for unknown/unregistered token minters.
+
+When tokens are minted with an author wallet not in the database, the system uses the default author configured via `GLISK_DEFAULT_AUTHOR_WALLET` env variable.
+
+```bash
+# Connect to database
+docker exec -it backend-postgres-1 psql -U glisk -d glisk
+
+# Create default author
+INSERT INTO authors (id, wallet_address, prompt_text, created_at)
+VALUES (
+  gen_random_uuid(),
+  '0x0000000000000000000000000000000000000001',
+  'YOUR_BRAND_PROMPT_HERE',
+  NOW()
+);
+
+# Verify creation
+SELECT wallet_address, prompt_text FROM authors
+WHERE wallet_address = '0x0000000000000000000000000000000000000001';
+```
+
+**Note**: The prompt text will be used for image generation for all tokens from unknown authors. Choose a prompt that represents your brand/project style.
+
+**Example prompts**:
+- Branded: `"Sun rays breaking through clouds with 'GLISK' text overlay in elegant typography"`
+- Generic fallback: `"Abstract digital art with vibrant colors and geometric patterns"`
+
 ---
 
 ## Testing Strategy

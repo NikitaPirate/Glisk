@@ -112,7 +112,6 @@ class Token(SQLModel, table=True):
             )
         if not tx_hash:
             raise ValueError("tx_hash is required")
-        # Note: tx_hash is stored in reveal_transactions table
         self.status = TokenStatus.REVEALED
 
     def mark_failed(self, error_dict: dict) -> None:

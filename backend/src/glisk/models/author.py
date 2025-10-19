@@ -36,7 +36,7 @@ class Author(SQLModel, table=True):
     @field_validator("prompt_text")
     @classmethod
     def validate_prompt_text(cls, v: str) -> str:
-        """Validate AI prompt text length (10-500 characters)."""
-        if len(v) < 10 or len(v) > 500:
-            raise ValueError("Prompt text must be between 10 and 500 characters")
+        """Validate AI prompt text length (1-1000 characters)."""
+        if len(v) < 1 or len(v) > 1000:
+            raise ValueError("Prompt text must be between 1 and 1000 characters")
         return v

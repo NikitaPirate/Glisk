@@ -164,37 +164,21 @@ async def process_single_token(
 
         except TransientError as e:
             # Transient error (network timeout, rate limit, service unavailable)
+            # Retry infinitely via natural poll loop - no retry limits
             await session.rollback()
 
-            # Check if max retries exceeded
-            if attached_token.generation_attempts >= 2:  # 0-indexed, so >= 2 means 3rd attempt
-                # Max retries exhausted
-                await token_repo.mark_failed(attached_token, f"Max retries exceeded: {str(e)}")
-                await session.commit()
-                logger.error(
-                    "token.generation.exhausted",
-                    token_id=attached_token.token_id,
-                    attempts=attached_token.generation_attempts + 1,
-                    last_error=str(e),
-                )
-            else:
-                # Increment attempts and reset to detected for retry
-                await token_repo.increment_attempts(attached_token, str(e))
-                await session.commit()
+            # Increment attempts (monitoring only, not used for business logic)
+            await token_repo.increment_attempts(attached_token, str(e))
+            await session.commit()
 
-                # Exponential backoff: 2^attempts seconds (1s, 2s, 4s)
-                backoff_seconds = 2**attached_token.generation_attempts
-                await asyncio.sleep(backoff_seconds)
-
-                logger.warning(
-                    "token.generation.retry",
-                    token_id=attached_token.token_id,
-                    error_type="TransientError",
-                    error_message=str(e),
-                    attempt_number=attempt_number,
-                    max_attempts=3,
-                    backoff_seconds=backoff_seconds,
-                )
+            logger.warning(
+                "token.generation.retry",
+                token_id=attached_token.token_id,
+                error_type="TransientError",
+                error_message=str(e),
+                attempt_number=attempt_number,
+            )
+            # Return immediately - next poll will retry
 
         except ContentPolicyError as e:
             # Content policy violation - retry with fallback prompt
@@ -337,13 +321,12 @@ async def recover_orphaned_tokens(session: AsyncSession) -> None:
     """Reset tokens stuck in 'generating' status on startup.
 
     Worker crashes or restarts leave tokens in 'generating' status.
-    This function resets them to 'detected' if they still have retry budget.
+    All orphaned tokens are reset regardless of attempt count.
 
     Query:
         UPDATE tokens_s0
         SET status = 'detected'
         WHERE status = 'generating'
-          AND generation_attempts < 3
 
     Args:
         session: Database session for recovery query
@@ -351,7 +334,6 @@ async def recover_orphaned_tokens(session: AsyncSession) -> None:
     result = await session.execute(
         update(Token)
         .where(Token.status == TokenStatus.GENERATING)  # type: ignore[arg-type]
-        .where(Token.generation_attempts < 3)  # type: ignore[attr-defined]
         .values(status=TokenStatus.DETECTED)
     )
     await session.commit()

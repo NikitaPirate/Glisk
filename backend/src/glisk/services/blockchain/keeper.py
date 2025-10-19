@@ -143,8 +143,7 @@ class KeeperService:
             elif "execution reverted" in error_msg.lower():
                 context = (
                     "Transaction simulation reverted. "
-                    "Verify token IDs are valid and not already revealed. "
-                    "Check contract state at https://sepolia.basescan.org/"
+                    "Verify token IDs are valid and not already revealed."
                 )
             else:
                 context = f"Gas estimation failed: {error_msg}"
@@ -247,9 +246,8 @@ class KeeperService:
                 # Add actionable context for reverts
                 revert_msg = (
                     f"Transaction reverted: {tx_hash_hex}. "
-                    "Verify token IDs are valid and metadata URIs match format 'ipfs://<CID>'. "
-                    "Check transaction details at https://sepolia.basescan.org/tx/{tx_hash_hex}. "
-                    "Tokens remain in 'ready' state for manual investigation."
+                    f"Verify token IDs are valid and metadata URIs match format 'ipfs://<CID>'. "
+                    f"Tokens remain in 'ready' state for manual investigation."
                 )
                 raise TransactionRevertError(revert_msg)
 
