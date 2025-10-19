@@ -26,10 +26,13 @@ open http://localhost:8000/docs
 ## Project Overview
 
 This backend provides:
-- **Database Schema**: 7 tables for NFT lifecycle (authors, tokens, mint events, image jobs, IPFS records, reveal transactions, system state)
+- **Database Schema**: 8 tables for NFT lifecycle (authors, tokens, mint_events, image_jobs, ipfs_records, reveal_transactions, system_state, alembic_version)
 - **Repository Layer**: Data access with FOR UPDATE SKIP LOCKED for worker coordination
 - **Unit of Work Pattern**: Transaction management with automatic commit/rollback
-- **FastAPI Application**: REST API with health checks and Swagger documentation
+- **FastAPI Application**: REST API with webhooks, health checks, Swagger docs
+- **Background Workers**: 3 auto-starting workers (image generation, IPFS upload, reveal)
+- **Token Recovery**: Automatic recovery on startup + manual CLI
+- **Service Layer**: Replicate (AI), Pinata (IPFS), Alchemy (webhooks), Keeper (blockchain)
 - **Docker Infrastructure**: Containerized PostgreSQL + backend API
 
 **Technology Stack**:
@@ -240,6 +243,67 @@ WHERE wallet_address = '0x0000000000000000000000000000000000000001';
 
 ---
 
+## Background Workers
+
+Three workers auto-start with FastAPI application (in `app.py` lifespan):
+
+**1. Image Generation Worker** (`workers/image_generation_worker.py`)
+- Polls for tokens with `status='detected'`
+- Generates AI images via Replicate API
+- Updates token to `status='uploading'` on success
+- Retries transient errors with exponential backoff
+- Falls back to safe prompt on content policy violations
+
+**2. IPFS Upload Worker** (`workers/ipfs_upload_worker.py`)
+- Polls for tokens with `status='uploading'`
+- Uploads images to IPFS via Pinata
+- Creates ERC-721 metadata JSON
+- Updates token to `status='ready'` on success
+
+**3. Reveal Worker** (`workers/reveal_worker.py`)
+- Polls for tokens with `status='ready'`
+- Batches tokens for gas-efficient on-chain reveals
+- Submits batch reveal transaction via Keeper wallet
+- Updates tokens to `status='revealed'` on success
+
+**Monitoring:**
+```bash
+# View worker logs
+docker compose logs -f backend-api | grep "worker\."
+
+# Check token status distribution
+docker exec backend-postgres-1 psql -U glisk -d glisk -c "SELECT status, COUNT(*) FROM tokens_s0 GROUP BY status"
+```
+
+**For detailed documentation**, see: [Workers README](src/glisk/workers/README.md)
+
+---
+
+## Token Recovery
+
+**Automatic Recovery** (on app startup):
+- Runs `TokenRecoveryService.recover_missing_tokens()` before workers start
+- Queries `contract.nextTokenId()` to find gaps in database
+- Creates missing token records with accurate author attribution
+
+**Manual Recovery CLI:**
+```bash
+cd backend
+
+# Recover all missing tokens
+python -m glisk.cli.recover_tokens
+
+# Limit recovery batch size
+python -m glisk.cli.recover_tokens --limit 100
+
+# Dry run (preview without persisting)
+python -m glisk.cli.recover_tokens --dry-run
+```
+
+**For detailed documentation**, see: [CLI README](src/glisk/cli/README.md)
+
+---
+
 ## Configuration
 
 All configuration via `.env` file (copy from `.env.example`):
@@ -247,18 +311,46 @@ All configuration via `.env` file (copy from `.env.example`):
 ```env
 # Database
 DATABASE_URL=postgresql+psycopg://glisk:changeme@postgres:5432/glisk
-DB_POOL_SIZE=200                    # Connection pool size
+DB_POOL_SIZE=200
 
 # Application
 APP_ENV=development                 # development | production
 LOG_LEVEL=INFO                      # DEBUG | INFO | WARNING | ERROR
 
 # CORS
-CORS_ORIGINS=http://localhost:3000  # Comma-separated list
+CORS_ORIGINS=http://localhost:3000
 
 # Server
 HOST=0.0.0.0
 PORT=8000
+
+# Alchemy (webhooks, RPC)
+ALCHEMY_API_KEY=your_api_key
+ALCHEMY_WEBHOOK_SECRET=your_signing_key
+GLISK_NFT_CONTRACT_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+NETWORK=BASE_SEPOLIA                # BASE_SEPOLIA | BASE_MAINNET
+GLISK_DEFAULT_AUTHOR_WALLET=0x0000000000000000000000000000000000000001
+
+# Replicate (AI image generation)
+REPLICATE_API_TOKEN=r8_your_token
+REPLICATE_MODEL_VERSION=black-forest-labs/flux-schnell
+FALLBACK_CENSORED_PROMPT="Cute kittens playing..."
+
+# Pinata (IPFS storage)
+PINATA_JWT=your_jwt_token
+PINATA_GATEWAY=gateway.pinata.cloud
+
+# Keeper (batch reveal transactions)
+KEEPER_PRIVATE_KEY=0xYOUR_KEY_HERE
+KEEPER_GAS_STRATEGY=medium          # fast | medium | slow
+REVEAL_GAS_BUFFER=1.2               # 20% safety buffer
+TRANSACTION_TIMEOUT_SECONDS=180
+
+# Workers
+POLL_INTERVAL_SECONDS=1             # Worker polling frequency
+WORKER_BATCH_SIZE=10                # Image/IPFS batch size
+BATCH_REVEAL_WAIT_SECONDS=5         # Wait time before reveal
+BATCH_REVEAL_MAX_TOKENS=50          # Max tokens per reveal batch
 ```
 
 **Environment Variables** are validated via Pydantic Settings. Missing required variables cause startup failure with clear error messages.
@@ -290,6 +382,26 @@ GET /health
   }
 }
 ```
+
+### Webhook Endpoint
+
+```bash
+POST /webhooks/alchemy
+```
+
+Receives Alchemy blockchain event notifications for BatchMinted events.
+
+**Security:**
+- HMAC-SHA256 signature validation (constant-time comparison)
+- Validates against `ALCHEMY_WEBHOOK_SECRET`
+
+**Processing:**
+- Decodes BatchMinted events from webhook payload
+- Creates MintEvent records with duplicate detection
+- Creates Token records for each minted NFT
+- Looks up author by wallet address (uses default author if not found)
+
+**For webhook setup**, see: [Event Detection Quickstart](../specs/003-003b-event-detection/quickstart.md)
 
 ### API Documentation
 
@@ -420,14 +532,16 @@ uv run python -m glisk.app
 
 ---
 
-## Next Steps
+## Implemented Features
 
-After foundation setup:
+Complete NFT lifecycle pipeline:
 
-1. **Implement 003b** - Event detection (listens for mint events)
-2. **Implement 003c** - Image generation (processes detected tokens)
-3. **Implement 003d** - IPFS upload (uploads generated images)
-4. **Implement 003e** - Reveal coordination (triggers on-chain reveals)
+1. ✅ **003b - Event Detection** - Alchemy webhook endpoint for BatchMinted events
+2. ✅ **003c - Image Generation** - Replicate API worker with retry logic and censorship fallback
+3. ✅ **003d - IPFS Upload** - Pinata integration with ERC-721 metadata generation
+4. ✅ **004 - Token Recovery** - Automatic recovery on startup + manual CLI using `nextTokenId()`
+
+All features have quickstart guides and test coverage.
 
 **Documentation**:
 - [Quickstart Guide](../specs/003-003a-backend-foundation/quickstart.md) - Detailed setup
