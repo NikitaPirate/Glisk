@@ -38,13 +38,20 @@ abi = foundry_data['abi']
 with open('../backend/src/glisk/abi/GliskNFT.json', 'w') as f:
     json.dump(abi, f, indent=2)
 
+# Write to frontend package (full contract JSON for viem)
+with open('../frontend/src/lib/glisk-nft-abi.json', 'w') as f:
+    json.dump({'abi': abi}, f, indent=2)
+
 print(f'Extracted {len(abi)} ABI entries')
 "
 
 cd ..
 
-echo -e "${GREEN}✅ ABI synced to backend/src/glisk/abi/GliskNFT.json${NC}"
+echo -e "${GREEN}✅ ABI synced to:${NC}"
+echo "  - backend/src/glisk/abi/GliskNFT.json (array format)"
+echo "  - frontend/src/lib/glisk-nft-abi.json (object with 'abi' key)"
 echo ""
 echo "Next steps:"
 echo "  - If backend is running in Docker: docker compose restart backend"
-echo "  - If running locally: restart your dev server"
+echo "  - If frontend dev server is running: it should hot-reload automatically"
+echo "  - If running locally: restart your dev servers"

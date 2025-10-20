@@ -8,6 +8,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-10
 - File-based (audit history in `.audit/` directory, results as markdown reports) (002-smart-contract-audit)
 - Python 3.14 (standard GIL-enabled version) + FastAPI, SQLModel, psycopg3 (async), Alembic, Pydantic BaseSettings, structlog, pytest, testcontainers (003-003a-backend-foundation)
 - PostgreSQL 14+ with 200 connection pool, UTC timestamps, JSONB suppor (003-003a-backend-foundation)
+- React 18 + TypeScript (via Vite) (005-frontend-foundation-with)
+- N/A (stateless frontend, no persistence) (005-frontend-foundation-with)
 
 ## Project Structure
 ```
@@ -653,9 +655,9 @@ TZ=America/Los_Angeles uv run pytest tests/test_token_recovery.py -v
 ---
 
 ## Recent Changes
+- 005-frontend-foundation-with: Added React 18 + TypeScript (via Vite)
 - 004-recovery-1-nexttokenid: Added Python 3.14 (backend), Solidity ^0.8.20 (smart contract) + web3.py (blockchain interaction), SQLModel + psycopg3 (async database), Alembic (migrations)
 - 003-003d-ipfs-reveal: Added Python 3.14 (standard GIL-enabled version)
-- 003-003c-image-generation: Added Python 3.14 (standard GIL-enabled version) + FastAPI (lifecycle hooks), Replicate Python SDK, SQLModel, psycopg3 (async), structlog
 
 <!-- MANUAL ADDITIONS START -->
 
