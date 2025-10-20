@@ -25,6 +25,26 @@ repos:
     hooks:
       - id: gitleaks
 
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: 'v3.1.0'
+    hooks:
+      - id: prettier
+        files: ^frontend/
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: 'v9.16.0'
+    hooks:
+      - id: eslint
+        files: ^frontend/src/.*\.(js|jsx|ts|tsx)$
+        args: ["--fix", "--config", "frontend/eslint.config.js", "--max-warnings=0"]
+        additional_dependencies:
+          - eslint@9.38.0
+          - typescript-eslint@8.45.0
+          - eslint-plugin-react-hooks@5.2.0
+          - eslint-plugin-react-refresh@0.4.22
+          - '@eslint/js@9.36.0'
+          - globals@16.4.0
+
   - repo: local
     hooks:
       - id: pytest
@@ -32,5 +52,13 @@ repos:
         entry: bash -c 'cd backend && TZ=America/Los_Angeles uv run pytest tests/ -v'
         language: system
         pass_filenames: false
-        files: \.py$
+        files: ^backend/.*\.py$
         types: [python]
+
+      - id: frontend-typecheck
+        name: TypeScript type check (frontend)
+        entry: bash -c 'cd frontend && npm run type-check'
+        language: system
+        files: ^frontend/.*\.(ts|tsx)$
+        pass_filenames: false
+        always_run: true

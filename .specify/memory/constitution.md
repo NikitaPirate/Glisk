@@ -1,28 +1,31 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: 1.0.0 → 1.1.0
-Updated: 2025-10-16
-Change Type: Backend standards addition (MINOR version bump)
+Version Change: 1.1.0 → 1.2.0
+Updated: 2025-10-20
+Change Type: Frontend standards addition (MINOR version bump)
 
 Standards Added:
-- Database section: UTC enforcement, Alembic workflow, repository pattern
-- Testing: Complex logic focus, testcontainers over mocks
-- Backend-specific development practices
+- Frontend section: React 18 + TypeScript + Vite stack
+- Web3 Integration: RainbowKit + wagmi + viem patterns
+- Component Architecture: Minimal abstraction, direct hooks, basic styling
+- Frontend-specific development practices (no state management libraries, manual testing for MVP)
 
 Impact:
 - Existing contracts domain: No changes
-- Backend domain (003-003a-backend-foundation): Aligned with new standards
-- Future features must follow Alembic autogenerate + verification workflow
+- Existing backend domain: No changes
+- Frontend domain (005-frontend-foundation-with): Aligned with new standards
+- Future frontend features must follow React + wagmi direct hooks pattern
 
 Templates Status:
-- ✅ plan-template.md (no changes needed)
+- ✅ plan-template.md (already references constitution v1.1.0+, no version-specific changes needed)
 - ✅ spec-template.md (no changes needed)
 - ✅ tasks-template.md (no changes needed)
 
 Follow-up Actions:
-- ✅ Updated research.md with clarified decisions (alembic-postgresql-enum, .env location, ruff/pyright)
-- ⏳ Need to update CLAUDE.md with constitution v1.1.0 principles
+- ✅ Added frontend section to Technical Constraints
+- ✅ Updated development standards with frontend testing guidance
+- ⏳ Need to update CLAUDE.md with constitution v1.2.0 principles
 -->
 
 # GLISK Constitution
@@ -66,7 +69,7 @@ Project is organized as a monorepo with three distinct domains: contracts, backe
 - Shared types/schemas live in `/shared/` when needed
 - Cross-domain dependencies MUST be explicit and documented
 
-**Rationale:** Clear separation enables parallel development while maintaining shared context. Currently focusing on contracts; backend and frontend specifics will be added when development begins.
+**Rationale:** Clear separation enables parallel development while maintaining shared context. Each domain has distinct tech stacks optimized for their specific needs.
 
 ### IV. Smart Contract Security
 
@@ -119,26 +122,53 @@ Code MUST favor clarity and directness over cleverness or optimization unless pe
 - On-chain: prompt author address only
 - Off-chain: social handles, prompt text, generation params
 
-### Backend (Future)
+### Backend
 
 **Purpose:** Event listening, image generation, metadata management
+
+**Language:** Python 3.13 (standard GIL-enabled version)
+
+**Stack:**
+- FastAPI for HTTP server
+- SQLModel + psycopg3 (async) for database
+- Alembic for migrations
+- Pydantic BaseSettings for configuration
+- structlog for logging
+- pytest + testcontainers for testing
 
 **Key Functions:**
 - Listen for mint events on-chain
 - Store author-address-prompt mapping in database
-- Generate images using AI (Flux Schnell model)
-- Upload to IPFS and update NFT metadata
+- Generate images using AI (Flux Schnell model via Replicate)
+- Upload to IPFS (Pinata) and update NFT metadata via batch reveal
 - One author = one prompt relationship
 
-### Frontend (Future)
+### Frontend
 
-**Purpose:** 4-page MVP for users and creators
+**Purpose:** User interface for wallet connection and NFT minting
 
-**Pages:**
-1. Home/Explore - Browse creators, recent mints
-2. Creator Page - Shareable profile, mint button
-3. Creator Dashboard - Manage prompts, view earnings
-4. My Collection - User's minted NFTs
+**Language:** React 18 + TypeScript (via Vite)
+
+**Stack:**
+- Vite for build tool and dev server
+- React Router for client-side routing
+- RainbowKit for wallet connection UI
+- wagmi + viem for Ethereum interactions
+- Tailwind CSS for utility-first styling
+- shadcn/ui for unstyled UI primitives (Button, Input, Card)
+
+**Key Patterns:**
+- Direct wagmi hooks (useAccount, useWriteContract, useWaitForTransactionReceipt) - no abstractions
+- useState only for component state (no Redux, Zustand, or global state libraries)
+- Basic Tailwind utilities only (no custom animations, gradients, or complex styling)
+- Manual testing for MVP (automated tests out of scope initially)
+- Client-side routing with dynamic creator pages (`/{creatorAddress}`)
+
+**Key Functions:**
+- Connect Web3 wallet (MetaMask, Coinbase Wallet, WalletConnect)
+- Display creator mint pages with shareable URLs
+- Select mint quantity (1-10 NFTs) with validation
+- Trigger blockchain transactions and display status (pending/success/failure)
 
 ### Cross-Cutting
 
@@ -150,8 +180,8 @@ Code MUST favor clarity and directness over cleverness or optimization unless pe
 
 ### Code Quality
 
-- Use consistent formatting (Prettier/Forge fmt)
-- Run linters before commits (Solhint for contracts)
+- Use consistent formatting (Prettier/Forge fmt for contracts, Prettier for frontend)
+- Run linters before commits (Solhint for contracts, ESLint for frontend)
 - Keep functions small and focused
 - Avoid deep nesting (max 3 levels)
 
@@ -161,14 +191,16 @@ Code MUST favor clarity and directness over cleverness or optimization unless pe
 - Smart contracts MUST have NatSpec comments for public functions
 - Complex business logic MUST have explanation comments
 - Document deployment procedures and contract addresses
+- Frontend components with complex logic MUST have JSDoc comments explaining behavior
 
 ### Testing
 
 - Smart contracts MUST have test coverage for all state transitions
 - Critical payment flows MUST have dedicated test scenarios
 - Backend: Focus tests on complex logic (FOR UPDATE SKIP LOCKED, state transitions). Skip testing simple CRUD operations.
+- Frontend: Manual testing for MVP (wallet connection, transaction flows, edge cases). Automated tests deferred to post-MVP.
 - Test both happy paths and failure cases
-- Use real databases (testcontainers) for integration tests, not mocks
+- Use real databases (testcontainers) for backend integration tests, not mocks
 
 ### Database (Backend)
 
@@ -210,8 +242,9 @@ This constitution defines the standards and principles for GLISK development. Al
 
 ### Version Information
 
-**Version**: 1.1.0 | **Ratified**: 2025-10-10 | **Last Amended**: 2025-10-16
+**Version**: 1.2.0 | **Ratified**: 2025-10-10 | **Last Amended**: 2025-10-20
 
 **Changelog**:
+- 1.2.0 (2025-10-20): Added frontend-specific standards (React 18 + TypeScript + Vite, RainbowKit + wagmi patterns, component architecture, manual testing for MVP)
 - 1.1.0 (2025-10-16): Added backend-specific standards (UTC enforcement, Alembic workflow, repository pattern, testing focus)
 - 1.0.0 (2025-10-10): Initial constitution with 5 core principles
