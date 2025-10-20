@@ -657,7 +657,6 @@ TZ=America/Los_Angeles uv run pytest tests/test_token_recovery.py -v
 ## Recent Changes
 - 005-frontend-foundation-with: Added React 18 + TypeScript (via Vite)
 - 004-recovery-1-nexttokenid: Added Python 3.13 (backend), Solidity ^0.8.20 (smart contract) + web3.py (blockchain interaction), SQLModel + psycopg3 (async database), Alembic (migrations)
-- 003-003d-ipfs-reveal: Added Python 3.13 (standard GIL-enabled version)
 
 <!-- MANUAL ADDITIONS START -->
 
