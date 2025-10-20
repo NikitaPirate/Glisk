@@ -36,7 +36,7 @@ This backend provides:
 - **Docker Infrastructure**: Containerized PostgreSQL + backend API
 
 **Technology Stack**:
-- Python 3.14 (standard GIL-enabled)
+- Python 3.13 (standard GIL-enabled)
 - FastAPI + SQLModel + psycopg3 (async)
 - PostgreSQL 17 (200 connection pool)
 - Alembic migrations

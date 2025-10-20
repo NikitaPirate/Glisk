@@ -370,6 +370,18 @@ export const GLISK_NFT_ABI = gliskNFTAbi.abi
 - **Fix**: Restart dev server after adding/editing `.env`
 - **Fix**: Variables must start with `VITE_` prefix
 
+**Issue**: "Invalid contract address" error on load
+- **Fix**: Contract address must be checksummed (e.g., `0xFF215FD988498BB1CB390E307CDfC43B382c04DF`, not `0xff215...`)
+- **Fix**: Use address from BaseScan with correct checksum
+
+**Issue**: "Invalid creator address" shown on page
+- **Fix**: URL must contain valid Ethereum address (40 hex chars starting with 0x)
+- **Fix**: Check address format in URL path
+
+**Issue**: Mint button doesn't respond (no wallet popup)
+- **Fix**: Wait for "Loading contract data..." to finish
+- **Fix**: Check console for contract/address validation errors
+
 **Issue**: Transaction pending forever
 - **Fix**: Check Base Sepolia network status (may be slow during congestion)
 - **Fix**: View transaction on [Base Sepolia Explorer](https://sepolia.basescan.org/)

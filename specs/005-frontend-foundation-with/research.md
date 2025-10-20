@@ -382,6 +382,24 @@ server {
 
 ---
 
+## Implementation Notes (Actual Decisions)
+
+**Differences from original plan:**
+
+- **Tailwind v4**: Used Tailwind CSS v4 (latest), not v3 as originally assumed
+- **No Husky**: Skipped git hooks (Husky tasks T017, T023-T025) - not needed for MVP
+- **Address Validation**: Added `isAddress()` validation for both contract and creator addresses before any operations
+- **ABI Structure**: GliskNFT ABI has `.abi` property wrapper - must unwrap: `gliskNFTAbiFile.abi`
+- **Loading States**: Added explicit loading/error UI for `mintPrice` fetch (prevents silent failures)
+- **Error Messages**: All validation errors show helpful messages with fix instructions
+
+**Key validations added:**
+- Contract address: Checksummed format required (validated on module load)
+- Creator address: Valid Ethereum address required (validated before showing UI)
+- Contract data: Must load successfully before mint button enabled
+
+---
+
 ## Open Questions / Future Enhancements
 
 **For MVP**: All decisions locked, no open questions

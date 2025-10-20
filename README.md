@@ -49,7 +49,7 @@ I follow GitHub Spec Kit methodology for specification-driven development. Learn
 - Base Sepolia / Base Mainnet (Ethereum L2)
 
 **Backend:**
-- Python 3.14, FastAPI, SQLModel
+- Python 3.13, FastAPI, SQLModel
 - PostgreSQL 17 (async via psycopg3)
 - Alembic migrations, structlog logging
 - Replicate API (AI image generation)

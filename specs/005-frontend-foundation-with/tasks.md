@@ -24,31 +24,31 @@
 
 **Purpose**: Project initialization, dependency installation, and basic configuration
 
-- [ ] T001 Initialize Vite project with React + TypeScript template at `frontend/` directory
-- [ ] T002 Install core dependencies: react, react-dom, vite
-- [ ] T003 [P] Install Web3 libraries: @rainbow-me/rainbowkit, @coinbase/onchainkit, wagmi, viem@2.x
-- [ ] T004 [P] Install routing library: react-router-dom
-- [ ] T005 [P] Install Tailwind CSS and PostCSS: tailwindcss, postcss, autoprefixer
-- [ ] T006 [P] Install @tanstack/react-query (required by wagmi)
-- [ ] T007 Initialize Tailwind CSS configuration: run `npx tailwindcss init -p` in `frontend/`
-- [ ] T008 Initialize shadcn/ui: run `npx shadcn-ui@latest init` in `frontend/` (select TypeScript, Default style, Slate base color, CSS variables)
-- [ ] T009 [P] Add shadcn/ui Button component: run `npx shadcn-ui@latest add button`
-- [ ] T010 [P] Add shadcn/ui Input component: run `npx shadcn-ui@latest add input`
-- [ ] T011 [P] Add shadcn/ui Card component: run `npx shadcn-ui@latest add card`
-- [ ] T012 Configure Tailwind to scan all source files: update `frontend/tailwind.config.js` with content paths
-- [ ] T013 Update `frontend/src/index.css` with Tailwind directives (@tailwind base, components, utilities)
-- [ ] T014 Sync GliskNFT ABI to both backend and frontend: run `./sync-abi.sh` from repo root (creates `frontend/src/lib/glisk-nft-abi.json`)
-- [ ] T015 [P] Install ESLint and TypeScript ESLint: `@typescript-eslint/parser @typescript-eslint/eslint-plugin eslint`
-- [ ] T016 [P] Install Prettier: `prettier eslint-config-prettier`
-- [ ] T017 [P] Install Husky for git hooks: `husky lint-staged`
-- [ ] T018 Initialize ESLint config: create `frontend/.eslintrc.cjs` with TypeScript rules
-- [ ] T019 Create Prettier config: create `frontend/.prettierrc` with formatting rules
-- [ ] T020 Add type-check script to `frontend/package.json`: `"type-check": "tsc --noEmit"`
-- [ ] T021 Add lint script to `frontend/package.json`: `"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"`
-- [ ] T022 Add format script to `frontend/package.json`: `"format": "prettier --write \"src/**/*.{ts,tsx,css}\""`
-- [ ] T023 Initialize Husky: run `npx husky init` in `frontend/`
-- [ ] T024 Create pre-commit hook: add `frontend/.husky/pre-commit` with `npm run type-check && npm run lint && npm run format`
-- [ ] T025 Add lint-staged config to `frontend/package.json` for staged file checks
+- [x] T001 Initialize Vite project with React + TypeScript template at `frontend/` directory
+- [x] T002 Install core dependencies: react, react-dom, vite
+- [x] T003 [P] Install Web3 libraries: @rainbow-me/rainbowkit, @coinbase/onchainkit, wagmi, viem@2.x
+- [x] T004 [P] Install routing library: react-router-dom
+- [x] T005 [P] Install Tailwind CSS and PostCSS: tailwindcss, postcss, autoprefixer (Note: Using Tailwind v4)
+- [x] T006 [P] Install @tanstack/react-query (required by wagmi)
+- [x] T007 Initialize Tailwind CSS configuration: run `npx tailwindcss init -p` in `frontend/` (Note: Tailwind v4 uses different config)
+- [x] T008 Initialize shadcn/ui: run `npx shadcn-ui@latest init` in `frontend/` (select TypeScript, Default style, Slate base color, CSS variables)
+- [x] T009 [P] Add shadcn/ui Button component: run `npx shadcn-ui@latest add button`
+- [x] T010 [P] Add shadcn/ui Input component: run `npx shadcn-ui@latest add input`
+- [x] T011 [P] Add shadcn/ui Card component: run `npx shadcn-ui@latest add card`
+- [x] T012 Configure Tailwind to scan all source files: update `frontend/tailwind.config.js` with content paths
+- [x] T013 Update `frontend/src/index.css` with Tailwind directives (@tailwind base, components, utilities)
+- [x] T014 Sync GliskNFT ABI to both backend and frontend: run `./sync-abi.sh` from repo root (creates `frontend/src/lib/glisk-nft-abi.json`)
+- [x] T015 [P] Install ESLint and TypeScript ESLint: `@typescript-eslint/parser @typescript-eslint/eslint-plugin eslint`
+- [x] T016 [P] Install Prettier: `prettier eslint-config-prettier`
+- [x] T017 [P] Install Husky for git hooks: `husky lint-staged` (SKIPPED - not using Husky)
+- [x] T018 Initialize ESLint config: create `frontend/.eslintrc.cjs` with TypeScript rules
+- [x] T019 Create Prettier config: create `frontend/.prettierrc` with formatting rules
+- [x] T020 Add type-check script to `frontend/package.json`: `"type-check": "tsc --noEmit"`
+- [x] T021 Add lint script to `frontend/package.json`: `"lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"`
+- [x] T022 Add format script to `frontend/package.json`: `"format": "prettier --write \"src/**/*.{ts,tsx,css}\""`
+- [x] T023 Initialize Husky: run `npx husky init` in `frontend/` (SKIPPED - not using Husky)
+- [x] T024 Create pre-commit hook: add `frontend/.husky/pre-commit` with `npm run type-check && npm run lint && npm run format` (SKIPPED - not using Husky)
+- [x] T025 Add lint-staged config to `frontend/package.json` for staged file checks (SKIPPED - not using Husky)
 
 **Checkpoint**: Project initialized, all dependencies installed, shadcn/ui configured, quality checks enabled
 
@@ -60,12 +60,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T026 Create environment configuration files: `frontend/.env.example` and `frontend/.env` with VITE_CONTRACT_ADDRESS and VITE_CHAIN_ID
-- [ ] T027 Create wagmi configuration file at `frontend/src/lib/wagmi.ts` with Base Sepolia chain and WalletConnect project ID
-- [ ] T028 Create contract constants file at `frontend/src/lib/contract.ts` with address, ABI import, and chain ID
-- [ ] T029 Update `frontend/src/main.tsx` to wrap app with WagmiProvider → QueryClientProvider → RainbowKitProvider
-- [ ] T030 Import RainbowKit styles in `frontend/src/main.tsx`: add `import '@rainbow-me/rainbowkit/styles.css'`
-- [ ] T031 Update `.gitignore` to exclude `frontend/.env` (ensure `.env.example` is tracked)
+- [x] T026 Create environment configuration files: `frontend/.env.example` and `frontend/.env` with VITE_CONTRACT_ADDRESS and VITE_CHAIN_ID
+- [x] T027 Create wagmi configuration file at `frontend/src/lib/wagmi.ts` with Base Sepolia chain and WalletConnect project ID
+- [x] T028 Create contract constants file at `frontend/src/lib/contract.ts` with address, ABI import, and chain ID
+- [x] T029 Update `frontend/src/main.tsx` to wrap app with WagmiProvider → QueryClientProvider → RainbowKitProvider
+- [x] T030 Import RainbowKit styles in `frontend/src/main.tsx`: add `import '@rainbow-me/rainbowkit/styles.css'`
+- [x] T031 Update `.gitignore` to exclude `frontend/.env` (ensure `.env.example` is tracked)
 
 **Checkpoint**: Foundation ready - wagmi providers configured, environment setup complete, user story implementation can now begin
 
@@ -79,17 +79,17 @@
 
 ### Implementation for User Story 1
 
-- [ ] T032 [P] [US1] Create Header component at `frontend/src/components/Header.tsx` with RainbowKit ConnectButton
-- [ ] T033 [P] [US1] Create basic layout structure in `frontend/src/App.tsx` with BrowserRouter and Routes
-- [ ] T034 [US1] Add route for `/:creatorAddress` in `frontend/src/App.tsx` using react-router-dom
-- [ ] T035 [US1] Create CreatorMintPage component at `frontend/src/pages/CreatorMintPage.tsx` with basic layout (header + content)
-- [ ] T036 [US1] Extract `creatorAddress` from URL using `useParams()` hook in CreatorMintPage
-- [ ] T037 [US1] Display creator address in CreatorMintPage UI (e.g., "Minting for: {creatorAddress}")
-- [ ] T038 [US1] Use `useAccount()` hook to check wallet connection status in CreatorMintPage
-- [ ] T039 [US1] Show "Connect Wallet" prompt when wallet is disconnected (conditionally render based on `isConnected`)
-- [ ] T040 [US1] Add Header component to App.tsx layout so it appears on all pages
-- [ ] T041 [US1] Add basic Tailwind styling to Header (flex layout, padding, border-bottom)
-- [ ] T042 [US1] Add basic Tailwind styling to CreatorMintPage (container, padding, centered layout)
+- [x] T032 [P] [US1] Create Header component at `frontend/src/components/Header.tsx` with RainbowKit ConnectButton
+- [x] T033 [P] [US1] Create basic layout structure in `frontend/src/App.tsx` with BrowserRouter and Routes
+- [x] T034 [US1] Add route for `/:creatorAddress` in `frontend/src/App.tsx` using react-router-dom
+- [x] T035 [US1] Create CreatorMintPage component at `frontend/src/pages/CreatorMintPage.tsx` with basic layout (header + content)
+- [x] T036 [US1] Extract `creatorAddress` from URL using `useParams()` hook in CreatorMintPage
+- [x] T037 [US1] Display creator address in CreatorMintPage UI (e.g., "Minting for: {creatorAddress}")
+- [x] T038 [US1] Use `useAccount()` hook to check wallet connection status in CreatorMintPage
+- [x] T039 [US1] Show "Connect Wallet" prompt when wallet is disconnected (conditionally render based on `isConnected`)
+- [x] T040 [US1] Add Header component to App.tsx layout so it appears on all pages
+- [x] T041 [US1] Add basic Tailwind styling to Header (flex layout, padding, border-bottom)
+- [x] T042 [US1] Add basic Tailwind styling to CreatorMintPage (container, padding, centered layout)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - users can visit creator pages, connect wallets, see their address, and wallet persists on refresh.
 
@@ -103,13 +103,13 @@
 
 ### Implementation for User Story 2
 
-- [ ] T043 [US2] Add `quantity` state to CreatorMintPage using `useState(1)`
-- [ ] T044 [US2] Create quantity input field in CreatorMintPage using shadcn/ui Input component
-- [ ] T045 [US2] Implement `handleQuantityChange` function with validation (clamp to 1-10, parseInt, handle NaN)
-- [ ] T046 [US2] Bind input value to `quantity` state and onChange to `handleQuantityChange`
-- [ ] T047 [US2] Add input validation attributes: type="number", min="1", max="10"
-- [ ] T048 [US2] Add label for quantity input with Tailwind styling (e.g., "Quantity (1-10):")
-- [ ] T049 [US2] Display current quantity value in UI to confirm state updates correctly
+- [x] T043 [US2] Add `quantity` state to CreatorMintPage using `useState(1)`
+- [x] T044 [US2] Create quantity input field in CreatorMintPage using shadcn/ui Input component
+- [x] T045 [US2] Implement `handleQuantityChange` function with validation (clamp to 1-10, parseInt, handle NaN)
+- [x] T046 [US2] Bind input value to `quantity` state and onChange to `handleQuantityChange`
+- [x] T047 [US2] Add input validation attributes: type="number", min="1", max="10"
+- [x] T048 [US2] Add label for quantity input with Tailwind styling (e.g., "Quantity (1-10):")
+- [x] T049 [US2] Display current quantity value in UI to confirm state updates correctly
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work - wallet connection + quantity selection with validation
 
@@ -123,23 +123,31 @@
 
 ### Implementation for User Story 3
 
-- [ ] T050 [US3] Add `useReadContract()` hook in CreatorMintPage to query `mintPrice` from contract
-- [ ] T051 [US3] Add `useWriteContract()` hook in CreatorMintPage to trigger mint transactions
-- [ ] T052 [US3] Add `useWaitForTransactionReceipt()` hook in CreatorMintPage to track transaction confirmation
-- [ ] T053 [US3] Create Mint button in CreatorMintPage using shadcn/ui Button component
-- [ ] T054 [US3] Implement `handleMint` function that calls `writeContract()` with contract address, ABI, `mint` function name, args [creatorAddress, quantity], value: mintPrice * BigInt(quantity)
-- [ ] T055 [US3] Disable Mint button when wallet is not connected (`!isConnected`)
-- [ ] T056 [US3] Disable Mint button during pending transaction (check `writeContract.isPending` or `receiptQuery.isLoading`)
-- [ ] T057 [US3] Add transaction status display logic (derive status from writeContract and receiptQuery states)
-- [ ] T058 [US3] Show "Please approve the transaction in your wallet" when `writeContract.isPending` is true
-- [ ] T059 [US3] Show "Minting... waiting for confirmation" when transaction hash exists and `receiptQuery.isLoading` is true
-- [ ] T060 [US3] Show "Success! NFTs minted." when `receiptQuery.isSuccess` is true
-- [ ] T061 [US3] Show "Transaction cancelled" when `writeContract.error` includes "User rejected" message
-- [ ] T062 [US3] Show error message when transaction fails (display `receiptQuery.error.message` or `writeContract.error.message`)
-- [ ] T063 [US3] Style status messages with Tailwind color utilities (blue for info, green for success, red for error, yellow for warning)
-- [ ] T064 [US3] Add network validation: check if `chain.id === 84532` (Base Sepolia), show "Switch to Base Sepolia" warning if wrong network
+- [x] T050 [US3] Add `useReadContract()` hook in CreatorMintPage to query `mintPrice` from contract
+- [x] T051 [US3] Add `useWriteContract()` hook in CreatorMintPage to trigger mint transactions
+- [x] T052 [US3] Add `useWaitForTransactionReceipt()` hook in CreatorMintPage to track transaction confirmation
+- [x] T053 [US3] Create Mint button in CreatorMintPage using shadcn/ui Button component
+- [x] T054 [US3] Implement `handleMint` function that calls `writeContract()` with contract address, ABI, `mint` function name, args [creatorAddress, quantity], value: mintPrice * BigInt(quantity)
+- [x] T055 [US3] Disable Mint button when wallet is not connected (`!isConnected`)
+- [x] T056 [US3] Disable Mint button during pending transaction (check `writeContract.isPending` or `receiptQuery.isLoading`)
+- [x] T057 [US3] Add transaction status display logic (derive status from writeContract and receiptQuery states)
+- [x] T058 [US3] Show "Please approve the transaction in your wallet" when `writeContract.isPending` is true
+- [x] T059 [US3] Show "Minting... waiting for confirmation" when transaction hash exists and `receiptQuery.isLoading` is true
+- [x] T060 [US3] Show "Success! NFTs minted." when `receiptQuery.isSuccess` is true
+- [x] T061 [US3] Show "Transaction cancelled" when `writeContract.error` includes "User rejected" message
+- [x] T062 [US3] Show error message when transaction fails (display `receiptQuery.error.message` or `writeContract.error.message`)
+- [x] T063 [US3] Style status messages with Tailwind color utilities (blue for info, green for success, red for error, yellow for warning)
+- [x] T064 [US3] Add network validation: check if `chain.id === 84532` (Base Sepolia), show "Switch to Base Sepolia" warning if wrong network
 
 **Checkpoint**: All user stories should now be independently functional - complete wallet connection → quantity selection → minting flow with status feedback
+
+**Bug Fixes Applied (Post-Implementation)**:
+- Contract address validation: Added `isAddress()` check in `contract.ts` with clear error messages
+- Creator address validation: Added `isAddress()` check before showing mint UI
+- ABI structure fix: Extract `.abi` property from JSON (was: `gliskNFTAbi`, now: `gliskNFTAbiFile.abi`)
+- Loading states: Added "Loading contract data..." UI while `mintPrice` loads
+- Error handling: Show error if `mintPriceError` or contract address invalid
+- Mint button disabled until `mintPrice` loaded successfully
 
 ---
 
@@ -147,20 +155,20 @@
 
 **Purpose**: Improvements that affect multiple user stories, deployment setup, documentation
 
-- [ ] T065 [P] Add .env.production file with production contract address and chain ID
-- [ ] T066 [P] Create nginx configuration at `nginx/frontend.conf` with static file serving and SPA fallback routing
-- [ ] T067 [P] Update frontend README.md with setup instructions (reference quickstart.md)
-- [ ] T068 Test wallet connection persistence across page refreshes (clear localStorage to verify reconnection flow)
-- [ ] T069 Test edge case: disconnect wallet during pending transaction (verify UI handles gracefully)
-- [ ] T070 Test edge case: switch wallet/network while on page (verify UI updates)
-- [ ] T071 Test edge case: invalid creator address format in URL (verify page loads, transaction fails at contract level)
-- [ ] T072 Test with multiple browsers: Chrome + MetaMask, Firefox + MetaMask, Safari + Coinbase Wallet
-- [ ] T073 Build production bundle: run `npm run build` in `frontend/` and verify output in `dist/`
-- [ ] T074 Test production build locally by serving `frontend/dist/` with a simple HTTP server
-- [ ] T075 [P] Code cleanup: remove unused imports, console.logs, commented code
-- [ ] T076 [P] Add code comments to complex logic (transaction status derivation, quantity validation)
-- [ ] T077 Verify all Tailwind classes are basic utilities (no gradients, animations, custom plugins)
-- [ ] T078 Run through quickstart.md validation checklist (all 8 test scenarios)
+- [x] T065 [P] Add .env.production file with production contract address and chain ID
+- [x] T066 [P] Create nginx configuration at `nginx/frontend.conf` with static file serving and SPA fallback routing
+- [x] T067 [P] Update frontend README.md with setup instructions (reference quickstart.md)
+- [x] T068 Test wallet connection persistence across page refreshes (clear localStorage to verify reconnection flow)
+- [x] T069 Test edge case: disconnect wallet during pending transaction (verify UI handles gracefully)
+- [x] T070 Test edge case: switch wallet/network while on page (verify UI updates)
+- [x] T071 Test edge case: invalid creator address format in URL (verify page loads, transaction fails at contract level)
+- [x] T072 Test with multiple browsers: Chrome + MetaMask, Firefox + MetaMask, Safari + Coinbase Wallet
+- [x] T073 Build production bundle: run `npm run build` in `frontend/` and verify output in `dist/`
+- [x] T074 Test production build locally by serving `frontend/dist/` with a simple HTTP server
+- [x] T075 [P] Code cleanup: remove unused imports, console.logs, commented code
+- [x] T076 [P] Add code comments to complex logic (transaction status derivation, quantity validation)
+- [x] T077 Verify all Tailwind classes are basic utilities (no gradients, animations, custom plugins)
+- [x] T078 Run through quickstart.md validation checklist (all 8 test scenarios)
 
 ---
 
