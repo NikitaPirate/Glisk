@@ -20,6 +20,7 @@ class AuthorRepository:
     - add: Persist new author
     - list_all: Paginated list of all authors
     - upsert_author_prompt: Create or update author's prompt text
+    - upsert_x_handle: Create or update author's X (Twitter) handle
     """
 
     def __init__(self, session: AsyncSession):
@@ -123,5 +124,50 @@ class AuthorRepository:
             new_author = Author(
                 wallet_address=wallet_address,  # Triggers wallet validation
                 prompt_text=prompt_text,  # Triggers prompt validation
+            )
+            return await self.add(new_author)
+
+    async def upsert_x_handle(self, wallet_address: str, twitter_handle: str) -> Author:
+        """Create or update author's X (Twitter) handle.
+
+        Implements UPSERT logic for X account linking: creates new author if wallet
+        doesn't exist, or updates twitter_handle for existing author. Uses case-insensitive
+        wallet lookup to prevent duplicate authors.
+
+        This method is called after successful OAuth verification to store the verified
+        X username in the author's profile.
+
+        Args:
+            wallet_address: Ethereum wallet address (0x + 40 hex chars)
+            twitter_handle: Verified X username from OAuth (1-15 chars, alphanumeric + underscores)
+
+        Returns:
+            Author entity (newly created or updated)
+
+        Raises:
+            ValueError: If validation fails (invalid wallet format, twitter handle format, etc.)
+
+        Example:
+            >>> author = await repo.upsert_x_handle(
+            ...     "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+            ...     "gliskartist"
+            ... )
+        """
+        # Check if author already exists (case-insensitive lookup)
+        existing_author = await self.get_by_wallet(wallet_address)
+
+        if existing_author:
+            # Update existing author's twitter handle
+            existing_author.twitter_handle = twitter_handle  # Triggers Pydantic validation
+            await self.session.flush()
+            await self.session.refresh(existing_author)  # Ensure fresh data
+            return existing_author
+        else:
+            # Create new author with twitter handle but no prompt yet
+            # Author will need to set prompt before minting NFTs
+            new_author = Author(
+                wallet_address=wallet_address,  # Triggers wallet validation
+                twitter_handle=twitter_handle,  # Triggers twitter handle validation
+                prompt_text=None,  # Will be set when author updates their prompt
             )
             return await self.add(new_author)

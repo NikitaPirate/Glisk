@@ -22,18 +22,18 @@
 
 **Purpose**: X Developer Portal setup and environment configuration
 
-- [ ] T001 Create X application in X Developer Portal (https://developer.x.com/)
+- [X] T001 Create X application in X Developer Portal (https://developer.x.com/)
   - Configure OAuth 2.0 with authorization code flow + PKCE
   - Set app type to "Web App", permissions to "Read"
   - Add callback URI: `http://localhost:8000/api/authors/x/callback` (dev)
   - Copy Client ID (no client secret needed for PKCE)
 
-- [ ] T002 Configure backend environment variables in `backend/.env`
+- [X] T002 Configure backend environment variables in `backend/.env`
   - Add `X_CLIENT_ID=<client_id_from_x_portal>`
   - Add `X_REDIRECT_URI=http://localhost:8000/api/authors/x/callback`
   - Add `FRONTEND_URL=http://localhost:5173`
 
-- [ ] T003 Verify database schema has `twitter_handle` field
+- [X] T003 Verify database schema has `twitter_handle` field
   - Check `authors` table for `twitter_handle` column (should already exist)
   - No migration needed per data-model.md
 
@@ -45,7 +45,7 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create X OAuth service in `backend/src/glisk/services/x_oauth.py`
+- [X] T004 Create X OAuth service in `backend/src/glisk/services/x_oauth.py`
   - Implement `XOAuthService` class with `__init__(client_id, redirect_uri)`
   - Implement `generate_pkce_pair()` method (code_verifier + code_challenge using SHA256)
   - Implement `generate_state()` method (random 32+ char string for CSRF)
@@ -58,7 +58,7 @@
   - Implement `cleanup_expired_oauth_states()` utility function
   - Add structured logging for OAuth flow events
 
-- [ ] T005 [P] Update settings in `backend/src/glisk/core/settings.py`
+- [X] T005 [P] Update settings in `backend/src/glisk/core/config.py`
   - Add `X_CLIENT_ID: str` field
   - Add `X_REDIRECT_URI: str` field
   - Add `FRONTEND_URL: str` field (default: "http://localhost:5173")
@@ -75,7 +75,7 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 Create X OAuth API endpoints in `backend/src/glisk/api/routes/x_auth.py`
+- [X] T006 Create X OAuth API endpoints in `backend/src/glisk/api/routes/x_auth.py`
   - Create `XAuthStartRequest` Pydantic model (wallet_address, message, signature)
   - Create `XAuthStartResponse` Pydantic model (authorization_url)
   - Implement `POST /api/authors/x/auth/start` endpoint
@@ -95,22 +95,22 @@
     - Redirect to frontend success page with username query param
   - Add structured logging for OAuth events, security events, and errors
 
-- [ ] T007 Update author repository in `backend/src/glisk/repositories/author.py`
+- [X] T007 Update author repository in `backend/src/glisk/repositories/author.py`
   - Add `upsert_x_handle(wallet_address: str, twitter_handle: str)` async method
   - Fetch existing author by wallet address
   - If author exists: update `twitter_handle` field
   - If author doesn't exist: create new author with `twitter_handle` and empty `prompt_text`
   - Flush and refresh session, return updated Author entity
 
-- [ ] T008 Extend author status endpoint in `backend/src/glisk/api/routes/authors.py`
+- [X] T008 Extend author status endpoint in `backend/src/glisk/api/routes/authors.py`
   - Update `AuthorStatusResponse` model to include `twitter_handle: Optional[str]` field
   - Modify `GET /api/authors/{wallet_address}` response to include `twitter_handle` value
 
-- [ ] T009 Register X OAuth router in `backend/src/glisk/main.py`
+- [X] T009 Register X OAuth router in `backend/src/glisk/app.py`
   - Import `x_auth` router from `glisk.api.routes`
   - Add `app.include_router(x_auth.router)` to register endpoints
 
-- [ ] T010 Create profile settings page in `frontend/src/pages/ProfileSettings.tsx`
+- [X] T010 Create profile settings page in `frontend/src/pages/ProfileSettings.tsx`
   - Add state for `twitterHandle: string | null` and `loading: boolean`
   - On mount: fetch author status from `GET /api/authors/{address}` and set `twitterHandle` state
   - Check URL query params for OAuth callback (`?x_linked=true&username=...`)
@@ -138,13 +138,13 @@
 
 ### Implementation for User Story 2
 
-- [ ] T011 Update IPFS metadata builder in `backend/src/glisk/workers/ipfs_upload_worker.py`
+- [X] T011 Update IPFS metadata builder in `backend/src/glisk/workers/ipfs_upload_worker.py`
   - Modify `build_metadata(token, image_cid)` function signature to add `twitter_handle: Optional[str] = None` parameter
   - Add conditional logic: if `twitter_handle` is not None, add `"creator": {"twitter": twitter_handle}` to metadata dict
   - If `twitter_handle` is None, omit `creator` field entirely
   - Ensure metadata structure remains ERC721-compliant
 
-- [ ] T012 Update IPFS upload worker to fetch author in `backend/src/glisk/workers/ipfs_upload_worker.py`
+- [X] T012 Update IPFS upload worker to fetch author in `backend/src/glisk/workers/ipfs_upload_worker.py`
   - In `process_single_token()` function, add query to fetch Author entity by `token.author_wallet`
   - Import `Author` model and `select` from SQLModel
   - Execute query: `author = await session.scalar(select(Author).where(Author.wallet_address == token.author_wallet))`
@@ -159,7 +159,7 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T013 [P] Add comprehensive error handling for X API failures
+- [X] T013 [P] Add comprehensive error handling for X API failures
   - Add try-except blocks around `httpx` calls in `XOAuthService`
   - Handle network timeouts (30s timeout configured)
   - Handle X API 4xx errors (invalid credentials, rate limits)
@@ -167,7 +167,7 @@
   - Add structured logging for all error types
   - Return user-friendly error messages in API responses
 
-- [ ] T014 [P] Add structured logging for monitoring and observability
+- [X] T014 [P] Add structured logging for monitoring and observability
   - Log `x_oauth_flow_started` event with wallet_address and state (redacted)
   - Log `x_account_linked` event with wallet_address and twitter_handle
   - Log `x_oauth_denied` event with wallet_address and error
@@ -176,7 +176,7 @@
   - Log `x_token_exchange_failed` event with error and status_code
   - Log `x_username_fetch_failed` event with error and status_code
 
-- [ ] T015 Manual testing per quickstart.md validation scenarios
+- [X] T015 Manual testing per quickstart.md validation scenarios
   - Test 1: Complete OAuth flow (user approves)
   - Test 2: User denies authorization
   - Test 3: Re-link prevention (409 error when already linked)
@@ -187,7 +187,7 @@
   - Verify UI button visibility toggles correctly
   - Verify structured logs contain expected events
 
-- [ ] T016 [P] Documentation and cleanup
+- [X] T016 [P] Documentation and cleanup
   - Review quickstart.md for accuracy
   - Update CLAUDE.md with X linking section (usage, configuration, testing)
   - Add inline code comments for PKCE logic in `XOAuthService`

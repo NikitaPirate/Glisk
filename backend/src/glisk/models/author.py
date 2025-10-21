@@ -18,7 +18,9 @@ class Author(SQLModel, table=True):
     wallet_address: str = Field(max_length=42, unique=True, index=True)
     twitter_handle: Optional[str] = Field(default=None, max_length=255)
     farcaster_handle: Optional[str] = Field(default=None, max_length=255)
-    prompt_text: str  # TEXT field (no max_length means TEXT in PostgreSQL)
+    prompt_text: Optional[str] = Field(
+        default=None
+    )  # TEXT field - None until author sets their prompt
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
     @field_validator("wallet_address")
@@ -40,8 +42,17 @@ class Author(SQLModel, table=True):
 
     @field_validator("prompt_text")
     @classmethod
-    def validate_prompt_text(cls, v: str) -> str:
-        """Validate AI prompt text length (1-1000 characters)."""
+    def validate_prompt_text(cls, v: Optional[str]) -> Optional[str]:
+        """Validate AI prompt text length (1-1000 characters) if provided.
+
+        Returns:
+            None if v is None, otherwise validated prompt text
+
+        Raises:
+            ValueError: If prompt text is not between 1-1000 characters
+        """
+        if v is None:
+            return None
         if len(v) < 1 or len(v) > 1000:
             raise ValueError("Prompt text must be between 1 and 1000 characters")
         return v

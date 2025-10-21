@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Header } from './components/Header'
 import { CreatorMintPage } from './pages/CreatorMintPage'
 import { CreatorDashboard } from './pages/CreatorDashboard'
+import { ProfileSettings } from './pages/ProfileSettings'
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
         <Header />
         <Routes>
           <Route path="/creator-dashboard" element={<CreatorDashboard />} />
+          <Route path="/profile-settings" element={<ProfileSettings />} />
           <Route path="/:creatorAddress" element={<CreatorMintPage />} />
           <Route
             path="/"

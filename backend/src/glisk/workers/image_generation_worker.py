@@ -135,11 +135,43 @@ async def process_single_token(
             # Step 3: Fetch author's prompt text
             author = await author_repo.get_by_id(attached_token.author_id)
 
-            if not author:
-                raise ValueError(f"Author not found for token {attached_token.token_id}")
+            # Use author's prompt if found and set, otherwise use default author's prompt
+            if not author or not author.prompt_text:
+                if not author:
+                    logger.warning(
+                        "author_not_found_using_default",
+                        author_id=str(attached_token.author_id),
+                        token_id=attached_token.token_id,
+                        default_wallet=settings.glisk_default_author_wallet,
+                    )
+                else:
+                    logger.info(
+                        "author_prompt_not_set_using_default",
+                        author_wallet=author.wallet_address,
+                        token_id=attached_token.token_id,
+                        default_wallet=settings.glisk_default_author_wallet,
+                    )
+
+                # Fetch default author's prompt
+                default_author = await author_repo.get_by_wallet(
+                    settings.glisk_default_author_wallet
+                )
+                if not default_author:
+                    raise ValueError(
+                        f"Default author not found: {settings.glisk_default_author_wallet}. "
+                        "Create default author in database."
+                    )
+                if not default_author.prompt_text:
+                    raise ValueError(
+                        f"Default author {settings.glisk_default_author_wallet} has no prompt. "
+                        "Update default author with a valid prompt."
+                    )
+                prompt_text = default_author.prompt_text
+            else:
+                prompt_text = author.prompt_text
 
             # Step 4: Validate prompt
-            prompt = validate_prompt(author.prompt_text)
+            prompt = validate_prompt(prompt_text)
 
             # Step 5: Generate image via Replicate
             image_url = await generate_image(
