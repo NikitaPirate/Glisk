@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/common/ERC2981.sol";
@@ -11,7 +12,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 /**
  * @title GliskNFT
  * @notice GLISK Season 0 blind box NFT contract with prompt author attribution and rewards
- * @dev Implements ERC721, AccessControl, ReentrancyGuard, and ERC2981 for comprehensive NFT functionality
+ * @dev Implements ERC721Enumerable, AccessControl, ReentrancyGuard, and ERC2981 for comprehensive NFT functionality
  *
  * Key Features:
  * - Batch minting with prompt author attribution
@@ -20,8 +21,9 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  * - Role-based access control (Owner, Keeper)
  * - Season lifecycle management (end season → sweep countdown)
  * - ERC-2981 royalty support
+ * - ERC721Enumerable for token enumeration and discovery
  */
-contract GliskNFT is ERC721, AccessControl, ReentrancyGuard, ERC2981 {
+contract GliskNFT is ERC721Enumerable, AccessControl, ReentrancyGuard, ERC2981 {
     using SafeERC20 for IERC20;
     // ============================================
     // CUSTOM ERRORS
@@ -192,7 +194,7 @@ contract GliskNFT is ERC721, AccessControl, ReentrancyGuard, ERC2981 {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC721, ERC2981, AccessControl)
+        override(ERC721Enumerable, ERC2981, AccessControl)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

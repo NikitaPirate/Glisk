@@ -3,7 +3,7 @@
 Auto-generated from all feature plans. Last updated: 2025-10-10
 
 ## Active Technologies
-- Solidity ^0.8.20 + OpenZeppelin Contracts v5.x (ERC721, AccessControl, ReentrancyGuard, ERC2981) (001-full-smart-contract)
+- Solidity ^0.8.20 + OpenZeppelin Contracts v5.x (ERC721Enumerable, AccessControl, ReentrancyGuard, ERC2981) (001-full-smart-contract)
 - Markdown for command definitions, Bash for orchestration scripts (002-smart-contract-audit)
 - File-based (audit history in `.audit/` directory, results as markdown reports) (002-smart-contract-audit)
 - Python 3.13 (standard GIL-enabled version) + FastAPI, SQLModel, psycopg3 (async), Alembic, Pydantic BaseSettings, structlog, pytest, testcontainers (003-003a-backend-foundation)

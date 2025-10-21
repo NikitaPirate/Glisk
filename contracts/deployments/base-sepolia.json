@@ -1,11 +1,11 @@
 {
-  "contractAddress": "0xFF215FD988498BB1CB390E307CDfC43B382c04DF",
+  "contractAddress": "0x569d456c584Ac2bb2d66b075a31278630E7d43a0",
   "chainId": 84532,
-  "blockNumber": 32527236,
+  "blockNumber": 32652800,
   "deployer": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
   "name": "GLISK Season 0",
   "symbol": "GLISK0",
   "placeholderURI": "ipfs://bafkreihld5yx5vudecokbzjerfwyibzsxq2jxuzi7blnxx2uuz72ouoame",
   "initialMintPrice": "44444444444444",
-  "timestamp": 1760822760
+  "timestamp": 1761073888
 }

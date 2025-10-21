@@ -54,6 +54,7 @@ contract GliskNFTMintingTest is Test {
         // Record balances before mint
         uint256 authorBalanceBefore = nft.authorClaimable(promptAuthor1);
         uint256 treasuryBalanceBefore = nft.treasuryBalance();
+        uint256 totalSupplyBefore = nft.totalSupply();
 
         // Expect BatchMinted event
         vm.expectEmit(true, true, true, true);
@@ -66,6 +67,9 @@ contract GliskNFTMintingTest is Test {
         // Verify token ownership
         assertEq(nft.ownerOf(1), user1, "User1 should own token 1");
         assertEq(nft.balanceOf(user1), 1, "User1 should have 1 token");
+
+        // Verify total supply increased
+        assertEq(nft.totalSupply(), totalSupplyBefore + quantity, "Total supply should increase by quantity");
 
         // Verify payment distribution (50/50 split)
         uint256 expectedAuthorShare = payment / 2;
@@ -94,6 +98,7 @@ contract GliskNFTMintingTest is Test {
         // Record balances before mint
         uint256 authorBalanceBefore = nft.authorClaimable(promptAuthor1);
         uint256 treasuryBalanceBefore = nft.treasuryBalance();
+        uint256 totalSupplyBefore = nft.totalSupply();
 
         // Expect BatchMinted event with startTokenId = 1
         vm.expectEmit(true, true, true, true);
@@ -110,6 +115,9 @@ contract GliskNFTMintingTest is Test {
         }
 
         assertEq(nft.balanceOf(user1), quantity, "User1 should have 5 tokens");
+
+        // Verify total supply increased
+        assertEq(nft.totalSupply(), totalSupplyBefore + quantity, "Total supply should increase by quantity");
 
         // Verify payment distribution
         uint256 expectedAuthorShare = payment / 2;
