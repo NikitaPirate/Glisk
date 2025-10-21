@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from web3 import Web3
 
-from glisk.api.routes import webhooks
+from glisk.api.routes import authors, webhooks
 from glisk.core import timezone  # noqa: F401
 from glisk.core.config import Settings, configure_logging
 from glisk.core.database import setup_db_session
@@ -243,6 +243,7 @@ def create_app() -> FastAPI:
     )
 
     # Register API routers
+    app.include_router(authors.router)  # Authors router has prefix="/api/authors" in definition
     app.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])
 
     # Health check endpoint with database validation

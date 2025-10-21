@@ -23,10 +23,10 @@
 
 **Purpose**: Verify prerequisites and project structure
 
-- [ ] T001 Verify PostgreSQL `authors` table schema has required fields (wallet_address UNIQUE, prompt_text TEXT, created_at)
-- [ ] T002 Verify `eth-account` library is installed via web3.py (no new dependencies needed)
-- [ ] T003 [P] Verify frontend has wagmi + viem + RainbowKit installed from previous features
-- [ ] T004 [P] Verify backend has FastAPI + SQLModel + structlog from previous features
+- [X] T001 Verify PostgreSQL `authors` table schema has required fields (wallet_address UNIQUE, prompt_text TEXT, created_at)
+- [X] T002 Verify `eth-account` library is installed via web3.py (no new dependencies needed)
+- [X] T003 [P] Verify frontend has wagmi + viem + RainbowKit installed from previous features
+- [X] T004 [P] Verify backend has FastAPI + SQLModel + structlog from previous features
 
 **Checkpoint**: All prerequisites verified, no new dependencies needed
 
@@ -38,10 +38,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Add `authorClaimable` mapping ABI entry to `frontend/src/lib/contract.ts` (read claimable balance from contract)
-- [ ] T006 Add `claimAuthorRewards()` function ABI entry to `frontend/src/lib/contract.ts` (claim transaction)
-- [ ] T007 Create wallet signature verification service in `backend/src/glisk/services/wallet_signature.py` (EIP-191 verification using eth-account)
-- [ ] T008 Add `upsert_author_prompt()` method to `backend/src/glisk/repositories/author.py` (create or update author's prompt)
+- [X] T005 Add `authorClaimable` mapping ABI entry to `frontend/src/lib/contract.ts` (read claimable balance from contract)
+- [X] T006 Add `claimAuthorRewards()` function ABI entry to `frontend/src/lib/contract.ts` (claim transaction)
+- [X] T007 Create wallet signature verification service in `backend/src/glisk/services/wallet_signature.py` (EIP-191 verification using eth-account)
+- [X] T008 Add `upsert_author_prompt()` method to `backend/src/glisk/repositories/author.py` (create or update author's prompt)
+- [X] **Bonus**: Updated `Author.validate_wallet_address()` to normalize addresses to checksummed format (EIP-55) for system-wide consistency
 
 **Checkpoint**: Foundation ready - signature verification and repository methods available
 
@@ -59,12 +60,12 @@
 
 **NOTE: Write these tests FIRST, ensure they FAIL before implementation (TDD)**
 
-- [ ] T009 [P] [US1+US3] Create signature verification tests in `backend/tests/test_wallet_signature.py`:
+- [X] T009 [P] [US1+US3] Create signature verification tests in `backend/tests/test_wallet_signature.py`:
   - Test valid signature verification succeeds
   - Test invalid signature (wrong wallet) fails
   - Test malformed signature raises ValueError
-  - Test case-insensitive address comparison
-- [ ] T010 [P] [US1+US3] Create author API integration tests in `backend/tests/test_author_routes.py`:
+  - Test checksummed address comparison
+- [X] T010 [P] [US1+US3] Create author API integration tests in `backend/tests/test_author_routes.py`:
   - Test POST /api/authors/prompt with valid signature creates new author (verify `{"success": true, "has_prompt": true}` response)
   - Test POST /api/authors/prompt with valid signature updates existing author (verify no prompt_text in response)
   - Test POST /api/authors/prompt with invalid signature returns 400 error
@@ -75,19 +76,19 @@
 
 ### Backend Implementation for US1+US3
 
-- [ ] T011 [US1+US3] Create API routes file `backend/src/glisk/api/routes/authors.py`:
+- [X] T011 [US1+US3] Create API routes file `backend/src/glisk/api/routes/authors.py`:
   - Define `UpdatePromptRequest` Pydantic model (wallet_address, prompt_text, signature, message)
   - Define `UpdatePromptResponse` Pydantic model (success: bool, has_prompt: bool)
   - Define `AuthorStatusResponse` Pydantic model (has_prompt: bool)
   - Implement `POST /api/authors/prompt` endpoint with signature verification (returns UpdatePromptResponse, no prompt_text echo)
   - Implement `GET /api/authors/{wallet_address}` endpoint (returns AuthorStatusResponse, never 404)
   - Add structured error responses (400 for validation, 401 for auth)
-- [ ] T012 [US1+US3] Register authors router in `backend/src/glisk/app.py` (add `app.include_router(authors.router)`)
-- [ ] T013 [US1+US3] Add CORS configuration for frontend origin in `backend/src/glisk/app.py` if not already present
+- [X] T012 [US1+US3] Register authors router in `backend/src/glisk/app.py` (add `app.include_router(authors.router)`)
+- [X] T013 [US1+US3] Add CORS configuration for frontend origin in `backend/src/glisk/app.py` if not already present
 
 ### Frontend Implementation for US1+US3
 
-- [ ] T014 [P] [US1+US3] Create CreatorDashboard page in `frontend/src/pages/CreatorDashboard.tsx`:
+- [X] T014 [P] [US1+US3] Create CreatorDashboard page in `frontend/src/pages/CreatorDashboard.tsx`:
   - Import wagmi hooks (useAccount, useSignMessage)
   - Add wallet connection check (redirect if not connected)
   - Query prompt status on mount (GET /api/authors/{address} → display status indicator)
@@ -97,8 +98,8 @@
   - Implement save button with signature flow
   - Display success/error messages (no prompt echo after save)
   - Handle signature rejection gracefully
-- [ ] T015 [US1+US3] Add `/creator-dashboard` route to `frontend/src/App.tsx` (import CreatorDashboard component)
-- [ ] T016 [P] [US1+US3] Add "Creator Dashboard" navigation link to `frontend/src/components/Header.tsx` (visible when wallet connected)
+- [X] T015 [US1+US3] Add `/creator-dashboard` route to `frontend/src/App.tsx` (import CreatorDashboard component)
+- [X] T016 [P] [US1+US3] Add "Creator Dashboard" navigation link to `frontend/src/components/Header.tsx` (visible when wallet connected)
 
 **Checkpoint**: At this point, creators can securely set/update prompts with signature verification. US1 + US3 fully functional and independently testable.
 
@@ -116,7 +117,7 @@
 
 ### Frontend Implementation for US2
 
-- [ ] T017 [US2] Add rewards claiming section to `frontend/src/pages/CreatorDashboard.tsx`:
+- [X] T017 [US2] Add rewards claiming section to `frontend/src/pages/CreatorDashboard.tsx`:
   - Import wagmi hooks (useReadContract, useWriteContract, useWaitForTransactionReceipt)
   - Query `authorClaimable[address]` from contract (useReadContract)
   - Display claimable balance in ETH (convert wei to ETH using formatEther)
@@ -135,11 +136,11 @@
 
 **Purpose**: Final touches, edge case handling, documentation
 
-- [ ] T018 [P] Add wallet change detection to `frontend/src/pages/CreatorDashboard.tsx` (useEffect watching address, reload data on change)
-- [ ] T019 [P] Add RPC error handling to `frontend/src/pages/CreatorDashboard.tsx` (graceful fallback when contract queries fail)
-- [ ] T020 [P] Add structured logging to backend signature verification in `backend/src/glisk/services/wallet_signature.py` (log verification attempts, successes, failures)
-- [ ] T021 [P] Add structured logging to backend API routes in `backend/src/glisk/api/routes/authors.py` (log prompt updates, author lookups)
-- [ ] T022 [P] Test edge cases manually:
+- [X] T018 [P] Add wallet change detection to `frontend/src/pages/CreatorDashboard.tsx` (useEffect watching address, reload data on change)
+- [X] T019 [P] Add RPC error handling to `frontend/src/pages/CreatorDashboard.tsx` (graceful fallback when contract queries fail)
+- [X] T020 [P] Add structured logging to backend signature verification in `backend/src/glisk/services/wallet_signature.py` (log verification attempts, successes, failures)
+- [X] T021 [P] Add structured logging to backend API routes in `backend/src/glisk/api/routes/authors.py` (log prompt updates, author lookups)
+- [X] T022 [P] Test edge cases manually:
   - Prompt with emojis and special characters (should save successfully, verify backend logs)
   - Prompt with newlines and formatting (should save to database, verify via backend)
   - Status indicator updates after first prompt save ("⚠ No prompt" → "✓ Prompt configured")

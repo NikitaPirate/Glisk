@@ -1,0 +1,294 @@
+"""Author profile management API endpoints.
+
+This module implements REST endpoints for author profile management including:
+- POST /api/authors/prompt - Create or update author's AI generation prompt with
+  signature verification
+- GET /api/authors/{wallet_address} - Check if author has configured a prompt
+
+All prompt updates require EIP-191 wallet signature verification to prove wallet ownership.
+"""
+
+import structlog
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field, field_validator
+from web3 import Web3
+
+from glisk.api.dependencies import get_uow_factory
+from glisk.services.wallet_signature import verify_wallet_signature
+
+logger = structlog.get_logger()
+router = APIRouter(prefix="/api/authors", tags=["authors"])
+
+
+# Request/Response Models
+
+
+class UpdatePromptRequest(BaseModel):
+    """Request model for updating author's prompt with signature verification."""
+
+    wallet_address: str = Field(
+        ...,
+        description="Ethereum wallet address (0x + 40 hex characters)",
+        min_length=42,
+        max_length=42,
+    )
+    prompt_text: str = Field(
+        ...,
+        description="AI generation prompt text",
+        min_length=1,
+        max_length=1000,
+    )
+    message: str = Field(
+        ...,
+        description="Signed message (should match what was presented to user)",
+    )
+    signature: str = Field(
+        ...,
+        description="EIP-191 signature hex string",
+    )
+
+    @field_validator("wallet_address")
+    @classmethod
+    def validate_wallet_address(cls, v: str) -> str:
+        """Validate and normalize Ethereum wallet address."""
+        if not v.startswith("0x") or len(v) != 42:
+            raise ValueError("Wallet address must be 0x followed by 40 hex characters")
+        try:
+            # Normalize to checksummed address
+            return Web3.to_checksum_address(v)
+        except ValueError as e:
+            raise ValueError(f"Invalid Ethereum address: {e}")
+
+
+class UpdatePromptResponse(BaseModel):
+    """Response model for prompt update operations.
+
+    Note: Does NOT include prompt_text for security (prompts are write-only via API).
+    """
+
+    success: bool = Field(
+        ...,
+        description="True if prompt was saved successfully",
+    )
+    has_prompt: bool = Field(
+        ...,
+        description="True if author now has a prompt configured",
+    )
+
+
+class AuthorStatusResponse(BaseModel):
+    """Response model for author status queries."""
+
+    has_prompt: bool = Field(
+        ...,
+        description="True if author has configured a prompt, False otherwise",
+    )
+
+
+# API Endpoints
+
+
+@router.post("/prompt", response_model=UpdatePromptResponse, status_code=status.HTTP_200_OK)
+async def update_author_prompt(
+    request: UpdatePromptRequest,
+    uow_factory=Depends(get_uow_factory),
+) -> UpdatePromptResponse:
+    """Create or update author's AI generation prompt with signature verification.
+
+    This endpoint allows creators to set or update their AI generation prompt by
+    providing a valid EIP-191 wallet signature. The signature proves wallet ownership
+    without requiring an on-chain transaction.
+
+    Security:
+    - Signature verification required (EIP-191)
+    - Prompt text is never returned via API (write-only)
+    - Case-insensitive wallet lookup prevents duplicates
+
+    Args:
+        request: Prompt update request with wallet address, prompt, and signature
+        uow_factory: UnitOfWork factory (injected dependency)
+
+    Returns:
+        UpdatePromptResponse with success=True and has_prompt=True
+
+    Raises:
+        HTTPException 400: Invalid signature or validation error
+        HTTPException 500: Database error
+
+    Example:
+        POST /api/authors/prompt
+        {
+            "wallet_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+            "prompt_text": "Surreal neon landscapes with futuristic architecture",
+            "message": "Update GLISK prompt for wallet: 0x742d35Cc...",
+            "signature": "0x1234567890abcdef..."
+        }
+
+        Response 200:
+        {
+            "success": true,
+            "has_prompt": true
+        }
+    """
+    try:
+        # Step 1: Verify wallet signature (proves wallet ownership)
+        is_valid_signature = verify_wallet_signature(
+            wallet_address=request.wallet_address,
+            message=request.message,
+            signature=request.signature,
+        )
+
+        if not is_valid_signature:
+            logger.warning(
+                "signature_verification_failed",
+                wallet_address=request.wallet_address,
+                message_preview=request.message[:50],
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "Signature verification failed. Please ensure you're using the correct wallet."
+                ),
+            )
+
+        # Log successful signature verification
+        logger.info(
+            "signature_verification_success",
+            wallet_address=request.wallet_address,
+        )
+
+        # Step 2: Update or create author with prompt (UoW handles transaction)
+        async with await uow_factory() as uow:
+            try:
+                # Upsert author prompt (creates new or updates existing)
+                author = await uow.authors.upsert_author_prompt(
+                    wallet_address=request.wallet_address,
+                    prompt_text=request.prompt_text,
+                )
+
+                # Transaction will commit automatically on context exit
+                # Log successful update
+                logger.info(
+                    "author_prompt_updated",
+                    wallet_address=request.wallet_address,
+                    author_id=str(author.id),
+                    prompt_length=len(request.prompt_text),
+                )
+
+                return UpdatePromptResponse(
+                    success=True,
+                    has_prompt=True,
+                )
+
+            except ValueError as e:
+                # Validation error from Author model (prompt length, wallet format, etc.)
+                logger.warning(
+                    "author_validation_error",
+                    wallet_address=request.wallet_address,
+                    error=str(e),
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=str(e),
+                )
+
+    except HTTPException:
+        # Re-raise HTTPExceptions (already have correct status codes)
+        raise
+    except Exception as e:
+        # Unexpected error (database connection, etc.)
+        logger.error(
+            "unexpected_error_updating_prompt",
+            wallet_address=request.wallet_address,
+            error=str(e),
+            error_type=type(e).__name__,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update author prompt. Please try again later.",
+        )
+
+
+@router.get(
+    "/{wallet_address}", response_model=AuthorStatusResponse, status_code=status.HTTP_200_OK
+)
+async def get_author_status(
+    wallet_address: str,
+    uow_factory=Depends(get_uow_factory),
+) -> AuthorStatusResponse:
+    """Check if author has configured a prompt (read-only status check).
+
+    This endpoint returns whether an author has set up their AI generation prompt.
+    It does NOT return the prompt text itself (prompts are write-only via API).
+
+    Always returns 200 OK, even if author doesn't exist (returns has_prompt=false).
+
+    Security:
+    - No authentication required (public read)
+    - Prompt text is never exposed (only boolean status)
+    - Case-insensitive wallet lookup
+
+    Args:
+        wallet_address: Ethereum wallet address (0x + 40 hex chars, case-insensitive)
+        uow_factory: UnitOfWork factory (injected dependency)
+
+    Returns:
+        AuthorStatusResponse with has_prompt boolean
+
+    Example:
+        GET /api/authors/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+
+        Response 200 (author exists):
+        {
+            "has_prompt": true
+        }
+
+        Response 200 (author doesn't exist):
+        {
+            "has_prompt": false
+        }
+    """
+    try:
+        # Normalize wallet address to checksummed format
+        try:
+            checksummed_address = Web3.to_checksum_address(wallet_address)
+        except ValueError:
+            # Invalid address format - treat as non-existent author
+            logger.warning(
+                "invalid_wallet_address_format",
+                wallet_address=wallet_address,
+            )
+            return AuthorStatusResponse(has_prompt=False)
+
+        # Query author by wallet (case-insensitive)
+        async with await uow_factory() as uow:
+            author = await uow.authors.get_by_wallet(checksummed_address)
+
+            if author is None:
+                # Author not found - return has_prompt=false (not 404)
+                logger.debug(
+                    "author_not_found",
+                    wallet_address=checksummed_address,
+                )
+                return AuthorStatusResponse(has_prompt=False)
+            else:
+                # Author exists with prompt
+                logger.debug(
+                    "author_status_retrieved",
+                    wallet_address=checksummed_address,
+                    author_id=str(author.id),
+                )
+                return AuthorStatusResponse(has_prompt=True)
+
+    except Exception as e:
+        # Unexpected error (database connection, etc.)
+        logger.error(
+            "unexpected_error_getting_author_status",
+            wallet_address=wallet_address,
+            error=str(e),
+            error_type=type(e).__name__,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve author status. Please try again later.",
+        )

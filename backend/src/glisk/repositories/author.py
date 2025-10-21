@@ -19,6 +19,7 @@ class AuthorRepository:
     - get_by_wallet: Case-insensitive wallet address lookup
     - add: Persist new author
     - list_all: Paginated list of all authors
+    - upsert_author_prompt: Create or update author's prompt text
     """
 
     def __init__(self, session: AsyncSession):
@@ -85,3 +86,42 @@ class AuthorRepository:
             select(Author).order_by(Author.created_at.desc()).limit(limit).offset(offset)  # type: ignore[attr-defined]
         )
         return list(result.scalars().all())
+
+    async def upsert_author_prompt(self, wallet_address: str, prompt_text: str) -> Author:
+        """Create or update author's prompt text.
+
+        Implements UPSERT logic: creates new author if wallet doesn't exist,
+        or updates prompt for existing author. Uses case-insensitive wallet lookup
+        to prevent duplicate authors.
+
+        Args:
+            wallet_address: Ethereum wallet address (0x + 40 hex chars)
+            prompt_text: AI generation prompt (1-1000 characters)
+
+        Returns:
+            Author entity (newly created or updated)
+
+        Raises:
+            ValueError: If validation fails (invalid wallet format, prompt length, etc.)
+
+        Example:
+            >>> author = await repo.upsert_author_prompt(
+            ...     "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+            ...     "Surreal neon landscapes with futuristic architecture"
+            ... )
+        """
+        # Check if author already exists (case-insensitive lookup)
+        existing_author = await self.get_by_wallet(wallet_address)
+
+        if existing_author:
+            # Update existing author's prompt
+            existing_author.prompt_text = prompt_text  # Triggers Pydantic validation
+            await self.session.flush()
+            return existing_author
+        else:
+            # Create new author with prompt
+            new_author = Author(
+                wallet_address=wallet_address,  # Triggers wallet validation
+                prompt_text=prompt_text,  # Triggers prompt validation
+            )
+            return await self.add(new_author)

@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID, uuid4
 
+from eth_utils.address import to_checksum_address
 from pydantic import field_validator
 from sqlmodel import Field, SQLModel
 
@@ -23,15 +24,19 @@ class Author(SQLModel, table=True):
     @field_validator("wallet_address")
     @classmethod
     def validate_wallet_address(cls, v: str) -> str:
-        """Validate Ethereum wallet address format (0x + 40 hex characters)."""
+        """Validate and normalize Ethereum wallet address to checksummed format (EIP-55).
+
+        Accepts any valid Ethereum address (case-insensitive) and converts it to
+        the checksummed format for consistency across the system.
+        """
         if not v.startswith("0x") or len(v) != 42:
             raise ValueError("Wallet address must be in format 0x followed by 40 hex characters")
         try:
-            # Verify it's valid hex
-            int(v[2:], 16)
+            # Verify it's valid hex and normalize to checksummed format
+            checksummed = to_checksum_address(v)
+            return checksummed
         except ValueError:
             raise ValueError("Wallet address must contain valid hexadecimal characters")
-        return v
 
     @field_validator("prompt_text")
     @classmethod
