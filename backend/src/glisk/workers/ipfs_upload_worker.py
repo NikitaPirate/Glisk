@@ -13,8 +13,10 @@ from typing import Callable
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from glisk.core.config import Settings
+from glisk.models.author import Author
 from glisk.models.token import Token
 from glisk.repositories.ipfs_record import IPFSUploadRecordRepository
 from glisk.repositories.token import TokenRepository
@@ -24,26 +26,35 @@ from glisk.services.ipfs.pinata_client import PinataClient
 logger = structlog.get_logger(__name__)
 
 
-def build_metadata(token: Token, image_cid: str) -> dict:
+def build_metadata(token: Token, image_cid: str, twitter_handle: str | None = None) -> dict:
     """Build ERC721 metadata JSON for token.
 
     Args:
         token: Token model instance
         image_cid: IPFS CID of uploaded image
+        twitter_handle: Optional X (Twitter) username of the author (without @ symbol)
 
     Returns:
         ERC721 metadata dictionary with keys:
         - name (str): Token name (e.g., "GLISK S0 #123")
         - description (str): Token description with social link
         - image (str): IPFS URI (ipfs://<image_cid>)
-        - attributes (list): Empty array for MVP
+        - attributes (list): Array of trait objects (includes X handle if available)
     """
-    return {
+    metadata = {
         "name": f"GLISK S0 #{token.token_id}",
         "description": "GLISK Season 0. https://x.com/getglisk",
         "image": f"ipfs://{image_cid}",
         "attributes": [],
     }
+
+    # Add X handle as attribute if available (visible on NFT marketplaces)
+    if twitter_handle:
+        metadata["attributes"].append(
+            {"trait_type": "Author X Handle", "value": f"@{twitter_handle}"}
+        )
+
+    return metadata
 
 
 async def process_single_token(
@@ -60,11 +71,12 @@ async def process_single_token(
     2. Fetch token by ID (attach to session)
     3. Create Pinata client
     4. Upload image to IPFS → get image CID
-    5. Build metadata with image CID
-    6. Upload metadata to IPFS → get metadata CID
-    7. Update token with CIDs and status: uploading → ready
-    8. Create audit records for both uploads
-    9. Handle errors:
+    5. Fetch author by wallet address → get twitter_handle (if exists)
+    6. Build metadata with image CID and twitter_handle (if available)
+    7. Upload metadata to IPFS → get metadata CID
+    8. Update token with CIDs and status: uploading → ready
+    9. Create audit records for both uploads
+    10. Handle errors:
        - TransientError: Increment attempts, keep status='uploading' for retry
        - PermanentError: Mark as failed
        - Max retries (3): Mark as failed
@@ -123,10 +135,16 @@ async def process_single_token(
                 retry_count=attempt_number - 1,
             )
 
-            # Step 3: Build metadata
-            metadata = build_metadata(attached_token, image_cid)
+            # Step 3: Fetch author to get twitter_handle
+            author = await session.scalar(
+                select(Author).where(Author.id == attached_token.author_id)
+            )
+            twitter_handle = author.twitter_handle if author else None
 
-            # Step 4: Upload metadata to IPFS
+            # Step 4: Build metadata with author's twitter handle (if available)
+            metadata = build_metadata(attached_token, image_cid, twitter_handle=twitter_handle)
+
+            # Step 5: Upload metadata to IPFS
             metadata_cid = await pinata.upload_metadata(metadata, attached_token.token_id)
             logger.info(
                 "ipfs.metadata_uploaded",
@@ -144,7 +162,7 @@ async def process_single_token(
                 retry_count=attempt_number - 1,
             )
 
-            # Step 5: Update token with CIDs and mark as ready
+            # Step 6: Update token with CIDs and mark as ready
             await token_repo.update_ipfs_cids(attached_token, image_cid, metadata_cid)
             await session.commit()
 

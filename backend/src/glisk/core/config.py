@@ -71,6 +71,14 @@ class Settings(BaseSettings):
     # Token Recovery - 004-recovery-1-nexttokenid
     recovery_batch_size: int = Field(default=1000, alias="RECOVERY_BATCH_SIZE")
 
+    # X (Twitter) OAuth Integration - 007-link-x-twitter
+    x_client_id: str = Field(default="", alias="X_CLIENT_ID")
+    x_client_secret: str = Field(default="", alias="X_CLIENT_SECRET")
+    x_redirect_uri: str = Field(
+        default="http://localhost:8000/api/authors/x/callback", alias="X_REDIRECT_URI"
+    )
+    frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""
