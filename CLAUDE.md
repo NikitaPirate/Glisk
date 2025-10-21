@@ -10,6 +10,7 @@ Auto-generated from all feature plans. Last updated: 2025-10-10
 - PostgreSQL 14+ with 200 connection pool, UTC timestamps, JSONB suppor (003-003a-backend-foundation)
 - React 18 + TypeScript (via Vite) (005-frontend-foundation-with)
 - N/A (stateless frontend, no persistence) (005-frontend-foundation-with)
+- Python 3.13 (backend), TypeScript 5.x (frontend) (007-link-x-twitter)
 
 ## Project Structure
 ```
@@ -655,6 +656,7 @@ TZ=America/Los_Angeles uv run pytest tests/test_token_recovery.py -v
 ---
 
 ## Recent Changes
+- 007-link-x-twitter: Added Python 3.13 (backend), TypeScript 5.x (frontend)
 - 005-frontend-foundation-with: Added React 18 + TypeScript (via Vite)
 - 004-recovery-1-nexttokenid: Added Python 3.13 (backend), Solidity ^0.8.20 (smart contract) + web3.py (blockchain interaction), SQLModel + psycopg3 (async database), Alembic (migrations)
 
