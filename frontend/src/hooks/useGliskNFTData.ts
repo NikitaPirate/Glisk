@@ -16,7 +16,8 @@ type NFTError = {
   message: string
 }
 
-const PINATA_GATEWAY = 'gateway.pinata.cloud'
+const PINATA_GATEWAY = import.meta.env.VITE_PINATA_GATEWAY || 'gateway.pinata.cloud'
+const PINATA_GATEWAY_TOKEN = import.meta.env.VITE_PINATA_GATEWAY_TOKEN
 
 /**
  * Minimal useNFTData hook for Glisk NFTs
@@ -90,24 +91,32 @@ export function useGliskNFTData(contractAddress: Hex, tokenId?: string): NFTData
 }
 
 /**
- * Convert IPFS URI to Pinata gateway URL
+ * Convert IPFS URI to Pinata gateway URL with optional gateway token
  * Supports: ipfs://CID, ipfs://ipfs/CID, https://...
  */
 function ipfsToGateway(uri: string): string {
+  let gatewayUrl: string
+
   if (uri.startsWith('http://') || uri.startsWith('https://')) {
     // Already HTTP - check if it's an IPFS gateway URL
     const match = uri.match(/\/ipfs\/([a-zA-Z0-9]+)/)
     if (match) {
-      return `https://${PINATA_GATEWAY}/ipfs/${match[1]}`
+      gatewayUrl = `https://${PINATA_GATEWAY}/ipfs/${match[1]}`
+    } else {
+      return uri
     }
-    return uri
-  }
-
-  if (uri.startsWith('ipfs://')) {
+  } else if (uri.startsWith('ipfs://')) {
     const cid = uri.replace('ipfs://', '').replace('ipfs/', '')
-    return `https://${PINATA_GATEWAY}/ipfs/${cid}`
+    gatewayUrl = `https://${PINATA_GATEWAY}/ipfs/${cid}`
+  } else {
+    // Assume bare CID
+    gatewayUrl = `https://${PINATA_GATEWAY}/ipfs/${uri}`
   }
 
-  // Assume bare CID
-  return `https://${PINATA_GATEWAY}/ipfs/${uri}`
+  // Add gateway token if configured
+  if (PINATA_GATEWAY_TOKEN) {
+    gatewayUrl += `?pinataGatewayToken=${PINATA_GATEWAY_TOKEN}`
+  }
+
+  return gatewayUrl
 }
