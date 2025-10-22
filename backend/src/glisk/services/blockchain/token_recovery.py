@@ -234,13 +234,40 @@ class TokenRecoveryService:
                             "Ensure default author exists in database before running recovery."
                         )
 
-                # Create token record
-                token = Token(
-                    token_id=token_id,
-                    author_id=author.id,
-                    status=TokenStatus.DETECTED,
-                    generation_attempts=0,
-                )
+                # Check if token is already revealed on-chain
+                is_revealed = self.contract.functions.isRevealed(token_id).call()
+
+                # Create token record with appropriate status
+                if is_revealed:
+                    # Token already revealed - extract metadata URI
+                    token_uri = self.contract.functions.tokenURI(token_id).call()
+                    metadata_cid = (
+                        token_uri.replace("ipfs://", "")
+                        if token_uri.startswith("ipfs://")
+                        else None
+                    )
+
+                    token = Token(
+                        token_id=token_id,
+                        author_id=author.id,
+                        status=TokenStatus.REVEALED,
+                        metadata_cid=metadata_cid,
+                        generation_attempts=0,
+                    )
+
+                    logger.info(
+                        "recovery.token_revealed",
+                        token_id=token_id,
+                        metadata_cid=metadata_cid,
+                    )
+                else:
+                    # Token not revealed - will go through pipeline
+                    token = Token(
+                        token_id=token_id,
+                        author_id=author.id,
+                        status=TokenStatus.DETECTED,
+                        generation_attempts=0,
+                    )
 
                 await uow.tokens.add(token)
                 await uow.session.flush()  # Ensure token is persisted
@@ -251,6 +278,7 @@ class TokenRecoveryService:
                     token_id=token_id,
                     author_id=str(author.id),
                     author_wallet=author_wallet_checksummed,
+                    status=token.status.value,
                 )
 
             except IntegrityError:

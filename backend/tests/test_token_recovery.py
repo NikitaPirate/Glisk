@@ -350,9 +350,12 @@ async def test_full_recovery_flow_integration(uow_factory, mock_settings):
     1. Seed database with tokens [1, 2, 3, 6, 7, 8] and authors
     2. Mock contract.nextTokenId() to return 11 (tokens 1-10 should exist)
     3. Mock contract.tokenPromptAuthor() to return author addresses
-    4. Run recovery
-    5. Verify tokens [4, 5, 9, 10] created with status=DETECTED
-    6. Verify all tokens have correct author_id from contract
+    4. Mock isRevealed() - tokens 4, 5 are revealed, 9, 10 are not
+    5. Mock tokenURI() for revealed tokens
+    6. Run recovery
+    7. Verify tokens [4, 5, 9, 10] created with correct status (REVEALED or DETECTED)
+    8. Verify metadata_cid extracted for revealed tokens
+    9. Verify all tokens have correct author_id from contract
     """
     # Create authors
     async with await uow_factory() as uow:
@@ -397,6 +400,27 @@ async def test_full_recovery_flow_integration(uow_factory, mock_settings):
 
     mock_contract.functions.tokenPromptAuthor.side_effect = mock_token_prompt_author
 
+    # Mock isRevealed() - tokens 4, 5 are revealed, 9, 10 are not
+    def mock_is_revealed(token_id):
+        mock_call = Mock()
+        mock_call.call.return_value = token_id in [4, 5]
+        return mock_call
+
+    mock_contract.functions.isRevealed.side_effect = mock_is_revealed
+
+    # Mock tokenURI() for revealed tokens
+    def mock_token_uri(token_id):
+        mock_call = Mock()
+        if token_id in [4, 5]:
+            mock_call.call.return_value = (
+                f"ipfs://QmTest{token_id}xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            )
+        else:
+            mock_call.call.return_value = ""  # Unrevealed tokens shouldn't call this
+        return mock_call
+
+    mock_contract.functions.tokenURI.side_effect = mock_token_uri
+
     # Initialize recovery service with mocked contract
     with patch("glisk.services.blockchain.token_recovery.Web3") as MockWeb3:
         # Use side_effect to actually checksum addresses (passthrough)
@@ -432,11 +456,17 @@ async def test_full_recovery_flow_integration(uow_factory, mock_settings):
             assert token9 is not None
             assert token10 is not None
 
-            # Verify status
-            assert token4.status == TokenStatus.DETECTED
-            assert token5.status == TokenStatus.DETECTED
+            # Verify status - tokens 4, 5 are revealed, 9, 10 are detected
+            assert token4.status == TokenStatus.REVEALED
+            assert token5.status == TokenStatus.REVEALED
             assert token9.status == TokenStatus.DETECTED
             assert token10.status == TokenStatus.DETECTED
+
+            # Verify metadata_cid for revealed tokens
+            assert token4.metadata_cid == "QmTest4xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            assert token5.metadata_cid == "QmTest5xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            assert token9.metadata_cid is None
+            assert token10.metadata_cid is None
 
             # Verify author IDs match mocked contract responses
             assert token4.author_id == author1.id
