@@ -126,29 +126,29 @@
 
 ### Tests for User Story 2
 
-- [ ] T020 [US1] Add test_get_leaderboard_empty() to backend/tests/test_author_leaderboard.py
+- [X] T020 [US1] Add test_get_leaderboard_empty() to backend/tests/test_author_leaderboard.py
   - Clear all tokens and authors from database
   - Call repository.get_author_leaderboard()
   - Verify returns empty list []
-- [ ] T021 [US1] Add test_api_leaderboard_empty() to backend/tests/test_author_leaderboard.py
+- [X] T021 [US1] Add test_api_leaderboard_empty() to backend/tests/test_author_leaderboard.py
   - Clear database
   - Call GET /api/authors/leaderboard
   - Verify returns 200 OK with empty array []
-- [ ] T022 [US1] Run tests to confirm they FAIL before implementation
+- [X] T022 [US1] Run tests to confirm they FAIL before implementation
 
 ### Implementation for User Story 2
 
 **Frontend - Empty State**:
 
-- [ ] T023 [US2] Update frontend/src/pages/AuthorLeaderboard.tsx to handle empty state
+- [X] T023 [US2] Update frontend/src/pages/AuthorLeaderboard.tsx to handle empty state
   - After fetch completes, check if authors.length === 0
   - If empty, render "No authors yet" message instead of empty list
   - Style with Tailwind text-gray-500 for subtle appearance
 
 **Frontend - Verification**:
 
-- [ ] T024 [US2] Manual empty state test: Clear database, reload page, verify "No authors yet" appears
-- [ ] T025 [US2] Manual recovery test: Seed database, reload page, verify leaderboard returns (no broken state)
+- [X] T024 [US2] Manual empty state test: Clear database, reload page, verify "No authors yet" appears
+- [X] T025 [US2] Manual recovery test: Seed database, reload page, verify leaderboard returns (no broken state)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work - normal display and graceful empty state
 
@@ -164,15 +164,15 @@
 
 **Frontend - Loading State** (already implemented in T015, verify it works):
 
-- [ ] T026 [US3] Verify loading state implementation in frontend/src/pages/AuthorLeaderboard.tsx
+- [X] T026 [US3] Verify loading state implementation in frontend/src/pages/AuthorLeaderboard.tsx
   - Confirm isLoading state is initialized to true
   - Confirm "Loading..." text renders when isLoading is true
   - Confirm isLoading is set to false after fetch completes
 
 **Frontend - Verification**:
 
-- [ ] T027 [US3] Manual loading test: Throttle network to "Slow 3G", reload page, verify "Loading..." appears briefly
-- [ ] T028 [US3] Manual error test: Stop backend server, reload frontend, verify "Loading..." persists (acceptable MVP behavior per spec edge case)
+- [X] T027 [US3] Manual loading test: Throttle network to "Slow 3G", reload page, verify "Loading..." appears briefly
+- [X] T028 [US3] Manual error test: Stop backend server, reload frontend, verify "Loading..." persists (acceptable MVP behavior per spec edge case)
 
 **Checkpoint**: All three user stories complete - ranking display, empty state, and loading feedback all work independently
 
@@ -182,16 +182,16 @@
 
 **Purpose**: Final verification, documentation, and cleanup
 
-- [ ] T029 [P] Run full backend test suite to verify no regressions (pytest backend/tests/ -v)
-- [ ] T030 [P] Follow quickstart.md guide end-to-end to verify all manual test scenarios pass
-- [ ] T031 Update CLAUDE.md with new leaderboard feature documentation
+- [X] T029 [P] Run full backend test suite to verify no regressions (pytest backend/tests/ -v)
+- [X] T030 [P] Follow quickstart.md guide end-to-end to verify all manual test scenarios pass
+- [X] T031 Update CLAUDE.md with new leaderboard feature documentation
   - Add section under "Backend Features" or "Frontend Features"
   - Document GET /api/authors/leaderboard endpoint
   - Document landing page route (/)
   - Include usage examples and test commands
-- [ ] T032 Code review: Verify all code follows GLISK Constitution (Simplicity First, no unnecessary abstractions)
-- [ ] T033 Verify all success criteria met (SC-001 through SC-006 from spec.md)
-- [ ] T034 Final integration test: Seed realistic data (50 authors), verify leaderboard loads and performs correctly
+- [X] T032 Code review: Verify all code follows GLISK Constitution (Simplicity First, no unnecessary abstractions)
+- [X] T033 Verify all success criteria met (SC-001 through SC-006 from spec.md)
+- [X] T034 Final integration test: Seed realistic data (50 authors), verify leaderboard loads and performs correctly
 
 ---
 
