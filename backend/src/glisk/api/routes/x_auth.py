@@ -243,7 +243,7 @@ async def x_oauth_callback(
         GET /api/authors/x/callback?code=ABC123&state=XYZ789
 
         Redirects to:
-        http://localhost:5173/profile/settings?x_linked=true&username=gliskartist
+        http://localhost:5173/profile?tab=author&x_linked=true&username=gliskartist
     """
     frontend_base_url = settings.frontend_url
 
@@ -255,7 +255,7 @@ async def x_oauth_callback(
             error_description=error_description,
         )
         return RedirectResponse(
-            url=f"{frontend_base_url}/profile/settings?x_linked=false&error={error}",
+            url=f"{frontend_base_url}/profile?tab=author&x_linked=false&error={error}",
             status_code=status.HTTP_302_FOUND,
         )
 
@@ -267,7 +267,7 @@ async def x_oauth_callback(
             has_state=bool(state),
         )
         return RedirectResponse(
-            url=f"{frontend_base_url}/profile/settings?x_linked=false&error=missing_params",
+            url=f"{frontend_base_url}/profile?tab=author&x_linked=false&error=missing_params",
             status_code=status.HTTP_302_FOUND,
         )
 
@@ -281,7 +281,7 @@ async def x_oauth_callback(
                 state_preview=state[:8] + "...",
             )
             return RedirectResponse(
-                url=f"{frontend_base_url}/profile/settings?x_linked=false&error=state_mismatch",
+                url=f"{frontend_base_url}/profile?tab=author&x_linked=false&error=state_mismatch",
                 status_code=status.HTTP_302_FOUND,
             )
 
@@ -324,7 +324,7 @@ async def x_oauth_callback(
             # Cleanup state before redirecting to error
             del oauth_state_storage[state]
             return RedirectResponse(
-                url=f"{frontend_base_url}/profile/settings?x_linked=false&error=token_exchange_failed",
+                url=f"{frontend_base_url}/profile?tab=author&x_linked=false&error=token_exchange_failed",
                 status_code=status.HTTP_302_FOUND,
             )
 
@@ -354,7 +354,7 @@ async def x_oauth_callback(
                 # Cleanup state before redirecting to error
                 del oauth_state_storage[state]
                 return RedirectResponse(
-                    url=f"{frontend_base_url}/profile/settings?x_linked=false&error=validation_failed",
+                    url=f"{frontend_base_url}/profile?tab=author&x_linked=false&error=validation_failed",
                     status_code=status.HTTP_302_FOUND,
                 )
 
@@ -369,7 +369,7 @@ async def x_oauth_callback(
 
         # Step 7: Redirect to frontend success page
         return RedirectResponse(
-            url=f"{frontend_base_url}/profile/settings?x_linked=true&username={username}",
+            url=f"{frontend_base_url}/profile?tab=author&x_linked=true&username={username}",
             status_code=status.HTTP_302_FOUND,
         )
 
@@ -386,6 +386,6 @@ async def x_oauth_callback(
             del oauth_state_storage[state]
 
         return RedirectResponse(
-            url=f"{frontend_base_url}/profile/settings?x_linked=false&error=unexpected_error",
+            url=f"{frontend_base_url}/profile?tab=author&x_linked=false&error=unexpected_error",
             status_code=status.HTTP_302_FOUND,
         )
