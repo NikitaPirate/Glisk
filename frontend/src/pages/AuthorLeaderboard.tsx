@@ -1,9 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-// API base URL (configurable via environment variable)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-
 interface AuthorLeaderboardEntry {
   author_address: string
   total_tokens: number
@@ -16,7 +13,7 @@ export default function AuthorLeaderboard() {
 
   useEffect(() => {
     // Fetch leaderboard data from API
-    fetch(`${API_BASE_URL}/api/authors/leaderboard`)
+    fetch('/api/authors/leaderboard')
       .then(res => res.json())
       .then((data: AuthorLeaderboardEntry[]) => {
         setAuthors(data)

@@ -4,9 +4,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { NFTGrid } from '@/components/NFTGrid'
 
-// API base URL (configurable via environment variable)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-
 type PromptStatus = 'loading' | 'has_prompt' | 'no_prompt' | 'error'
 type SaveStatus = 'idle' | 'signing' | 'saving' | 'success' | 'error' | 'cancelled'
 type LoadingState = 'idle' | 'fetching' | 'linking' | 'signing'
@@ -34,9 +31,7 @@ interface TokensResponse {
 // T029: Fetch authored tokens from backend API
 async function fetchAuthoredTokens(walletAddress: string, page: number): Promise<TokensResponse> {
   const offset = (page - 1) * 20
-  const response = await fetch(
-    `${API_BASE_URL}/api/authors/${walletAddress}/tokens?offset=${offset}&limit=20`
-  )
+  const response = await fetch(`/api/authors/${walletAddress}/tokens?offset=${offset}&limit=20`)
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${await response.text()}`)
@@ -96,7 +91,7 @@ export function PromptAuthor() {
       try {
         setPromptStatus('loading')
         setXLoading('fetching')
-        const response = await fetch(`${API_BASE_URL}/api/authors/${address}`)
+        const response = await fetch(`/api/authors/${address}`)
 
         if (!response.ok) {
           throw new Error('Failed to fetch author status')
@@ -186,7 +181,7 @@ export function PromptAuthor() {
 
         const message = `Update GLISK prompt for wallet: ${address}`
 
-        const response = await fetch(`${API_BASE_URL}/api/authors/prompt`, {
+        const response = await fetch('/api/authors/prompt', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -242,7 +237,7 @@ export function PromptAuthor() {
 
         const message = `Link X account for wallet: ${address}`
 
-        const response = await fetch(`${API_BASE_URL}/api/authors/x/auth/start`, {
+        const response = await fetch('/api/authors/x/auth/start', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
