@@ -37,6 +37,9 @@ regexes = [
     # Default author wallet (zero address variant - public constant)
     '''0x0000000000000000000000000000000000000001''',
 
+    # Example addresses used in API documentation
+    '''0x1234567890AbcdEF1234567890aBcdef12345678''',
+
     # Placeholder strings in .env.example
     '''your_.*_here''',
     '''changeme_in_production''',

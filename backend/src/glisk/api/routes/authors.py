@@ -156,6 +156,31 @@ class TokensResponse(BaseModel):
     )
 
 
+class AuthorLeaderboardEntry(BaseModel):
+    """Response model for a single leaderboard entry."""
+
+    author_address: str = Field(
+        ...,
+        description="Checksummed Ethereum wallet address",
+        min_length=42,
+        max_length=42,
+    )
+    total_tokens: int = Field(
+        ...,
+        description="Total number of tokens minted by author",
+        ge=1,
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "author_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+                "total_tokens": 145,
+            }
+        }
+    }
+
+
 # API Endpoints
 
 
@@ -281,6 +306,85 @@ async def update_author_prompt(
 
 
 @router.get(
+    "/leaderboard", response_model=list[AuthorLeaderboardEntry], status_code=status.HTTP_200_OK
+)
+async def get_author_leaderboard(
+    uow_factory=Depends(get_uow_factory),
+) -> list[AuthorLeaderboardEntry]:
+    """Get ranked list of top 50 authors by token count.
+
+    Returns authors sorted by total number of minted tokens (descending),
+    with alphabetical tie-breaking by wallet address (ascending). Designed
+    for landing page discovery of popular creators.
+
+    Always returns 200 OK with empty array if no tokens exist.
+
+    Security:
+    - No authentication required (public read)
+    - Read-only query (no state mutations)
+    - Performance optimized with SQL aggregation
+
+    Returns:
+        List of AuthorLeaderboardEntry (max 50 authors, ordered by token count DESC)
+
+    Example:
+        GET /api/authors/leaderboard
+
+        Response 200 (authors with tokens):
+        [
+            {
+                "author_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+                "total_tokens": 145
+            },
+            {
+                "author_address": "0x1234567890AbcdEF1234567890aBcdef12345678",  # gitleaks:allow
+                "total_tokens": 89
+            }
+        ]
+
+        Response 200 (no tokens):
+        []
+    """
+    try:
+        # Log leaderboard request
+        logger.debug("leaderboard_request")
+
+        # Query leaderboard data
+        async with await uow_factory() as uow:
+            # Get top 50 authors by token count
+            leaderboard_data = await uow.authors.get_author_leaderboard()
+
+            # Convert tuples to DTOs
+            leaderboard_entries = [
+                AuthorLeaderboardEntry(
+                    author_address=wallet_address,
+                    total_tokens=total_tokens,
+                )
+                for wallet_address, total_tokens in leaderboard_data
+            ]
+
+            # Log successful retrieval
+            logger.info(
+                "leaderboard_retrieved",
+                total_authors=len(leaderboard_entries),
+            )
+
+            return leaderboard_entries
+
+    except Exception as e:
+        # Unexpected error (database connection, etc.)
+        logger.error(
+            "unexpected_error_getting_leaderboard",
+            error=str(e),
+            error_type=type(e).__name__,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve author leaderboard. Please try again later.",
+        )
+
+
+@router.get(
     "/{wallet_address}", response_model=AuthorStatusResponse, status_code=status.HTTP_200_OK
 )
 async def get_author_status(
@@ -308,7 +412,7 @@ async def get_author_status(
         AuthorStatusResponse with has_prompt boolean and twitter_handle (if linked)
 
     Example:
-        GET /api/authors/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+        GET /api/authors/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0  # gitleaks:allow
 
         Response 200 (author exists with X account):
         {

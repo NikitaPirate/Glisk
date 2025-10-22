@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from glisk.models.author import Author
+from glisk.models.token import Token
 
 
 class AuthorRepository:
@@ -21,6 +22,7 @@ class AuthorRepository:
     - list_all: Paginated list of all authors
     - upsert_author_prompt: Create or update author's prompt text
     - upsert_x_handle: Create or update author's X (Twitter) handle
+    - get_author_leaderboard: Top 50 authors ranked by token count
     """
 
     def __init__(self, session: AsyncSession):
@@ -171,3 +173,40 @@ class AuthorRepository:
                 prompt_text=None,  # Will be set when author updates their prompt
             )
             return await self.add(new_author)
+
+    async def get_author_leaderboard(self) -> list[tuple[str, int]]:
+        """Retrieve top 50 authors ranked by total token count.
+
+        Returns authors sorted by total number of minted tokens (descending),
+        with alphabetical tie-breaking by wallet address (ascending).
+
+        Returns:
+            List of tuples (wallet_address, total_tokens) for top 50 authors.
+            Empty list if no tokens exist.
+
+        Example:
+            >>> leaderboard = await repo.get_author_leaderboard()
+            >>> # [('0x742d35Cc...', 145), ('0x1234567...', 89), ...]
+        """
+        # Build aggregation query
+        # type: ignore - SQLAlchemy expression types are complex
+        stmt = (
+            select(
+                Author.wallet_address,  # type: ignore[arg-type]
+                func.count(Token.id).label("total_tokens"),  # type: ignore[arg-type]
+            )
+            .select_from(Token)
+            .join(Author, Token.author_id == Author.id)  # type: ignore[arg-type]
+            .group_by(Author.id, Author.wallet_address)  # type: ignore[arg-type]
+            .order_by(
+                func.count(Token.id).desc(),  # type: ignore[arg-type]
+                Author.wallet_address.asc(),  # type: ignore[attr-defined]
+            )
+            .limit(50)
+        )
+
+        # Execute query
+        result = await self.session.execute(stmt)  # type: ignore[arg-type]
+
+        # Return list of tuples (wallet_address, total_tokens)
+        return [(row[0], row[1]) for row in result.all()]
