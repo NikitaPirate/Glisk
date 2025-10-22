@@ -77,7 +77,7 @@ class TestWalletSignatureVerification:
         malformed_signature = "0xinvalidsignature"
 
         # Act & Assert
-        with pytest.raises(ValueError, match="Invalid signature format"):
+        with pytest.raises(ValueError, match="Invalid signature hex format"):
             verify_wallet_signature(
                 wallet_address=test_wallet["address"],
                 message=message,

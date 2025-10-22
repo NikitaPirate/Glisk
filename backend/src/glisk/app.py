@@ -120,56 +120,57 @@ async def lifespan(app: FastAPI):
     # Create UoW factory for dependency injection
     uow_factory = create_uow_factory(session_factory)
 
+    # Initialize Web3 connection for blockchain interactions
+    network_url_mapping = {
+        "BASE_SEPOLIA": f"https://base-sepolia.g.alchemy.com/v2/{settings.alchemy_api_key}",
+        "BASE_MAINNET": f"https://base-mainnet.g.alchemy.com/v2/{settings.alchemy_api_key}",
+    }
+
+    w3 = None
+    if settings.network in network_url_mapping:
+        alchemy_url = network_url_mapping[settings.network]
+        w3 = Web3(Web3.HTTPProvider(alchemy_url))
+        if not w3.is_connected():
+            logger.warning("startup.web3_connection_failed", url=alchemy_url)
+            w3 = None
+    else:
+        logger.warning("startup.web3_unsupported_network", network=settings.network)
+
     # Store in app.state for access in routes
     app.state.session_factory = session_factory
     app.state.uow_factory = uow_factory
+    app.state.w3 = w3  # For ERC-1271 signature verification
 
     # Run token recovery before starting workers (004-recovery-1-nexttokenid)
     # This ensures database is consistent with on-chain state before workers start processing
     try:
-        # Initialize Web3 connection for recovery
-        network_url_mapping = {
-            "BASE_SEPOLIA": f"https://base-sepolia.g.alchemy.com/v2/{settings.alchemy_api_key}",
-            "BASE_MAINNET": f"https://base-mainnet.g.alchemy.com/v2/{settings.alchemy_api_key}",
-        }
+        if w3 and w3.is_connected():
+            # Initialize recovery service
+            recovery_service = TokenRecoveryService(
+                w3=w3,
+                contract_address=settings.glisk_nft_contract_address,
+                settings=settings,
+            )
 
-        if settings.network in network_url_mapping:
-            alchemy_url = network_url_mapping[settings.network]
-            w3 = Web3(Web3.HTTPProvider(alchemy_url))
-
-            if w3.is_connected():
-                # Initialize recovery service
-                recovery_service = TokenRecoveryService(
-                    w3=w3,
-                    contract_address=settings.glisk_nft_contract_address,
-                    settings=settings,
+            # Run recovery
+            async with await uow_factory() as uow:
+                result = await recovery_service.recover_missing_tokens(
+                    uow=uow,
+                    limit=settings.recovery_batch_size,
                 )
 
-                # Run recovery
-                async with await uow_factory() as uow:
-                    result = await recovery_service.recover_missing_tokens(
-                        uow=uow,
-                        limit=settings.recovery_batch_size,
+                if result.recovered_count > 0:
+                    logger.info(
+                        "startup.recovery_completed",
+                        recovered=result.recovered_count,
+                        duplicates_skipped=result.skipped_duplicate_count,
+                        failed=len(result.errors),
+                        total_on_chain=result.total_on_chain,
                     )
-
-                    if result.recovered_count > 0:
-                        logger.info(
-                            "startup.recovery_completed",
-                            recovered=result.recovered_count,
-                            duplicates_skipped=result.skipped_duplicate_count,
-                            failed=len(result.errors),
-                            total_on_chain=result.total_on_chain,
-                        )
-                    else:
-                        logger.debug(
-                            "startup.recovery_no_gaps", total_on_chain=result.total_on_chain
-                        )
-            else:
-                logger.warning("startup.recovery_skipped", reason="web3_connection_failed")
+                else:
+                    logger.debug("startup.recovery_no_gaps", total_on_chain=result.total_on_chain)
         else:
-            logger.warning(
-                "startup.recovery_skipped", reason="unsupported_network", network=settings.network
-            )
+            logger.warning("startup.recovery_skipped", reason="web3_not_available")
     except Exception as e:
         # Log error but don't prevent startup - workers can still process webhooks
         logger.error(

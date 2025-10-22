@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from web3 import Web3
 
-from glisk.api.dependencies import get_uow_factory
+from glisk.api.dependencies import get_uow_factory, get_w3
 from glisk.services.wallet_signature import verify_wallet_signature
 
 logger = structlog.get_logger()
@@ -188,6 +188,7 @@ class AuthorLeaderboardEntry(BaseModel):
 async def update_author_prompt(
     request: UpdatePromptRequest,
     uow_factory=Depends(get_uow_factory),
+    w3: Web3 | None = Depends(get_w3),
 ) -> UpdatePromptResponse:
     """Create or update author's AI generation prompt with signature verification.
 
@@ -232,6 +233,7 @@ async def update_author_prompt(
             wallet_address=request.wallet_address,
             message=request.message,
             signature=request.signature,
+            w3=w3,  # For ERC-1271 smart wallet support
         )
 
         if not is_valid_signature:

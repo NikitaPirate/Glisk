@@ -15,7 +15,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, Field
 from web3 import Web3
 
-from glisk.api.dependencies import get_uow_factory
+from glisk.api.dependencies import get_uow_factory, get_w3
 from glisk.core.config import Settings
 from glisk.services.wallet_signature import verify_wallet_signature
 from glisk.services.x_oauth import XOAuthService, get_oauth_state, oauth_state_storage
@@ -72,6 +72,7 @@ async def start_x_oauth(
     request: XAuthStartRequest,
     settings: Settings = Depends(get_settings),
     uow_factory=Depends(get_uow_factory),
+    w3: Web3 | None = Depends(get_w3),
 ) -> XAuthStartResponse:
     """Initiate X (Twitter) OAuth flow with wallet signature verification.
 
@@ -131,6 +132,7 @@ async def start_x_oauth(
             wallet_address=checksummed_address,
             message=request.message,
             signature=request.signature,
+            w3=w3,  # For ERC-1271 smart wallet support
         )
 
         if not is_valid_signature:

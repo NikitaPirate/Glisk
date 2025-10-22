@@ -23,6 +23,8 @@ async def test_client(uow_factory):
     """Provide AsyncClient for testing API endpoints with database access."""
     # Inject uow_factory into app.state for dependency injection
     app.state.uow_factory = uow_factory
+    # Set w3 to None for tests (EOA signatures don't need Web3)
+    app.state.w3 = None
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client

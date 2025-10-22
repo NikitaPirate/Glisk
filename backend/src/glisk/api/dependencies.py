@@ -9,6 +9,7 @@ This module provides reusable FastAPI dependencies for:
 from typing import Annotated, Callable
 
 from fastapi import Depends, Header, HTTPException, Request, status
+from web3 import Web3
 
 from glisk.core.config import Settings
 from glisk.services.blockchain.alchemy_signature import validate_alchemy_signature
@@ -109,3 +110,23 @@ def get_uow_factory(request: Request) -> Callable[[], UnitOfWork]:
         ...         await uow.authors.get_by_wallet(wallet)
     """
     return request.app.state.uow_factory
+
+
+def get_w3(request: Request) -> Web3 | None:
+    """Get Web3 instance from app state for ERC-1271 signature verification.
+
+    Args:
+        request: FastAPI Request object (contains app.state)
+
+    Returns:
+        Web3 instance for blockchain RPC calls, or None if not initialized.
+        Returns None on unsupported networks or connection failure.
+
+    Example:
+        >>> @router.post("/endpoint")
+        >>> async def endpoint(w3: Web3 | None = Depends(get_w3)):
+        ...     if w3:
+        ...         # Can make on-chain calls for ERC-1271
+        ...         result = contract.functions.someMethod().call()
+    """
+    return request.app.state.w3
