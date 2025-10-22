@@ -5,6 +5,8 @@
 **Status**: Draft
 **Input**: Full smart contract implementation for GLISK Season 0 blind box NFT platform
 
+**Note**: Contract now implements ERC721Enumerable (added October 2025) for improved marketplace compatibility and token enumeration. Current deployment: `0x569d456c584Ac2bb2d66b075a31278630E7d43a0`
+
 ## Clarifications
 
 ### Session 2025-10-10

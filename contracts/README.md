@@ -20,6 +20,7 @@ The GLISK NFT contract implements a complete NFT ecosystem featuring:
 - **Framework**: Foundry (forge, anvil, cast)
 - **OpenZeppelin Contracts**: v5.x
   - ERC721 (NFT standard)
+  - ERC721Enumerable (token enumeration)
   - AccessControl (role management)
   - ReentrancyGuard (reentrancy protection)
   - ERC2981 (royalty standard)
@@ -85,6 +86,13 @@ INITIAL_MINT_PRICE=1000000000000000  # 0.001 ETH
 # Block explorer API key (for verification)
 BASESCAN_API_KEY=YOUR_BASESCAN_API_KEY
 ```
+
+## Current Deployment
+
+**Base Sepolia Testnet**:
+- Contract: `0x569d456c584Ac2bb2d66b075a31278630E7d43a0`
+- Explorer: https://sepolia.basescan.org/address/0x569d456c584ac2bb2d66b075a31278630e7d43a0
+- Deployed: October 2025
 
 ## Deployment
 
@@ -227,6 +235,22 @@ function setDefaultRoyalty(address receiver, uint96 feeNumerator) external
 - Default: 2.5% to treasury
 - Owner can update percentage and receiver
 
+#### 9. Enumeration Functions
+```solidity
+// Get total minted tokens
+function totalSupply() external view returns (uint256)
+
+// Enumerate all tokens by index (0 to totalSupply-1)
+function tokenByIndex(uint256 index) external view returns (uint256)
+
+// Enumerate owner's tokens by index (0 to balanceOf-1)
+function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256)
+```
+
+- Standard ERC721Enumerable interface
+- ~80-100% gas increase for better marketplace compatibility
+- Enables token discovery and pagination
+
 ## Testing
 
 ### Test Coverage
@@ -289,12 +313,12 @@ forge coverage --report lcov
 
 ## Gas Costs
 
-Key operations (average gas costs):
+Key operations (average gas costs with ERC721Enumerable):
 
 | Operation | Gas Cost |
 |-----------|----------|
-| Mint (single) | ~168,000 |
-| Mint (batch 5) | ~387,000 |
+| Mint (single) | ~220,000 |
+| Mint (batch 5) | ~772,000 (~154k per token) |
 | Claim rewards | ~67,000 |
 | Reveal (single) | ~206,000 |
 | Reveal (batch 10) | ~540,000 |
@@ -302,7 +326,9 @@ Key operations (average gas costs):
 | Withdraw treasury | ~69,000 |
 | End season | ~66,000 |
 
-**Deployment Cost**: ~2,024,000 gas (~$5-10 on Base at typical gas prices)
+**Note**: ERC721Enumerable adds ~80-100% gas overhead to minting compared to base ERC721, but provides standard enumeration functions for marketplace compatibility.
+
+**Deployment Cost**: ~2,600,000 gas (~$6-12 on Base at typical gas prices)
 
 ## Security
 

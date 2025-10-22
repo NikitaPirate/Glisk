@@ -7,7 +7,7 @@ NFT project built with AI-driven development methodology.
 GLISK is a monorepo for an NFT platform developed using GitHub Spec Kit methodology with AI assistance. The project follows a seasonal MVP approach, focusing on simplicity and rapid iteration.
 
 The repository is organized into three main domains:
-- `/contracts/` - Solidity smart contracts (ERC-721, batch minting, royalties)
+- `/contracts/` - Solidity smart contracts (ERC721Enumerable, batch minting, royalties)
 - `/backend/` - Off-chain services (webhooks, workers, recovery)
 - `/frontend/` - Web application (planned)
 
