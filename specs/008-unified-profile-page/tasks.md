@@ -22,9 +22,9 @@
 
 **Purpose**: Environment configuration for OnchainKit NFT components
 
-- [ ] T001 Verify OnchainKit dependency installed in frontend/package.json (@coinbase/onchainkit@^1.1.1)
-- [ ] T002 Add VITE_ONCHAINKIT_API_KEY to frontend/.env with Coinbase Developer Platform API key
-- [ ] T003 Verify existing environment variables (VITE_CONTRACT_ADDRESS, VITE_API_BASE_URL, VITE_WALLETCONNECT_PROJECT_ID)
+- [X] T001 Verify OnchainKit dependency installed in frontend/package.json (@coinbase/onchainkit@^1.1.1)
+- [X] T002 Add VITE_ONCHAINKIT_API_KEY to frontend/.env with Coinbase Developer Platform API key
+- [X] T003 Verify existing environment variables (VITE_CONTRACT_ADDRESS, VITE_API_BASE_URL, VITE_WALLETCONNECT_PROJECT_ID)
 
 ---
 
@@ -34,16 +34,16 @@
 
 **⚠️ CRITICAL**: User Story 2 (Prompt Author tab) cannot be implemented until this phase is complete
 
-- [ ] T004 [P] Create TokenDTO Pydantic model in backend/src/glisk/api/routes/authors.py (token_id, status, image_cid, metadata_cid, image_url, generation_attempts, generation_error, reveal_tx_hash, created_at)
-- [ ] T005 [P] Create TokensResponse Pydantic model in backend/src/glisk/api/routes/authors.py (tokens list, total int, offset int, limit int)
-- [ ] T006 Add get_tokens_by_author_paginated method to TokenRepository in backend/src/glisk/repositories/token.py (author_id UUID, offset int, limit int) → (list[Token], total int)
-- [ ] T007 Implement GET /api/authors/{wallet_address}/tokens endpoint in backend/src/glisk/api/routes/authors.py with offset/limit query params
-- [ ] T008 Add validation for offset (>=0) and limit (1-100) in backend endpoint
-- [ ] T009 Add error handling for invalid wallet address (return empty results, not 400) in backend endpoint
-- [ ] T010 Add structured logging for tokens_retrieved, invalid_wallet_format, author_not_found events in backend endpoint
-- [ ] T011 Test backend endpoint manually using curl (see contracts/api-endpoints.md examples)
+- [X] T004 [P] Create TokenDTO Pydantic model in backend/src/glisk/api/routes/authors.py (token_id, status, image_cid, metadata_cid, image_url, generation_attempts, generation_error, reveal_tx_hash, created_at)
+- [X] T005 [P] Create TokensResponse Pydantic model in backend/src/glisk/api/routes/authors.py (tokens list, total int, offset int, limit int)
+- [X] T006 Add get_tokens_by_author_paginated method to TokenRepository in backend/src/glisk/repositories/token.py (author_id UUID, offset int, limit int) → (list[Token], total int)
+- [X] T007 Implement GET /api/authors/{wallet_address}/tokens endpoint in backend/src/glisk/api/routes/authors.py with offset/limit query params
+- [X] T008 Add validation for offset (>=0) and limit (1-100) in backend endpoint
+- [X] T009 Add error handling for invalid wallet address (return empty results, not 400) in backend endpoint
+- [X] T010 Add structured logging for tokens_retrieved, invalid_wallet_format, author_not_found events in backend endpoint
+- [X] T011 Test backend endpoint manually using curl (see contracts/api-endpoints.md examples)
 
-**Checkpoint**: Backend API ready - frontend tabs can now be implemented
+**Checkpoint**: ✅ Backend API ready - frontend tabs can now be implemented
 
 ---
 
@@ -55,23 +55,23 @@
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Create ProfilePage.tsx component in frontend/src/pages/ with basic structure (tabs container, query param handling)
-- [ ] T013 [P] [US1] Create PromptAuthor.tsx tab component in frontend/src/components/ (empty placeholder for now)
-- [ ] T014 [P] [US1] Create Collector.tsx tab component in frontend/src/components/ (empty placeholder for now)
-- [ ] T015 [US1] Implement tab state management in ProfilePage.tsx using useSearchParams hook from react-router
-- [ ] T016 [US1] Add tab validation (VALID_TABS = ['author', 'collector']) with fallback to 'author' for invalid params
-- [ ] T017 [US1] Add useEffect to set default tab=author when no query param (replace: true to prevent back button loop)
-- [ ] T018 [US1] Create tab switching buttons in ProfilePage.tsx that call setSearchParams({ tab }) to update URL
-- [ ] T019 [US1] Add conditional rendering in ProfilePage.tsx to show PromptAuthor or Collector component based on activeTab
-- [ ] T020 [US1] Copy prompt management UI from CreatorDashboard.tsx (lines 247-350) into PromptAuthor.tsx component
-- [ ] T021 [US1] Copy X account linking UI from ProfileSettings.tsx (lines 199-289) into PromptAuthor.tsx component
-- [ ] T022 [US1] Verify prompt management functionality works identically in new location (save prompt, show status)
-- [ ] T023 [US1] Verify X linking functionality works identically in new location (OAuth flow, link/unlink)
-- [ ] T024 [US1] Add /profile route to frontend/src/App.tsx routing configuration
-- [ ] T025 [US1] Update Header.tsx to replace "Creator Dashboard" and "Profile Settings" buttons with single "Profile" button linking to /profile?tab=author
-- [ ] T026 [US1] Add wallet connection requirement check in ProfilePage.tsx (show "Connect wallet" message if not connected)
+- [X] T012 [P] [US1] Create ProfilePage.tsx component in frontend/src/pages/ with basic structure (tabs container, query param handling)
+- [X] T013 [P] [US1] Create PromptAuthor.tsx tab component in frontend/src/components/ (empty placeholder for now)
+- [X] T014 [P] [US1] Create Collector.tsx tab component in frontend/src/components/ (empty placeholder for now)
+- [X] T015 [US1] Implement tab state management in ProfilePage.tsx using useSearchParams hook from react-router
+- [X] T016 [US1] Add tab validation (VALID_TABS = ['author', 'collector']) with fallback to 'author' for invalid params
+- [X] T017 [US1] Add useEffect to set default tab=author when no query param (replace: true to prevent back button loop)
+- [X] T018 [US1] Create tab switching buttons in ProfilePage.tsx that call setSearchParams({ tab }) to update URL
+- [X] T019 [US1] Add conditional rendering in ProfilePage.tsx to show PromptAuthor or Collector component based on activeTab
+- [X] T020 [US1] Copy prompt management UI from CreatorDashboard.tsx (lines 247-350) into PromptAuthor.tsx component
+- [X] T021 [US1] Copy X account linking UI from ProfileSettings.tsx (lines 199-289) into PromptAuthor.tsx component
+- [X] T022 [US1] Verify prompt management functionality works identically in new location (save prompt, show status)
+- [X] T023 [US1] Verify X linking functionality works identically in new location (OAuth flow, link/unlink)
+- [X] T024 [US1] Add /profile route to frontend/src/App.tsx routing configuration
+- [X] T025 [US1] Update Header.tsx to replace "Creator Dashboard" and "Profile Settings" buttons with single "Profile" button linking to /profile?tab=author
+- [X] T026 [US1] Add wallet connection requirement check in ProfilePage.tsx (show "Connect wallet" message if not connected)
 
-**Checkpoint**: At this point, users can navigate to /profile, switch tabs (empty Collector tab), and use prompt/X linking features in Prompt Author tab
+**Checkpoint**: ✅ Complete - Users can navigate to /profile, switch tabs (empty Collector tab), and use prompt/X linking features in Prompt Author tab
 
 ---
 
@@ -83,23 +83,23 @@
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] Create TokensResponse TypeScript interface in PromptAuthor.tsx (tokens array, total, offset, limit)
-- [ ] T028 [P] [US2] Create TokenDTO TypeScript interface in PromptAuthor.tsx (token_id, status, image_cid, metadata_cid, image_url, generation_attempts, generation_error, reveal_tx_hash, created_at)
-- [ ] T029 [US2] Create fetchAuthoredTokens async function in PromptAuthor.tsx using fetch API (walletAddress, page params)
-- [ ] T030 [US2] Add useQuery hook from @tanstack/react-query in PromptAuthor.tsx for authored NFTs data (queryKey: ['authored-nfts', address, page])
-- [ ] T031 [US2] Add pagination state (authoredPage useState) in PromptAuthor.tsx (default: 1)
-- [ ] T032 [US2] Calculate totalPages = Math.ceil(total / 20) for pagination controls in PromptAuthor.tsx
-- [ ] T033 [US2] Create NFTGrid.tsx reusable component in frontend/src/components/ (accepts tokens array, renders grid with OnchainKit NFTCard)
-- [ ] T034 [US2] Import NFTCard, NFTMedia, NFTTitle from @coinbase/onchainkit/nft in NFTGrid.tsx
-- [ ] T035 [US2] Map over tokens array in NFTGrid.tsx and render NFTCard with contractAddress and tokenId props
-- [ ] T036 [US2] Add loading state display in PromptAuthor.tsx ("Loading..." text while fetching)
-- [ ] T037 [US2] Add error state display in PromptAuthor.tsx (error message with retry button)
-- [ ] T038 [US2] Add empty state display in PromptAuthor.tsx (no error when 0 tokens)
-- [ ] T039 [US2] Add pagination controls in PromptAuthor.tsx (Previous/Next buttons with page number display)
-- [ ] T040 [US2] Disable pagination controls when isLoading=true in PromptAuthor.tsx
-- [ ] T041 [US2] Hide pagination controls when total <= 20 in PromptAuthor.tsx
-- [ ] T042 [US2] Add wallet change detection in PromptAuthor.tsx (useEffect on address) to reset authoredPage to 1
-- [ ] T043 [US2] Render NFTGrid component below X linking section in PromptAuthor.tsx
+- [X] T027 [P] [US2] Create TokensResponse TypeScript interface in PromptAuthor.tsx (tokens array, total, offset, limit)
+- [X] T028 [P] [US2] Create TokenDTO TypeScript interface in PromptAuthor.tsx (token_id, status, image_cid, metadata_cid, image_url, generation_attempts, generation_error, reveal_tx_hash, created_at)
+- [X] T029 [US2] Create fetchAuthoredTokens async function in PromptAuthor.tsx using fetch API (walletAddress, page params)
+- [X] T030 [US2] Add useQuery hook from @tanstack/react-query in PromptAuthor.tsx for authored NFTs data (queryKey: ['authored-nfts', address, page])
+- [X] T031 [US2] Add pagination state (authoredPage useState) in PromptAuthor.tsx (default: 1)
+- [X] T032 [US2] Calculate totalPages = Math.ceil(total / 20) for pagination controls in PromptAuthor.tsx
+- [X] T033 [US2] Create NFTGrid.tsx reusable component in frontend/src/components/ (accepts tokens array, renders grid with OnchainKit NFTCard)
+- [X] T034 [US2] Import NFTCard, NFTMedia, NFTTitle from @coinbase/onchainkit/nft in NFTGrid.tsx
+- [X] T035 [US2] Map over tokens array in NFTGrid.tsx and render NFTCard with contractAddress and tokenId props
+- [X] T036 [US2] Add loading state display in PromptAuthor.tsx ("Loading..." text while fetching)
+- [X] T037 [US2] Add error state display in PromptAuthor.tsx (error message with retry button)
+- [X] T038 [US2] Add empty state display in PromptAuthor.tsx (no error when 0 tokens)
+- [X] T039 [US2] Add pagination controls in PromptAuthor.tsx (Previous/Next buttons with page number display)
+- [X] T040 [US2] Disable pagination controls when isLoading=true in PromptAuthor.tsx
+- [X] T041 [US2] Hide pagination controls when total <= 20 in PromptAuthor.tsx
+- [X] T042 [US2] Add wallet change detection in PromptAuthor.tsx (useEffect on address) to reset authoredPage to 1
+- [X] T043 [US2] Render NFTGrid component below X linking section in PromptAuthor.tsx
 
 **Checkpoint**: At this point, Prompt Author tab shows authored NFTs with pagination, all existing functionality preserved
 
@@ -113,25 +113,25 @@
 
 ### Implementation for User Story 3
 
-- [ ] T044 [P] [US3] Import useAccount, useReadContract, useInfiniteReadContracts from wagmi in Collector.tsx
-- [ ] T045 [P] [US3] Import GLISK NFT ABI (or minimal ABI with balanceOf, tokenOfOwnerByIndex) in Collector.tsx
-- [ ] T046 [US3] Get CONTRACT_ADDRESS from import.meta.env.VITE_CONTRACT_ADDRESS in Collector.tsx
-- [ ] T047 [US3] Call useAccount hook to get current wallet address in Collector.tsx
-- [ ] T048 [US3] Call useReadContract for balanceOf(address) in Collector.tsx to get total owned NFTs count
-- [ ] T049 [US3] Implement useInfiniteReadContracts hook in Collector.tsx with contracts function generating tokenOfOwnerByIndex calls
-- [ ] T050 [US3] Configure pagination in useInfiniteReadContracts: TOKENS_PER_PAGE=20, initialPageParam=0, getNextPageParam logic
-- [ ] T051 [US3] Calculate tokensInBatch = Math.min(TOKENS_PER_PAGE, balance - startIndex) to avoid over-fetching
-- [ ] T052 [US3] Extract tokenIds from data.pages using flatMap in Collector.tsx (filter out failed results)
-- [ ] T053 [US3] Add loading state display in Collector.tsx ("Loading your collection..." text while fetching)
-- [ ] T054 [US3] Add error state display in Collector.tsx (network error message with retry button)
-- [ ] T055 [US3] Add empty state display in Collector.tsx ("No NFTs owned" when balance=0)
-- [ ] T056 [US3] Add pagination state (ownedPage useState) in Collector.tsx (default: 1)
-- [ ] T057 [US3] Calculate totalPages = Math.ceil(tokenIds.length / 20) for pagination controls in Collector.tsx
-- [ ] T058 [US3] Render NFTGrid component with tokenIds.slice((ownedPage - 1) * 20, ownedPage * 20) for current page in Collector.tsx
-- [ ] T059 [US3] Add pagination controls in Collector.tsx (Previous/Next buttons with page number display)
-- [ ] T060 [US3] Disable pagination controls when isLoading=true in Collector.tsx
-- [ ] T061 [US3] Hide pagination controls when tokenIds.length <= 20 in Collector.tsx
-- [ ] T062 [US3] Add wallet change detection in Collector.tsx (useEffect on address) to reset ownedPage to 1 and refetch
+- [X] T044 [P] [US3] Import useAccount, useReadContract, useInfiniteReadContracts from wagmi in Collector.tsx
+- [X] T045 [P] [US3] Import GLISK NFT ABI (or minimal ABI with balanceOf, tokenOfOwnerByIndex) in Collector.tsx
+- [X] T046 [US3] Get CONTRACT_ADDRESS from import.meta.env.VITE_CONTRACT_ADDRESS in Collector.tsx
+- [X] T047 [US3] Call useAccount hook to get current wallet address in Collector.tsx
+- [X] T048 [US3] Call useReadContract for balanceOf(address) in Collector.tsx to get total owned NFTs count
+- [X] T049 [US3] Implement useInfiniteReadContracts hook in Collector.tsx with contracts function generating tokenOfOwnerByIndex calls
+- [X] T050 [US3] Configure pagination in useInfiniteReadContracts: TOKENS_PER_PAGE=20, initialPageParam=0, getNextPageParam logic
+- [X] T051 [US3] Calculate tokensInBatch = Math.min(TOKENS_PER_PAGE, balance - startIndex) to avoid over-fetching
+- [X] T052 [US3] Extract tokenIds from data.pages using flatMap in Collector.tsx (filter out failed results)
+- [X] T053 [US3] Add loading state display in Collector.tsx ("Loading your collection..." text while fetching)
+- [X] T054 [US3] Add error state display in Collector.tsx (network error message with retry button)
+- [X] T055 [US3] Add empty state display in Collector.tsx ("No NFTs owned" when balance=0)
+- [X] T056 [US3] Add pagination state (ownedPage useState) in Collector.tsx (default: 1)
+- [X] T057 [US3] Calculate totalPages = Math.ceil(tokenIds.length / 20) for pagination controls in Collector.tsx
+- [X] T058 [US3] Render NFTGrid component with tokenIds.slice((ownedPage - 1) * 20, ownedPage * 20) for current page in Collector.tsx
+- [X] T059 [US3] Add pagination controls in Collector.tsx (Previous/Next buttons with page number display)
+- [X] T060 [US3] Disable pagination controls when isLoading=true in Collector.tsx
+- [X] T061 [US3] Hide pagination controls when tokenIds.length <= 20 in Collector.tsx
+- [X] T062 [US3] Add wallet change detection in Collector.tsx (useEffect on address) to reset ownedPage to 1 and refetch
 
 **Checkpoint**: At this point, Collector tab shows owned NFTs with Previous/Next pagination matching Author tab UX, blockchain reads working
 
@@ -159,16 +159,16 @@
 
 **Purpose**: Cleanup, documentation, and validation
 
-- [ ] T068 [P] Remove old /creator-dashboard route from frontend/src/App.tsx
-- [ ] T069 [P] Remove old /profile-settings route from frontend/src/App.tsx
-- [ ] T070 [P] Delete CreatorDashboard.tsx file from frontend/src/pages/
-- [ ] T071 [P] Delete ProfileSettings.tsx file from frontend/src/pages/
-- [ ] T072 Verify all functional requirements FR-001 through FR-021 from spec.md (manual testing per quickstart.md)
-- [ ] T073 Verify all success criteria SC-001 through SC-010 from spec.md (performance benchmarks per quickstart.md)
-- [ ] T074 Test all edge cases from spec.md (invalid tab param, API errors, RPC errors, 0 NFTs, exactly 20 NFTs, rapid switching, wallet changes)
-- [ ] T075 Run full quickstart.md validation (Tests 1-10)
-- [ ] T076 [P] Add basic Tailwind utility classes for spacing/layout in ProfilePage.tsx, PromptAuthor.tsx, Collector.tsx, NFTGrid.tsx (minimal styling only)
-- [ ] T077 Code review for constitution compliance (no state management libraries, direct wagmi hooks, minimal styling, copy-paste reuse)
+- [X] T068 [P] Remove old /creator-dashboard route from frontend/src/App.tsx
+- [X] T069 [P] Remove old /profile-settings route from frontend/src/App.tsx
+- [X] T070 [P] Delete CreatorDashboard.tsx file from frontend/src/pages/
+- [X] T071 [P] Delete ProfileSettings.tsx file from frontend/src/pages/
+- [X] T072 Verify all functional requirements FR-001 through FR-021 from spec.md (manual testing per quickstart.md)
+- [X] T073 Verify all success criteria SC-001 through SC-010 from spec.md (performance benchmarks per quickstart.md)
+- [X] T074 Test all edge cases from spec.md (invalid tab param, API errors, RPC errors, 0 NFTs, exactly 20 NFTs, rapid switching, wallet changes)
+- [X] T075 Run full quickstart.md validation (Tests 1-10)
+- [X] T076 [P] Add basic Tailwind utility classes for spacing/layout in ProfilePage.tsx, PromptAuthor.tsx, Collector.tsx, NFTGrid.tsx (minimal styling only)
+- [X] T077 Code review for constitution compliance (no state management libraries, direct wagmi hooks, minimal styling, copy-paste reuse)
 
 ---
 

@@ -1,8 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Header } from './components/Header'
 import { CreatorMintPage } from './pages/CreatorMintPage'
-import { CreatorDashboard } from './pages/CreatorDashboard'
-import { ProfileSettings } from './pages/ProfileSettings'
+import { ProfilePage } from './pages/ProfilePage'
 
 function App() {
   return (
@@ -10,8 +9,7 @@ function App() {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <Routes>
-          <Route path="/creator-dashboard" element={<CreatorDashboard />} />
-          <Route path="/profile-settings" element={<ProfileSettings />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/:creatorAddress" element={<CreatorMintPage />} />
           <Route
             path="/"
