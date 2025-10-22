@@ -2,9 +2,15 @@ import { useEffect } from 'react'
 import { useAccount } from 'wagmi'
 import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { IdentityCard } from '@coinbase/onchainkit/identity'
+import { baseSepolia } from 'wagmi/chains'
 import { PromptAuthor } from '@/components/PromptAuthor'
 import { Collector } from '@/components/Collector'
 import { Button } from '@/components/ui/button'
+
+// Coinbase Verified attestation schema ID for Base Sepolia
+const COINBASE_VERIFIED_SCHEMA_ID =
+  '0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9'
 
 const VALID_TABS = ['author', 'collector'] as const
 type TabType = (typeof VALID_TABS)[number]
@@ -58,6 +64,16 @@ export function ProfilePage() {
         <div>
           <h1 className="text-3xl font-bold mb-2">Profile</h1>
           <p className="text-gray-600">Manage your prompt, X account, and view your NFTs</p>
+        </div>
+
+        {/* Identity Card Section */}
+        <div className="border border-gray-200 rounded-lg p-6 bg-white">
+          <h2 className="text-xl font-semibold mb-4">Your Identity</h2>
+          <IdentityCard
+            address={address as `0x${string}`}
+            chain={baseSepolia}
+            schemaId={COINBASE_VERIFIED_SCHEMA_ID}
+          />
         </div>
 
         {/* Tab Navigation */}

@@ -1,6 +1,6 @@
-import { http, createConfig } from 'wagmi'
+import { http } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
-import { coinbaseWallet, injected, walletConnect } from 'wagmi/connectors'
+import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 
 // Get WalletConnect Project ID from https://cloud.walletconnect.com
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID'
@@ -13,9 +13,10 @@ const cdpRpcUrl = `https://api.developer.coinbase.com/rpc/v1/base-sepolia/${cdpA
 
 console.log('[Wagmi Config] Using CDP RPC:', cdpRpcUrl.replace(cdpApiKey || '', '***'))
 
-export const config = createConfig({
+export const config = getDefaultConfig({
+  appName: 'Glisk NFT',
+  projectId,
   chains: [baseSepolia],
-  connectors: [injected(), coinbaseWallet({ appName: 'Glisk NFT' }), walletConnect({ projectId })],
   transports: {
     [baseSepolia.id]: http(cdpRpcUrl),
   },

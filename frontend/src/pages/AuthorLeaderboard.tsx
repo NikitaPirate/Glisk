@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Identity, Avatar, Name, Badge, Address } from '@coinbase/onchainkit/identity'
 
 interface AuthorLeaderboardEntry {
   author_address: string
@@ -44,12 +45,19 @@ export default function AuthorLeaderboard() {
           <div
             key={author.author_address}
             onClick={() => navigate(`/${author.author_address}`)}
-            className="border border-gray-300 rounded p-4 hover:bg-gray-100 cursor-pointer transition-colors"
+            className="border border-gray-300 rounded p-4 hover:border-blue-500 cursor-pointer transition-colors"
           >
             <div className="flex justify-between items-center">
-              <span className="font-mono text-sm">
-                {index + 1}. {author.author_address}
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-gray-600 font-semibold min-w-[2rem]">{index + 1}.</span>
+                <Identity address={author.author_address as `0x${string}`}>
+                  <Avatar />
+                  <Name>
+                    <Badge />
+                  </Name>
+                  <Address />
+                </Identity>
+              </div>
               <span className="text-gray-600">
                 {author.total_tokens} token{author.total_tokens !== 1 ? 's' : ''}
               </span>
