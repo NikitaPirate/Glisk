@@ -36,7 +36,6 @@ class Settings(BaseSettings):
     alchemy_webhook_secret: str = Field(default="", alias="ALCHEMY_WEBHOOK_SECRET")
     glisk_nft_contract_address: str = Field(default="", alias="GLISK_NFT_CONTRACT_ADDRESS")
     network: str = Field(default="BASE_SEPOLIA", alias="NETWORK")
-    glisk_default_author_wallet: str = Field(default="", alias="GLISK_DEFAULT_AUTHOR_WALLET")
 
     # Replicate Image Generation (003-003c-image-generation)
     replicate_api_token: str = Field(default="", alias="REPLICATE_API_TOKEN")
@@ -49,6 +48,13 @@ class Settings(BaseSettings):
             "with text overlay saying 'Original prompt was censored by AI service'"
         ),
         alias="FALLBACK_CENSORED_PROMPT",
+    )
+    default_prompt: str = Field(
+        default=(
+            "Geometric patterns and vibrant colors with text saying "
+            "'No prompt yet - author still thinking...'"
+        ),
+        alias="DEFAULT_PROMPT",
     )
     poll_interval_seconds: int = Field(default=1, alias="POLL_INTERVAL_SECONDS")
     worker_batch_size: int = Field(default=10, alias="WORKER_BATCH_SIZE")

@@ -119,9 +119,3 @@ class ContractNotFoundError(PermanentError):
     """Smart contract not found at specified address."""
 
     pass
-
-
-class DefaultAuthorNotFoundError(PermanentError):
-    """Default author wallet not found in authors table."""
-
-    pass

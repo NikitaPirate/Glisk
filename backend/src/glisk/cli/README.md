@@ -180,9 +180,6 @@ ALCHEMY_API_KEY=your_api_key
 GLISK_NFT_CONTRACT_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
 NETWORK=BASE_SEPOLIA
 
-# Default author for tokens with unregistered authors (required)
-GLISK_DEFAULT_AUTHOR_WALLET=0x0000000000000000000000000000000000000001
-
 # Recovery batch size (optional, default: 1000)
 # Note: Not yet exposed in Settings, hardcoded in CLI
 # RECOVERY_BATCH_SIZE=1000
@@ -287,31 +284,6 @@ ContractNotFoundError: Contract at 0x... not found on BASE_SEPOLIA
 1. Verify contract address in `.env`
 2. Check contract deployment on block explorer (basescan.org)
 3. Ensure `NETWORK` matches deployment network
-
----
-
-### "Default author not found"
-
-**Error:**
-```
-DefaultAuthorNotFoundError: Default author 0x0000...0001 not found in database
-```
-
-**Cause:** Default author record missing from `authors` table
-
-**Resolution:**
-```bash
-# Create default author
-docker exec backend-postgres-1 psql -U glisk -d glisk <<EOF
-INSERT INTO authors (id, wallet_address, prompt_text, created_at)
-VALUES (
-  gen_random_uuid(),
-  '0x0000000000000000000000000000000000000001',
-  'Generic fallback prompt for unknown authors',
-  NOW()
-);
-EOF
-```
 
 ---
 

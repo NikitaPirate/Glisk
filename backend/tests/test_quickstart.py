@@ -82,21 +82,12 @@ class TestQuickstartValidation:
                 "Contract address must be 42 characters (0x + 40 hex)"
             )
 
-        # Validate default author wallet format IF set
-        if test_settings.glisk_default_author_wallet:
-            assert test_settings.glisk_default_author_wallet.startswith("0x"), (
-                "Default author wallet must start with 0x"
-            )
-            assert len(test_settings.glisk_default_author_wallet) == 42, (
-                "Default author wallet must be 42 characters (0x + 40 hex)"
-            )
-
         # Check that Settings can be instantiated (validates schema)
         assert test_settings is not None
         assert hasattr(test_settings, "alchemy_api_key")
         assert hasattr(test_settings, "alchemy_webhook_secret")
         assert hasattr(test_settings, "glisk_nft_contract_address")
-        assert hasattr(test_settings, "glisk_default_author_wallet")
+        assert hasattr(test_settings, "default_prompt")
 
     async def test_database_connectivity(self, session):
         """Verify database connection and required tables exist.

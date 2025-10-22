@@ -27,7 +27,6 @@ from glisk.services.exceptions import BlockchainConnectionError, ContractNotFoun
 def mock_settings():
     """Create mock settings for TokenRecoveryService."""
     settings = Mock()
-    settings.glisk_default_author_wallet = "0x0000000000000000000000000000000000000001"
     return settings
 
 

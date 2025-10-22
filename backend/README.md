@@ -190,36 +190,6 @@ SELECT * FROM authors;       # Query data
 \q                           # Exit
 ```
 
-### Initial Database Setup
-
-**Required**: Create default author for unknown/unregistered token minters.
-
-When tokens are minted with an author wallet not in the database, the system uses the default author configured via `GLISK_DEFAULT_AUTHOR_WALLET` env variable.
-
-```bash
-# Connect to database
-docker exec -it backend-postgres-1 psql -U glisk -d glisk
-
-# Create default author
-INSERT INTO authors (id, wallet_address, prompt_text, created_at)
-VALUES (
-  gen_random_uuid(),
-  '0x0000000000000000000000000000000000000001',
-  'YOUR_BRAND_PROMPT_HERE',
-  NOW()
-);
-
-# Verify creation
-SELECT wallet_address, prompt_text FROM authors
-WHERE wallet_address = '0x0000000000000000000000000000000000000001';
-```
-
-**Note**: The prompt text will be used for image generation for all tokens from unknown authors. Choose a prompt that represents your brand/project style.
-
-**Example prompts**:
-- Branded: `"Sun rays breaking through clouds with 'GLISK' text overlay in elegant typography"`
-- Generic fallback: `"Abstract digital art with vibrant colors and geometric patterns"`
-
 ---
 
 ## Testing Strategy
@@ -329,12 +299,12 @@ ALCHEMY_API_KEY=your_api_key
 ALCHEMY_WEBHOOK_SECRET=your_signing_key
 GLISK_NFT_CONTRACT_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
 NETWORK=BASE_SEPOLIA                # BASE_SEPOLIA | BASE_MAINNET
-GLISK_DEFAULT_AUTHOR_WALLET=0x0000000000000000000000000000000000000001
 
 # Replicate (AI image generation)
 REPLICATE_API_TOKEN=r8_your_token
 REPLICATE_MODEL_VERSION=black-forest-labs/flux-schnell
 FALLBACK_CENSORED_PROMPT="Cute kittens playing..."
+DEFAULT_PROMPT="Geometric patterns and vibrant colors with text saying 'No prompt yet - author still thinking...'"
 
 # Pinata (IPFS storage)
 PINATA_JWT=your_jwt_token
@@ -399,7 +369,7 @@ Receives Alchemy blockchain event notifications for BatchMinted events.
 - Decodes BatchMinted events from webhook payload
 - Creates MintEvent records with duplicate detection
 - Creates Token records for each minted NFT
-- Looks up author by wallet address (uses default author if not found)
+- Looks up author by wallet address (creates new author if not found)
 
 **For webhook setup**, see: [Event Detection Quickstart](../specs/003-003b-event-detection/quickstart.md)
 

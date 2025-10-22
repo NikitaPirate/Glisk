@@ -193,7 +193,7 @@ ALCHEMY_API_KEY=your_api_key
 ALCHEMY_WEBHOOK_SECRET=your_signing_key
 GLISK_NFT_CONTRACT_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
 NETWORK=BASE_SEPOLIA
-GLISK_DEFAULT_AUTHOR_WALLET=0x0000000000000000000000000000000000000001
+DEFAULT_PROMPT=Geometric patterns and vibrant colors with text saying 'No prompt yet - author still thinking...'
 ```
 
 **Testing**:

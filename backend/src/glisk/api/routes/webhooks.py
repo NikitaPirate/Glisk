@@ -14,6 +14,7 @@ from web3 import Web3
 
 from glisk.api.dependencies import get_settings, get_uow_factory, validate_webhook_signature
 from glisk.core.config import Settings
+from glisk.models.author import Author
 from glisk.models.mint_event import MintEvent
 from glisk.models.token import Token, TokenStatus
 
@@ -118,7 +119,7 @@ async def receive_alchemy_webhook(
     2. Parses webhook payload for BatchMinted events
     3. Filters by contract address and transaction status
     4. Decodes event data (minter, author, token ID, etc.)
-    5. Looks up author by wallet (or uses default)
+    5. Looks up author by wallet (or creates new author if not found)
     6. Creates MintEvent and Token records atomically
     7. Returns appropriate HTTP status codes
 
@@ -289,21 +290,15 @@ async def receive_alchemy_webhook(
 
                 if not author:
                     logger.info(
-                        "webhook.author_not_found_using_default",
+                        "webhook.author_not_found_creating_new",
                         author_wallet=event_data["prompt_author"],
-                        default_wallet=settings.glisk_default_author_wallet,
                     )
-                    # Use default author if not found
-                    author = await uow.authors.get_by_wallet(settings.glisk_default_author_wallet)
-                    if not author:
-                        logger.error(
-                            "webhook.default_author_not_found",
-                            default_wallet=settings.glisk_default_author_wallet,
-                        )
-                        raise HTTPException(
-                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail="Default author not configured",
-                        )
+                    # Create new author automatically (with no prompt initially)
+                    author = Author(
+                        wallet_address=event_data["prompt_author"],
+                        prompt_text=None,
+                    )
+                    author = await uow.authors.add(author)
 
                 logger.info(
                     "webhook.creating_records",

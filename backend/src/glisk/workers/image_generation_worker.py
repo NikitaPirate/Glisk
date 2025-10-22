@@ -135,40 +135,23 @@ async def process_single_token(
             # Step 3: Fetch author's prompt text
             author = await author_repo.get_by_id(attached_token.author_id)
 
-            # Use author's prompt if found and set, otherwise use default author's prompt
-            if not author or not author.prompt_text:
-                if not author:
-                    logger.warning(
-                        "author_not_found_using_default",
-                        author_id=str(attached_token.author_id),
-                        token_id=attached_token.token_id,
-                        default_wallet=settings.glisk_default_author_wallet,
-                    )
-                else:
-                    logger.info(
-                        "author_prompt_not_set_using_default",
-                        author_wallet=author.wallet_address,
-                        token_id=attached_token.token_id,
-                        default_wallet=settings.glisk_default_author_wallet,
-                    )
-
-                # Fetch default author's prompt
-                default_author = await author_repo.get_by_wallet(
-                    settings.glisk_default_author_wallet
+            if not author:
+                raise ValueError(
+                    f"Author {attached_token.author_id} not found for token "
+                    f"{attached_token.token_id}. "
+                    "This should not happen - all tokens must have valid authors."
                 )
-                if not default_author:
-                    raise ValueError(
-                        f"Default author not found: {settings.glisk_default_author_wallet}. "
-                        "Create default author in database."
-                    )
-                if not default_author.prompt_text:
-                    raise ValueError(
-                        f"Default author {settings.glisk_default_author_wallet} has no prompt. "
-                        "Update default author with a valid prompt."
-                    )
-                prompt_text = default_author.prompt_text
-            else:
+
+            # Use author's prompt if set, otherwise use default prompt from config
+            if author.prompt_text:
                 prompt_text = author.prompt_text
+            else:
+                logger.info(
+                    "author_prompt_not_set_using_default",
+                    author_wallet=author.wallet_address,
+                    token_id=attached_token.token_id,
+                )
+                prompt_text = settings.default_prompt
 
             # Step 4: Validate prompt
             prompt = validate_prompt(prompt_text)

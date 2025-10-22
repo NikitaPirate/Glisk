@@ -18,11 +18,11 @@ from web3.exceptions import BadFunctionCallOutput, ContractLogicError
 
 from glisk.abi import get_contract_abi
 from glisk.core.config import Settings
+from glisk.models.author import Author
 from glisk.models.token import Token, TokenStatus
 from glisk.services.exceptions import (
     BlockchainConnectionError,
     ContractNotFoundError,
-    DefaultAuthorNotFoundError,
 )
 from glisk.uow import UnitOfWork
 
@@ -55,7 +55,7 @@ class TokenRecoveryService:
         Args:
             w3: Web3 instance for RPC calls
             contract_address: GliskNFT contract address (checksummed)
-            settings: Application settings (for default_author_wallet)
+            settings: Application settings
         """
         self.w3 = w3
         self.contract_address = Web3.to_checksum_address(contract_address)
@@ -151,7 +151,7 @@ class TokenRecoveryService:
         1. Query contract.nextTokenId()
         2. Query database for missing token IDs
         3. For each missing token, query tokenPromptAuthor from contract
-        4. Lookup/create authors in database by wallet addresses
+        4. Lookup author by wallet (or create new author if not found)
         5. Create Token records with status=DETECTED
         6. Commit transaction (or rollback if dry_run)
 
@@ -217,22 +217,17 @@ class TokenRecoveryService:
                 author = await uow.authors.get_by_wallet(author_wallet_checksummed)
 
                 if not author:
-                    # Use default author if wallet not found in database
+                    # Create new author automatically if not found
                     # This ensures consistent behavior with webhook processing
                     logger.info(
-                        "recovery.author_not_found_using_default",
+                        "recovery.author_not_found_creating_new",
                         author_wallet=author_wallet_checksummed,
-                        default_wallet=self.settings.glisk_default_author_wallet,
                     )
-                    author = await uow.authors.get_by_wallet(
-                        self.settings.glisk_default_author_wallet
+                    author = Author(
+                        wallet_address=author_wallet_checksummed,
+                        prompt_text=None,
                     )
-                    if not author:
-                        raise DefaultAuthorNotFoundError(
-                            f"Default author not found: "
-                            f"{self.settings.glisk_default_author_wallet}. "
-                            "Ensure default author exists in database before running recovery."
-                        )
+                    author = await uow.authors.add(author)
 
                 # Check if token is already revealed on-chain
                 is_revealed = self.contract.functions.isRevealed(token_id).call()
