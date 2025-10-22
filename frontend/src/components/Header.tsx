@@ -13,10 +13,10 @@ export function Header() {
         </Link>
         {isConnected && (
           <Link
-            to="/creator-dashboard"
+            to="/profile?tab=author"
             className="text-sm font-medium text-gray-700 hover:text-gray-900"
           >
-            Creator Dashboard
+            Profile
           </Link>
         )}
       </div>

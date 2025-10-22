@@ -4,12 +4,15 @@ This module implements REST endpoints for author profile management including:
 - POST /api/authors/prompt - Create or update author's AI generation prompt with
   signature verification
 - GET /api/authors/{wallet_address} - Check if author has configured a prompt
+- GET /api/authors/{wallet_address}/tokens - Get paginated list of tokens authored by wallet
 
 All prompt updates require EIP-191 wallet signature verification to prove wallet ownership.
 """
 
+from datetime import datetime
+
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
 from web3 import Web3
 
@@ -86,6 +89,70 @@ class AuthorStatusResponse(BaseModel):
     twitter_handle: str | None = Field(
         default=None,
         description="X (Twitter) username if author has linked their account, None otherwise",
+    )
+
+
+class TokenDTO(BaseModel):
+    """Data Transfer Object for token information in API responses."""
+
+    token_id: int = Field(
+        ...,
+        description="On-chain token ID",
+    )
+    status: str = Field(
+        ...,
+        description=(
+            "Token lifecycle status (detected, generating, uploading, ready, revealed, failed)"
+        ),
+    )
+    image_cid: str | None = Field(
+        default=None,
+        description="IPFS CID for image (null if not yet uploaded)",
+    )
+    metadata_cid: str | None = Field(
+        default=None,
+        description="IPFS CID for metadata JSON (null if not yet uploaded)",
+    )
+    image_url: str | None = Field(
+        default=None,
+        description="Replicate URL for generated image (null if not yet generated)",
+    )
+    generation_attempts: int = Field(
+        ...,
+        description="Number of image generation attempts",
+    )
+    generation_error: str | None = Field(
+        default=None,
+        description="Error message if generation failed (null otherwise)",
+    )
+    reveal_tx_hash: str | None = Field(
+        default=None,
+        description="Transaction hash for reveal (null if not yet revealed)",
+    )
+    created_at: datetime = Field(
+        ...,
+        description="Timestamp when token record was created (UTC)",
+    )
+
+
+class TokensResponse(BaseModel):
+    """Response model for paginated tokens list."""
+
+    tokens: list[TokenDTO] = Field(
+        ...,
+        description="Array of token objects for current page",
+    )
+    total: int = Field(
+        ...,
+        description="Total number of tokens matching query (across all pages)",
+    )
+    offset: int = Field(
+        ...,
+        description="Number of tokens skipped (pagination offset)",
+    )
+    limit: int = Field(
+        ...,
+        description="Maximum number of tokens per page",
     )
 
 
@@ -308,4 +375,154 @@ async def get_author_status(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve author status. Please try again later.",
+        )
+
+
+@router.get(
+    "/{wallet_address}/tokens", response_model=TokensResponse, status_code=status.HTTP_200_OK
+)
+async def get_author_tokens(
+    wallet_address: str,
+    offset: int = Query(default=0, ge=0, description="Number of tokens to skip (pagination)"),
+    limit: int = Query(default=20, ge=1, le=100, description="Maximum tokens per page (1-100)"),
+    uow_factory=Depends(get_uow_factory),
+) -> TokensResponse:
+    """Get paginated list of tokens authored by a wallet address.
+
+    Returns all tokens where the wallet address is the prompt author. Results are
+    ordered by creation timestamp (newest first) with pagination support.
+
+    Always returns 200 OK with empty array if author not found or has no tokens.
+
+    Security:
+    - No authentication required (public read)
+    - Wallet address normalized to checksum format
+    - Invalid addresses treated as non-existent (returns empty results)
+
+    Args:
+        wallet_address: Ethereum wallet address (0x + 40 hex chars, case-insensitive)
+        offset: Number of tokens to skip (default: 0, min: 0)
+        limit: Maximum tokens per page (default: 20, min: 1, max: 100)
+        uow_factory: UnitOfWork factory (injected dependency)
+
+    Returns:
+        TokensResponse with tokens array, total count, offset, and limit
+
+    Example:
+        GET /api/authors/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0/tokens?offset=0&limit=20
+
+        Response 200 (author has tokens):
+        {
+            "tokens": [
+                {
+                    "token_id": 123,
+                    "status": "revealed",
+                    "image_cid": "QmXyz...",
+                    "metadata_cid": "QmAbc...",
+                    "image_url": "https://replicate.delivery/...",
+                    "generation_attempts": 1,
+                    "generation_error": null,
+                    "reveal_tx_hash": "0x1234...",
+                    "created_at": "2025-10-22T12:34:56Z"
+                }
+            ],
+            "total": 45,
+            "offset": 0,
+            "limit": 20
+        }
+
+        Response 200 (author not found or no tokens):
+        {
+            "tokens": [],
+            "total": 0,
+            "offset": 0,
+            "limit": 20
+        }
+    """
+    try:
+        # Step 1: Normalize and validate wallet address
+        try:
+            checksummed_address = Web3.to_checksum_address(wallet_address)
+        except ValueError:
+            # Invalid address format - treat as non-existent author (return empty, not 400)
+            logger.warning(
+                "invalid_wallet_format",
+                wallet_address=wallet_address,
+                offset=offset,
+                limit=limit,
+            )
+            return TokensResponse(tokens=[], total=0, offset=offset, limit=limit)
+
+        # Step 2: Query author and tokens
+        async with await uow_factory() as uow:
+            # Get author by wallet address
+            author = await uow.authors.get_by_wallet(checksummed_address)
+
+            if author is None:
+                # Author not found - return empty results (not 404)
+                logger.debug(
+                    "author_not_found",
+                    wallet_address=checksummed_address,
+                    offset=offset,
+                    limit=limit,
+                )
+                return TokensResponse(tokens=[], total=0, offset=offset, limit=limit)
+
+            # Get paginated tokens with total count
+            tokens, total = await uow.tokens.get_tokens_by_author_paginated(
+                author_id=author.id,
+                offset=offset,
+                limit=limit,
+            )
+
+            # Convert Token entities to TokenDTO
+            token_dtos = [
+                TokenDTO(
+                    token_id=token.token_id,
+                    status=token.status.value,
+                    image_cid=token.image_cid,
+                    metadata_cid=token.metadata_cid,
+                    image_url=token.image_url,
+                    generation_attempts=token.generation_attempts,
+                    generation_error=token.generation_error,
+                    reveal_tx_hash=token.reveal_tx_hash,
+                    created_at=token.created_at,
+                )
+                for token in tokens
+            ]
+
+            # Log successful retrieval
+            logger.info(
+                "tokens_retrieved",
+                wallet_address=checksummed_address,
+                author_id=str(author.id),
+                total=total,
+                returned=len(token_dtos),
+                offset=offset,
+                limit=limit,
+            )
+
+            return TokensResponse(
+                tokens=token_dtos,
+                total=total,
+                offset=offset,
+                limit=limit,
+            )
+
+    except HTTPException:
+        # Re-raise HTTPExceptions (already have correct status codes)
+        raise
+    except Exception as e:
+        # Unexpected error (database connection, etc.)
+        logger.error(
+            "unexpected_error_getting_author_tokens",
+            wallet_address=wallet_address,
+            offset=offset,
+            limit=limit,
+            error=str(e),
+            error_type=type(e).__name__,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve author tokens. Please try again later.",
         )

@@ -1,13 +1,23 @@
-import { getDefaultConfig } from '@rainbow-me/rainbowkit'
+import { http, createConfig } from 'wagmi'
 import { baseSepolia } from 'wagmi/chains'
+import { coinbaseWallet, injected, walletConnect } from 'wagmi/connectors'
 
 // Get WalletConnect Project ID from https://cloud.walletconnect.com
-// For MVP, using a demo project ID. Replace with your own in production.
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID'
 
-export const config = getDefaultConfig({
-  appName: 'Glisk NFT',
-  projectId,
+// Get CDP API Key from Coinbase Developer Platform
+const cdpApiKey = import.meta.env.VITE_ONCHAINKIT_API_KEY
+
+// Configure CDP RPC transport for reliable blockchain reads (50 req/sec vs public 10 req/sec)
+const cdpRpcUrl = `https://api.developer.coinbase.com/rpc/v1/base-sepolia/${cdpApiKey}`
+
+console.log('[Wagmi Config] Using CDP RPC:', cdpRpcUrl.replace(cdpApiKey || '', '***'))
+
+export const config = createConfig({
   chains: [baseSepolia],
-  ssr: false, // Not using server-side rendering
+  connectors: [injected(), coinbaseWallet({ appName: 'Glisk NFT' }), walletConnect({ projectId })],
+  transports: {
+    [baseSepolia.id]: http(cdpRpcUrl),
+  },
+  ssr: false,
 })

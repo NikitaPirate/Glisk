@@ -5,7 +5,7 @@ Provides data access methods for Token entities with worker coordination via FOR
 
 from uuid import UUID
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from glisk.models.token import Token, TokenStatus
@@ -187,6 +187,42 @@ class TokenRepository:
             .offset(offset)
         )
         return list(result.scalars().all())
+
+    async def get_tokens_by_author_paginated(
+        self, author_id: UUID, offset: int = 0, limit: int = 20
+    ) -> tuple[list[Token], int]:
+        """Retrieve tokens by author with pagination and total count.
+
+        Returns both the paginated list of tokens and the total count for
+        pagination calculations in the frontend.
+
+        Args:
+            author_id: Author's unique identifier
+            offset: Number of tokens to skip (default: 0)
+            limit: Maximum number of tokens to return (default: 20)
+
+        Returns:
+            Tuple of (tokens list, total count) where:
+            - tokens: List of tokens for current page (newest first)
+            - total: Total number of tokens by author (across all pages)
+        """
+        # Query 1: Get total count
+        count_stmt = select(func.count(Token.id)).where(Token.author_id == author_id)  # type: ignore[arg-type]
+        count_result = await self.session.execute(count_stmt)
+        total = count_result.scalar() or 0
+
+        # Query 2: Get paginated data
+        data_stmt = (
+            select(Token)
+            .where(Token.author_id == author_id)  # type: ignore[arg-type]
+            .order_by(Token.created_at.desc())  # type: ignore[attr-defined]
+            .offset(offset)
+            .limit(limit)
+        )
+        data_result = await self.session.execute(data_stmt)
+        tokens = list(data_result.scalars().all())
+
+        return (tokens, total)
 
     async def get_by_status(
         self, status: TokenStatus, limit: int = 100, offset: int = 0
