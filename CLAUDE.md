@@ -12,6 +12,8 @@ Auto-generated from all feature plans. Last updated: 2025-10-10
 - N/A (stateless frontend, no persistence) (005-frontend-foundation-with)
 - Python 3.13 (backend), TypeScript 5.x (frontend) (007-link-x-twitter)
 - React 18 + TypeScript (via Vite), Python 3.13 (backend) (008-unified-profile-page)
+- TypeScript 5.x + React 18 (frontend), Python 3.13 (backend for new API endpoint) + @coinbase/onchainkit (NFTCard components), wagmi + viem (blockchain reads), react-router-dom (query param navigation) (008-unified-profile-page)
+- N/A (frontend reads from backend API and blockchain RPC) (008-unified-profile-page)
 
 ## Project Structure
 ```
@@ -657,9 +659,9 @@ TZ=America/Los_Angeles uv run pytest tests/test_token_recovery.py -v
 ---
 
 ## Recent Changes
+- 008-unified-profile-page: Added TypeScript 5.x + React 18 (frontend), Python 3.13 (backend for new API endpoint) + @coinbase/onchainkit (NFTCard components), wagmi + viem (blockchain reads), react-router-dom (query param navigation)
 - 008-unified-profile-page: Added React 18 + TypeScript (via Vite), Python 3.13 (backend)
 - 007-link-x-twitter: Added Python 3.13 (backend), TypeScript 5.x (frontend)
-- 005-frontend-foundation-with: Added React 18 + TypeScript (via Vite)
 
 <!-- MANUAL ADDITIONS START -->
 

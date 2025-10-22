@@ -44,7 +44,7 @@ A user views their Prompt Author tab and sees a list of NFTs where their wallet 
 
 ### User Story 3 - View Owned NFTs in Collector Tab (Priority: P1)
 
-A user switches to the "Collector" tab and sees a paginated grid of NFTs they own, fetched directly from the blockchain using ERC721Enumerable functions. NFTs are displayed using thirdweb v5 components showing media, name, and other metadata.
+A user switches to the "Collector" tab and sees a paginated grid of NFTs they own, fetched directly from the blockchain using ERC721Enumerable functions. NFTs are displayed using OnchainKit NFTCard components showing media, name, and other metadata.
 
 **Why this priority**: This completes the dual-view functionality that distinguishes this feature. Users need to see both NFTs they've authored and NFTs they own. Core deliverable alongside authored NFTs view.
 
@@ -53,7 +53,7 @@ A user switches to the "Collector" tab and sees a paginated grid of NFTs they ow
 **Acceptance Scenarios**:
 
 1. **Given** a user clicks the "Collector" tab, **When** the tab loads, **Then** the URL updates to `/profile?tab=collector`
-2. **Given** a user's wallet owns 3 NFTs, **When** they view the Collector tab, **Then** they see all 3 NFTs displayed using thirdweb components
+2. **Given** a user's wallet owns 3 NFTs, **When** they view the Collector tab, **Then** they see all 3 NFTs displayed using OnchainKit NFTCard components
 3. **Given** a user's wallet owns 30 NFTs, **When** they view the Collector tab, **Then** they see 20 NFTs on page 1 with pagination controls
 4. **Given** a user is on page 1 of owned NFTs with 30 total, **When** they click the next page control, **Then** they see the remaining 10 NFTs on page 2
 5. **Given** a user does not own any NFTs, **When** they view the Collector tab, **Then** they see no NFTs displayed (no error)
@@ -110,7 +110,7 @@ A user switches between the Prompt Author and Collector tabs multiple times, and
 - **FR-010**: Collector tab MUST fetch owned NFTs directly from the blockchain using ERC721Enumerable methods (balanceOf, tokenOfOwnerByIndex)
 - **FR-011**: System MUST display 20 NFTs per page in both tabs
 - **FR-012**: System MUST provide pagination controls (next/previous or page numbers) for NFT lists exceeding 20 items
-- **FR-013**: System MUST use thirdweb v5 React components for rendering NFT media, names, and metadata in both tabs
+- **FR-013**: System MUST use OnchainKit NFTCard React components for rendering NFT media, names, and metadata in both tabs
 - **FR-014**: System MUST refresh NFT data in the active tab when the connected wallet address changes
 - **FR-015**: System MUST reset pagination to page 1 when the connected wallet address changes
 - **FR-016**: System MUST require wallet connection to access the profile page
@@ -148,7 +148,7 @@ A user switches between the Prompt Author and Collector tabs multiple times, and
 - Users are already familiar with connecting their wallet via the existing header component
 - The backend database contains an author_id field (wallet address) for NFT tokens that can be queried
 - The smart contract implements ERC721Enumerable interface with balanceOf and tokenOfOwnerByIndex functions
-- thirdweb v5 SDK is already integrated in the frontend project and configured for the correct blockchain network
+- OnchainKit is already integrated in the frontend project and configured for the correct blockchain network
 - The existing prompt management and X linking functionality can be directly moved to the new page without requiring refactoring
 - The Header component can be updated to replace separate "Creator Dashboard" and "Profile Settings" buttons with a single "Profile" button
 - Minimal design means absolutely no CSS classes beyond basic utility classes for spacing (if any)
