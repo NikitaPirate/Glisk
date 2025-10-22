@@ -125,13 +125,15 @@
 - [ ] T053 [US3] Add loading state display in Collector.tsx ("Loading your collection..." text while fetching)
 - [ ] T054 [US3] Add error state display in Collector.tsx (network error message with retry button)
 - [ ] T055 [US3] Add empty state display in Collector.tsx ("No NFTs owned" when balance=0)
-- [ ] T056 [US3] Render NFTGrid component with tokenIds.slice(0, 20) for first page in Collector.tsx
-- [ ] T057 [US3] Add "Load More" button in Collector.tsx when hasNextPage=true (calls fetchNextPage)
-- [ ] T058 [US3] Disable "Load More" button when isFetchingNextPage=true in Collector.tsx
-- [ ] T059 [US3] Hide "Load More" button when !hasNextPage (all tokens loaded) in Collector.tsx
-- [ ] T060 [US3] Add wallet change detection in Collector.tsx (useEffect on address) to reset query and refetch
+- [ ] T056 [US3] Add pagination state (ownedPage useState) in Collector.tsx (default: 1)
+- [ ] T057 [US3] Calculate totalPages = Math.ceil(tokenIds.length / 20) for pagination controls in Collector.tsx
+- [ ] T058 [US3] Render NFTGrid component with tokenIds.slice((ownedPage - 1) * 20, ownedPage * 20) for current page in Collector.tsx
+- [ ] T059 [US3] Add pagination controls in Collector.tsx (Previous/Next buttons with page number display)
+- [ ] T060 [US3] Disable pagination controls when isLoading=true in Collector.tsx
+- [ ] T061 [US3] Hide pagination controls when tokenIds.length <= 20 in Collector.tsx
+- [ ] T062 [US3] Add wallet change detection in Collector.tsx (useEffect on address) to reset ownedPage to 1 and refetch
 
-**Checkpoint**: At this point, Collector tab shows owned NFTs with "Load More" pagination, blockchain reads working
+**Checkpoint**: At this point, Collector tab shows owned NFTs with Previous/Next pagination matching Author tab UX, blockchain reads working
 
 ---
 
@@ -143,11 +145,11 @@
 
 ### Implementation for User Story 4
 
-- [ ] T061 [US4] Verify useQuery caching in PromptAuthor.tsx has staleTime=30000 (30 seconds) for cache persistence
-- [ ] T062 [US4] Verify useInfiniteReadContracts in Collector.tsx has enabled=!!address && !!balance to prevent unnecessary refetches
-- [ ] T063 [US4] Add wallet change invalidation in ProfilePage.tsx: useEffect on address change to clear all query caches
-- [ ] T064 [US4] Test rapid tab switching doesn't cause race conditions (latest tab selection wins, old requests cancelled)
-- [ ] T065 [US4] Confirm pagination resets to page 1 when wallet changes in both tabs
+- [ ] T063 [US4] Verify useQuery caching in PromptAuthor.tsx has staleTime=30000 (30 seconds) for cache persistence
+- [ ] T064 [US4] Verify useInfiniteReadContracts in Collector.tsx has enabled=!!address && !!balance to prevent unnecessary refetches
+- [ ] T065 [US4] Add wallet change invalidation in ProfilePage.tsx: useEffect on address change to clear all query caches
+- [ ] T066 [US4] Test rapid tab switching doesn't cause race conditions (latest tab selection wins, old requests cancelled)
+- [ ] T067 [US4] Confirm pagination resets to page 1 when wallet changes in both tabs
 
 **Checkpoint**: All user stories complete, tab switching works smoothly with appropriate data refetching
 
@@ -157,16 +159,16 @@
 
 **Purpose**: Cleanup, documentation, and validation
 
-- [ ] T066 [P] Remove old /creator-dashboard route from frontend/src/App.tsx
-- [ ] T067 [P] Remove old /profile-settings route from frontend/src/App.tsx
-- [ ] T068 [P] Delete CreatorDashboard.tsx file from frontend/src/pages/
-- [ ] T069 [P] Delete ProfileSettings.tsx file from frontend/src/pages/
-- [ ] T070 Verify all functional requirements FR-001 through FR-021 from spec.md (manual testing per quickstart.md)
-- [ ] T071 Verify all success criteria SC-001 through SC-010 from spec.md (performance benchmarks per quickstart.md)
-- [ ] T072 Test all edge cases from spec.md (invalid tab param, API errors, RPC errors, 0 NFTs, exactly 20 NFTs, rapid switching, wallet changes)
-- [ ] T073 Run full quickstart.md validation (Tests 1-10)
-- [ ] T074 [P] Add basic Tailwind utility classes for spacing/layout in ProfilePage.tsx, PromptAuthor.tsx, Collector.tsx, NFTGrid.tsx (minimal styling only)
-- [ ] T075 Code review for constitution compliance (no state management libraries, direct wagmi hooks, minimal styling, copy-paste reuse)
+- [ ] T068 [P] Remove old /creator-dashboard route from frontend/src/App.tsx
+- [ ] T069 [P] Remove old /profile-settings route from frontend/src/App.tsx
+- [ ] T070 [P] Delete CreatorDashboard.tsx file from frontend/src/pages/
+- [ ] T071 [P] Delete ProfileSettings.tsx file from frontend/src/pages/
+- [ ] T072 Verify all functional requirements FR-001 through FR-021 from spec.md (manual testing per quickstart.md)
+- [ ] T073 Verify all success criteria SC-001 through SC-010 from spec.md (performance benchmarks per quickstart.md)
+- [ ] T074 Test all edge cases from spec.md (invalid tab param, API errors, RPC errors, 0 NFTs, exactly 20 NFTs, rapid switching, wallet changes)
+- [ ] T075 Run full quickstart.md validation (Tests 1-10)
+- [ ] T076 [P] Add basic Tailwind utility classes for spacing/layout in ProfilePage.tsx, PromptAuthor.tsx, Collector.tsx, NFTGrid.tsx (minimal styling only)
+- [ ] T077 Code review for constitution compliance (no state management libraries, direct wagmi hooks, minimal styling, copy-paste reuse)
 
 ---
 
