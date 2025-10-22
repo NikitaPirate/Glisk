@@ -34,9 +34,9 @@
 
 **⚠️ CRITICAL**: Must verify schema before implementing user stories
 
-- [ ] T001 [P] Verify database schema has tokens_s0.author_id foreign key to authors.id (use `\d tokens_s0` in psql)
-- [ ] T002 [P] Verify tokens_s0.author_id has index (PostgreSQL FK auto-indexes, confirm with `\di` in psql)
-- [ ] T003 [P] Verify authors.wallet_address has unique index (confirm with `\d authors` in psql)
+- [X] T001 [P] Verify database schema has tokens_s0.author_id foreign key to authors.id (use `\d tokens_s0` in psql)
+- [X] T002 [P] Verify tokens_s0.author_id has index (PostgreSQL FK auto-indexes, confirm with `\di` in psql)
+- [X] T003 [P] Verify authors.wallet_address has unique index (confirm with `\d authors` in psql)
 
 **Checkpoint**: Database schema verified - user story implementation can begin
 
@@ -52,18 +52,18 @@
 
 **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T004 [P] [US1] Create backend/tests/test_author_leaderboard.py with test fixtures for seeding authors and tokens
-- [ ] T005 [US1] Add test_get_leaderboard_basic() to verify basic aggregation query returns correct order (3 authors with 5, 3, 1 tokens)
-- [ ] T006 [US1] Add test_get_leaderboard_tie_breaking() to verify alphabetical secondary sort when token counts are equal
-- [ ] T007 [US1] Add test_get_leaderboard_limit() to verify only top 50 authors returned (seed 60 authors)
-- [ ] T008 [US1] Add test_api_leaderboard_endpoint() to verify GET /api/authors/leaderboard returns 200 OK with correct JSON schema
-- [ ] T009 [US1] Run tests to confirm they FAIL (pytest backend/tests/test_author_leaderboard.py -v)
+- [X] T004 [P] [US1] Create backend/tests/test_author_leaderboard.py with test fixtures for seeding authors and tokens
+- [X] T005 [US1] Add test_get_leaderboard_basic() to verify basic aggregation query returns correct order (3 authors with 5, 3, 1 tokens)
+- [X] T006 [US1] Add test_get_leaderboard_tie_breaking() to verify alphabetical secondary sort when token counts are equal
+- [X] T007 [US1] Add test_get_leaderboard_limit() to verify only top 50 authors returned (seed 60 authors)
+- [X] T008 [US1] Add test_api_leaderboard_endpoint() to verify GET /api/authors/leaderboard returns 200 OK with correct JSON schema
+- [X] T009 [US1] Run tests to confirm they FAIL (pytest backend/tests/test_author_leaderboard.py -v)
 
 ### Implementation for User Story 1
 
 **Backend - Repository Layer**:
 
-- [ ] T010 [US1] Add get_author_leaderboard() method to backend/src/glisk/repositories/author.py
+- [X] T010 [US1] Add get_author_leaderboard() method to backend/src/glisk/repositories/author.py
   - Use SQLModel select() with join(Author, Token.author_id == Author.id)
   - Aggregate with func.count(Token.id).label("total_tokens")
   - Group by Author.id, Author.wallet_address
@@ -73,10 +73,10 @@
 
 **Backend - API Layer**:
 
-- [ ] T011 [US1] Create AuthorLeaderboardEntry Pydantic model in backend/src/glisk/api/routes/authors.py
+- [X] T011 [US1] Create AuthorLeaderboardEntry Pydantic model in backend/src/glisk/api/routes/authors.py
   - Fields: author_address (str, 42 chars), total_tokens (int, ≥1)
   - Add field validation and example values
-- [ ] T012 [US1] Add GET /leaderboard endpoint to backend/src/glisk/api/routes/authors.py
+- [X] T012 [US1] Add GET /leaderboard endpoint to backend/src/glisk/api/routes/authors.py
   - Mount at router path: @router.get("/leaderboard", response_model=list[AuthorLeaderboardEntry])
   - Call repository.get_author_leaderboard()
   - Map tuples to AuthorLeaderboardEntry DTOs
@@ -85,12 +85,12 @@
 
 **Backend - Verification**:
 
-- [ ] T013 [US1] Run backend tests to verify all pass (pytest backend/tests/test_author_leaderboard.py -v)
-- [ ] T014 [US1] Manual API test: Start backend, curl http://localhost:8000/api/authors/leaderboard, verify response format
+- [X] T013 [US1] Run backend tests to verify all pass (pytest backend/tests/test_author_leaderboard.py -v)
+- [X] T014 [US1] Manual API test: Start backend, curl http://localhost:8000/api/authors/leaderboard, verify response format
 
 **Frontend - Component**:
 
-- [ ] T015 [US1] Create frontend/src/pages/AuthorLeaderboard.tsx component
+- [X] T015 [US1] Create frontend/src/pages/AuthorLeaderboard.tsx component
   - Import useState, useEffect, useNavigate from react/react-router-dom
   - Define AuthorLeaderboardEntry interface (author_address: string, total_tokens: number)
   - Add state: authors (array), isLoading (boolean)
@@ -98,23 +98,23 @@
   - Render loading state: "Loading..." text when isLoading is true
   - Render list: map authors array to div elements with Tailwind styling
   - Display format: "{author_address} - {total_tokens} tokens"
-  - Add click handler: onClick={() => navigate(`/${author.author_address}`)}
+  - Add click handler: onClick(() => navigate(`/${author.author_address}`)}
   - Add basic Tailwind styling: borders, padding, hover states (bg-gray-100 on hover)
 
 **Frontend - Routing**:
 
-- [ ] T016 [US1] Modify frontend/src/App.tsx to change root route from Navigate to AuthorLeaderboard
+- [X] T016 [US1] Modify frontend/src/App.tsx to change root route from Navigate to AuthorLeaderboard
   - Import AuthorLeaderboard component
   - Replace current <Route path="/" element={<Navigate to="/profile" replace />} /> with <Route path="/" element={<AuthorLeaderboard />} />
   - Keep existing profile routes unchanged
 
 **Frontend - Verification**:
 
-- [ ] T017 [US1] Manual frontend test: npm run dev, open http://localhost:5173/, verify leaderboard displays
-- [ ] T018 [US1] Manual navigation test: Click author entry, verify navigation to /{authorAddress} profile page
-- [ ] T019 [US1] Manual performance test: Use browser DevTools Network tab to verify page load < 3s and API response < 500ms
+- [X] T017 [US1] Manual frontend test: npm run dev, open http://localhost:5173/, verify leaderboard displays
+- [X] T018 [US1] Manual navigation test: Click author entry, verify navigation to /{authorAddress} profile page
+- [X] T019 [US1] Manual performance test: Use browser DevTools Network tab to verify page load < 3s and API response < 500ms
 
-**Checkpoint**: At this point, User Story 1 should be fully functional - visitors can see ranked authors and navigate to profiles
+**Checkpoint**: ✅ User Story 1 is fully functional - visitors can see ranked authors and navigate to profiles
 
 ---
 
