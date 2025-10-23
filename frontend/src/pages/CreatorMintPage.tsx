@@ -1,24 +1,30 @@
-import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import {
   useAccount,
   useReadContract,
   useWriteContract,
   useWaitForTransactionReceipt,
   useChainId,
+  usePublicClient,
 } from 'wagmi'
-import { isAddress } from 'viem'
+import { isAddress, parseEventLogs } from 'viem'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CONTRACT_ADDRESS, GLISK_NFT_ABI } from '@/lib/contract'
+import { TokenRevealCard } from '@/components/TokenRevealCard'
+import { useTokenPolling } from '@/hooks/useTokenPolling'
 
 type TransactionStatus = 'idle' | 'waitingApproval' | 'pending' | 'success' | 'failed' | 'cancelled'
 
 export function CreatorMintPage() {
   const { creatorAddress } = useParams<{ creatorAddress: string }>()
-  const { isConnected } = useAccount()
+  const { isConnected, address: connectedWallet } = useAccount()
   const chainId = useChainId()
+  const navigate = useNavigate()
+  const publicClient = usePublicClient()
   const [quantity, setQuantity] = useState(1)
+  const [mintedTokenIds, setMintedTokenIds] = useState<number[]>([]) // Token IDs from BatchMinted event
 
   // Validate creator address
   const isCreatorAddressValid = creatorAddress ? isAddress(creatorAddress) : false
@@ -47,9 +53,58 @@ export function CreatorMintPage() {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
     error: receiptError,
+    data: receipt,
   } = useWaitForTransactionReceipt({
     hash,
   })
+
+  // Parse BatchMinted event from transaction receipt
+  useEffect(() => {
+    if (!receipt || !publicClient) return
+
+    try {
+      // Parse event logs to extract token IDs
+      const logs = parseEventLogs({
+        abi: GLISK_NFT_ABI,
+        eventName: 'BatchMinted',
+        logs: receipt.logs,
+      })
+
+      if (logs.length > 0) {
+        const batchMintedEvent = logs[0] as any // Type assertion for event args
+        const args = batchMintedEvent.args
+
+        if (args && args.startTokenId !== undefined && args.quantity !== undefined) {
+          const startTokenId = Number(args.startTokenId)
+          const mintQuantity = Number(args.quantity)
+
+          // Generate array of token IDs: [startTokenId, startTokenId+1, ...]
+          const tokenIds = Array.from({ length: mintQuantity }, (_, i) => startTokenId + i)
+          setMintedTokenIds(tokenIds)
+
+          console.log('[CreatorMintPage] BatchMinted event parsed:', {
+            startTokenId,
+            quantity: mintQuantity,
+            tokenIds,
+          })
+        }
+      }
+    } catch (error) {
+      console.error('[CreatorMintPage] Failed to parse BatchMinted event:', error)
+    }
+  }, [receipt, publicClient])
+
+  // Poll for token status updates
+  const {
+    tokens,
+    isPolling,
+    allRevealed,
+    error: pollingError,
+  } = useTokenPolling(
+    mintedTokenIds,
+    connectedWallet,
+    isConfirmed && mintedTokenIds.length > 0 // Enable polling after mint success
+  )
 
   /**
    * Handles quantity input changes with validation
@@ -134,6 +189,9 @@ export function CreatorMintPage() {
         return (
           <div className="p-4 bg-green-50 border border-green-200 rounded">
             <p className="text-green-800">Success! NFTs minted.</p>
+            {mintedTokenIds.length > 0 && (
+              <p className="text-green-700 text-sm mt-1">Token IDs: {mintedTokenIds.join(', ')}</p>
+            )}
           </div>
         )
       case 'cancelled':
@@ -252,6 +310,56 @@ export function CreatorMintPage() {
                 </Button>
 
                 <StatusMessage />
+
+                {/* Token Reveal Grid - Show after successful mint */}
+                {isConfirmed && mintedTokenIds.length > 0 && (
+                  <div className="mt-8 space-y-4">
+                    <div className="border-t pt-6">
+                      <h2 className="text-2xl font-bold mb-2">🎰 Revealing your NFTs...</h2>
+                      <p className="text-gray-600 mb-4">
+                        {allRevealed
+                          ? 'All tokens revealed! View them in your profile.'
+                          : isPolling
+                            ? 'Your NFTs are being generated and revealed on-chain. This may take a few minutes.'
+                            : 'Waiting for backend processing...'}
+                      </p>
+
+                      {pollingError && (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded mb-4">
+                          <p className="text-red-800 text-sm">{pollingError}</p>
+                        </div>
+                      )}
+
+                      {/* Grid of TokenRevealCards */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                        {mintedTokenIds.map(tokenId => {
+                          const tokenData = tokens.get(tokenId)
+                          return (
+                            <TokenRevealCard
+                              key={tokenId}
+                              tokenId={tokenId}
+                              status={tokenData?.status || 'detected'}
+                              imageUrl={tokenData?.image_url || null}
+                            />
+                          )
+                        })}
+                      </div>
+
+                      {/* View Profile Button - Show when all revealed */}
+                      {allRevealed && (
+                        <div className="flex justify-center">
+                          <Button
+                            onClick={() => navigate('/profile?tab=author')}
+                            size="lg"
+                            className="px-8"
+                          >
+                            View in Profile
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>
