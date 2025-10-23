@@ -3,6 +3,7 @@
 from typing import Tuple
 
 import structlog
+from eth_abi.abi import decode
 from eth_account import Account
 from web3 import Web3
 from web3.exceptions import TimeExhausted
@@ -21,6 +22,9 @@ logger = structlog.get_logger()
 
 class KeeperService:
     """Blockchain keeper service for batch reveal operations."""
+
+    # Custom error selectors from GliskNFT contract
+    ERROR_ALREADY_REVEALED = "0xa3a57894"  # AlreadyRevealed(uint256)
 
     def __init__(
         self,
@@ -78,6 +82,58 @@ class KeeperService:
             Ethereum address (checksummed, 0x-prefixed)
         """
         return self.keeper_address
+
+    def decode_contract_error(self, error_data: str | tuple) -> str:
+        """
+        Decode custom error from contract revert.
+
+        Handles Solidity custom errors like AlreadyRevealed(uint256) by parsing
+        the error selector and decoding parameters.
+
+        Args:
+            error_data: Error data from Web3 exception (hex string or tuple of hex strings)
+
+        Returns:
+            Human-readable error message (e.g., "Token 20 is already revealed on-chain")
+            If decoding fails, returns original error as string
+
+        Examples:
+            >>> decode_contract_error("0xa3a578940000...0014")
+            "Token 20 is already revealed on-chain"
+        """
+        try:
+            # Web3.py may return custom errors as tuple or single hex string
+            if isinstance(error_data, tuple):
+                error_hex = error_data[0] if error_data else ""
+            else:
+                error_hex = str(error_data)
+
+            # Ensure hex prefix
+            if not error_hex.startswith("0x"):
+                error_hex = "0x" + error_hex
+
+            # Extract selector (first 4 bytes)
+            selector = error_hex[:10]
+
+            # Decode based on known error selectors
+            if selector == self.ERROR_ALREADY_REVEALED:
+                # AlreadyRevealed(uint256 tokenId)
+                params_hex = error_hex[10:]  # Remove selector
+                if params_hex:
+                    (token_id,) = decode(["uint256"], bytes.fromhex(params_hex))
+                    return f"Token {token_id} is already revealed on-chain"
+                return "Token is already revealed on-chain (token ID unknown)"
+
+            # Unknown error selector - return as-is
+            return f"Contract reverted with unknown error: {error_hex}"
+
+        except Exception as decode_error:
+            logger.warning(
+                "keeper.error_decode_failed",
+                error_data=str(error_data),
+                decode_error=str(decode_error),
+            )
+            return f"Contract reverted: {error_data}"
 
     async def estimate_gas(
         self,
@@ -149,14 +205,25 @@ class KeeperService:
 
         except Exception as e:
             error_msg = str(e)
+
+            # Try to decode contract custom errors
+            decoded_error = None
+            if hasattr(e, "args") and e.args:
+                # Web3.py passes revert data as tuple in exception args
+                decoded_error = self.decode_contract_error(e.args[0] if len(e.args) > 0 else "")
+
             logger.error(
                 "keeper.gas_estimation_failed",
                 error=error_msg,
+                decoded_error=decoded_error,
                 token_count=len(token_ids),
             )
 
             # Add actionable context based on error type
-            if "insufficient funds" in error_msg.lower():
+            if decoded_error and "already revealed" in decoded_error.lower():
+                # Custom error: AlreadyRevealed(tokenId)
+                context = decoded_error
+            elif "insufficient funds" in error_msg.lower():
                 context = (
                     "Keeper wallet has insufficient balance for gas. "
                     f"Check balance at {self.keeper_address}. "

@@ -5,6 +5,7 @@ batch reveal transactions to the blockchain network.
 """
 
 import asyncio
+import re
 from typing import Callable
 
 import structlog
@@ -16,7 +17,7 @@ from glisk.models.token import Token, TokenStatus
 from glisk.repositories.reveal_tx import RevealTransactionRepository
 from glisk.repositories.token import TokenRepository
 from glisk.services.blockchain.keeper import KeeperService
-from glisk.services.exceptions import PermanentError, TransientError
+from glisk.services.exceptions import GasEstimationError, PermanentError, TransientError
 
 logger = structlog.get_logger()
 
@@ -121,36 +122,88 @@ async def process_reveal_batch(
         token_ids=token_ids,
     )
 
-    # Submit batch reveal transaction
-    tx_hash, block_number, gas_used = await keeper.reveal_batch(token_ids, metadata_uris)
+    try:
+        # Submit batch reveal transaction
+        tx_hash, block_number, gas_used = await keeper.reveal_batch(token_ids, metadata_uris)
 
-    logger.info(
-        "reveal.batch_confirmed",
-        tx_hash=tx_hash,
-        block_number=block_number,
-        gas_used=gas_used,
-        token_count=len(tokens),
-    )
+        logger.info(
+            "reveal.batch_confirmed",
+            tx_hash=tx_hash,
+            block_number=block_number,
+            gas_used=gas_used,
+            token_count=len(tokens),
+        )
 
-    # Create reveal transaction audit record
-    reveal_tx = RevealTransaction(
-        token_ids=[t.id for t in tokens],
-        tx_hash=tx_hash,
-        block_number=block_number,
-        status="confirmed",
-    )
-    await reveal_tx_repo.add(reveal_tx)
+        # Create reveal transaction audit record
+        reveal_tx = RevealTransaction(
+            token_ids=[t.id for t in tokens],
+            tx_hash=tx_hash,
+            block_number=block_number,
+            status="confirmed",
+        )
+        await reveal_tx_repo.add(reveal_tx)
 
-    # Update all tokens in batch to revealed status
-    for token in tokens:
-        await token_repo.mark_revealed(token, tx_hash)
+        # Update all tokens in batch to revealed status
+        for token in tokens:
+            await token_repo.mark_revealed(token, tx_hash)
 
-    logger.info(
-        "reveal.batch_complete",
-        tx_hash=tx_hash,
-        token_count=len(tokens),
-        duration_seconds=0,  # Could add timing if needed
-    )
+        logger.info(
+            "reveal.batch_complete",
+            tx_hash=tx_hash,
+            token_count=len(tokens),
+            duration_seconds=0,  # Could add timing if needed
+        )
+
+    except GasEstimationError as e:
+        error_msg = str(e)
+
+        # Handle AlreadyRevealed custom error (rare edge case)
+        if "already revealed" in error_msg.lower():
+            # Extract token_id from error message (e.g., "Token 20 is already revealed on-chain")
+            match = re.search(r"Token (\d+)", error_msg)
+            if match:
+                already_revealed_token_id = int(match.group(1))
+
+                # Find token in batch
+                already_revealed_token = next(
+                    (t for t in tokens if t.token_id == already_revealed_token_id), None
+                )
+
+                if already_revealed_token:
+                    logger.warning(
+                        "reveal.already_revealed_sync",
+                        token_id=already_revealed_token_id,
+                        message="Token already revealed on-chain, syncing database",
+                    )
+
+                    # Sync database: mark as revealed (without tx_hash)
+                    await token_repo.mark_revealed(already_revealed_token, tx_hash=None)
+
+                    # Remove from batch and retry remaining tokens
+                    remaining_tokens = [
+                        t for t in tokens if t.token_id != already_revealed_token_id
+                    ]
+
+                    if remaining_tokens:
+                        logger.info(
+                            "reveal.batch_retry",
+                            removed_token_id=already_revealed_token_id,
+                            remaining_count=len(remaining_tokens),
+                            message="Retrying reveal for remaining tokens",
+                        )
+                        # Recursive retry with cleaned batch
+                        await process_reveal_batch(
+                            remaining_tokens, token_repo, reveal_tx_repo, keeper
+                        )
+                    else:
+                        logger.info(
+                            "reveal.batch_empty",
+                            message="All tokens already revealed, batch complete",
+                        )
+                    return
+
+        # Re-raise if not AlreadyRevealed or extraction failed
+        raise
 
 
 async def recover_orphaned_transactions(

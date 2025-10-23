@@ -294,20 +294,22 @@ class TokenRepository:
         await self.session.flush()
         await self.session.refresh(token)
 
-    async def mark_revealed(self, token: Token, tx_hash: str) -> None:
-        """Mark token as revealed with transaction hash.
+    async def mark_revealed(self, token: Token, tx_hash: str | None = None) -> None:
+        """Mark token as revealed with optional transaction hash.
 
         Args:
             token: Token entity to update
-            tx_hash: Ethereum transaction hash of reveal operation
+            tx_hash: Ethereum transaction hash of reveal operation (optional).
+                If None, token is marked as revealed without tx_hash
+                (used for blockchain state synchronization)
 
-        Raises:
-            ValueError: If tx_hash is empty
+        Note:
+            tx_hash=None is used when syncing database state with blockchain
+            (e.g., when token is already revealed on-chain but DB is out of sync)
         """
-        if not tx_hash:
-            raise ValueError("tx_hash is required")
+        if tx_hash:
+            token.reveal_tx_hash = tx_hash
 
-        token.reveal_tx_hash = tx_hash
         token.status = TokenStatus.REVEALED
         self.session.add(token)
         await self.session.flush()
