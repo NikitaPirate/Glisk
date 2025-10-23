@@ -17,10 +17,6 @@ const queryClient = new QueryClient()
 // Get CDP API Key for OnchainKit
 const cdpApiKey = import.meta.env.VITE_ONCHAINKIT_API_KEY
 
-// Coinbase Verified attestation schema ID for Base Sepolia
-const COINBASE_VERIFIED_SCHEMA_ID =
-  '0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9'
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <WagmiProvider config={config}>
@@ -28,7 +24,6 @@ createRoot(document.getElementById('root')!).render(
         <OnchainKitProvider
           apiKey={cdpApiKey}
           chain={baseSepolia}
-          schemaId={COINBASE_VERIFIED_SCHEMA_ID}
           config={{
             appearance: {
               mode: 'light',

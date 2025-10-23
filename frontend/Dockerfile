@@ -4,6 +4,9 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 
+# Install Python and build dependencies for node-gyp (required for native modules)
+RUN apk add --no-cache python3 make g++
+
 # Build arguments for Vite environment variables
 ARG VITE_CONTRACT_ADDRESS
 ARG VITE_CHAIN_ID
