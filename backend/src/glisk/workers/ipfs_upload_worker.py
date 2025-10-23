@@ -200,18 +200,13 @@ async def process_single_token(
 
         except PermanentError as e:
             # Permanent error (authentication, validation)
+            # Don't mark as failed - retry infinitely via polling loop
             await session.rollback()
-            await token_repo.mark_failed(attached_token, f"IPFS upload failed: {str(e)}")
-            await session.commit()
 
-            # Create audit record for failure
-            await ipfs_repo.create(
-                token_id=attached_token.id,
-                record_type="metadata",  # Last attempted operation
-                cid=None,
-                status="failed",
-                retry_count=attached_token.generation_attempts,
-            )
+            # Increment attempts for monitoring and keep status='uploading' for retry
+            attached_token.generation_attempts += 1
+            attached_token.generation_error = f"IPFS upload failed: {str(e)}"[:1000]
+            session.add(attached_token)
             await session.commit()
 
             logger.error(
@@ -220,19 +215,27 @@ async def process_single_token(
                 error_type="PermanentError",
                 error_message=str(e),
                 attempt_number=attempt_number,
+                note="Token will be retried on next poll (infinite retries)",
             )
 
         except ValueError as e:
-            # Missing data - treat as permanent
+            # Missing data (e.g., no image_url)
+            # Don't mark as failed - retry infinitely via polling loop
             await session.rollback()
-            await token_repo.mark_failed(attached_token, f"IPFS upload failed: {str(e)}")
+
+            # Increment attempts for monitoring and keep status='uploading' for retry
+            attached_token.generation_attempts += 1
+            attached_token.generation_error = f"IPFS upload failed: {str(e)}"[:1000]
+            session.add(attached_token)
             await session.commit()
+
             logger.error(
                 "ipfs.upload.failed",
                 token_id=attached_token.token_id,
                 error_type="ValueError",
                 error_message=str(e),
                 attempt_number=attempt_number,
+                note="Token will be retried on next poll (infinite retries)",
             )
 
         except Exception as e:

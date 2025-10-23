@@ -233,43 +233,64 @@ async def process_single_token(
                 )
             except Exception as fallback_error:
                 # Fallback also failed
+                # Don't mark as failed - retry infinitely via polling loop
                 await session.rollback()
-                await token_repo.mark_failed(
-                    attached_token, f"Fallback prompt failed: {str(fallback_error)}"
-                )
+
+                # Increment attempts for monitoring and keep status='detected' for retry
+                attached_token.generation_attempts += 1
+                attached_token.generation_error = f"Fallback prompt failed: {str(fallback_error)}"[
+                    :1000
+                ]
+                session.add(attached_token)
                 await session.commit()
+
                 logger.error(
                     "token.generation.failed",
                     token_id=attached_token.token_id,
                     error_type="ContentPolicyError",
                     error_message=f"Original: {str(e)}, Fallback: {str(fallback_error)}",
                     attempt_number=attempt_number,
+                    note="Token will be retried on next poll (infinite retries)",
                 )
 
         except PermanentError as e:
             # Permanent error (invalid API token, validation error)
+            # Don't mark as failed - retry infinitely via polling loop
             await session.rollback()
-            await token_repo.mark_failed(attached_token, str(e))
+
+            # Increment attempts for monitoring and keep status='detected' for retry
+            attached_token.generation_attempts += 1
+            attached_token.generation_error = str(e)[:1000]
+            session.add(attached_token)
             await session.commit()
+
             logger.error(
                 "token.generation.failed",
                 token_id=attached_token.token_id,
                 error_type="PermanentError",
                 error_message=str(e),
                 attempt_number=attempt_number,
+                note="Token will be retried on next poll (infinite retries)",
             )
 
         except ValueError as e:
-            # Prompt validation error - treat as permanent
+            # Prompt validation error (e.g., empty prompt, invalid characters)
+            # Don't mark as failed - retry infinitely via polling loop
             await session.rollback()
-            await token_repo.mark_failed(attached_token, f"Prompt validation failed: {str(e)}")
+
+            # Increment attempts for monitoring and keep status='detected' for retry
+            attached_token.generation_attempts += 1
+            attached_token.generation_error = f"Prompt validation failed: {str(e)}"[:1000]
+            session.add(attached_token)
             await session.commit()
+
             logger.error(
                 "token.generation.failed",
                 token_id=attached_token.token_id,
                 error_type="ValueError",
                 error_message=f"Prompt validation failed: {str(e)}",
                 attempt_number=attempt_number,
+                note="Token will be retried on next poll (infinite retries)",
             )
 
         except Exception as e:
