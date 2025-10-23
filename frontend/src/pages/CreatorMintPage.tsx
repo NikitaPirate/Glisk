@@ -8,14 +8,46 @@ import {
   useChainId,
   usePublicClient,
 } from 'wagmi'
+import { useQuery } from '@tanstack/react-query'
 import { isAddress, parseEventLogs } from 'viem'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { CONTRACT_ADDRESS, GLISK_NFT_ABI } from '@/lib/contract'
 import { TokenRevealCard } from '@/components/TokenRevealCard'
 import { useTokenPolling } from '@/hooks/useTokenPolling'
+import { NFTGrid } from '@/components/NFTGrid'
 
 type TransactionStatus = 'idle' | 'waitingApproval' | 'pending' | 'success' | 'failed' | 'cancelled'
+
+interface TokenDTO {
+  token_id: number
+  status: string
+  image_cid: string | null
+  metadata_cid: string | null
+  image_url: string | null
+  generation_attempts: number
+  generation_error: string | null
+  reveal_tx_hash: string | null
+  created_at: string
+}
+
+interface TokensResponse {
+  tokens: TokenDTO[]
+  total: number
+  offset: number
+  limit: number
+}
+
+async function fetchAuthorTokens(walletAddress: string, page: number): Promise<TokensResponse> {
+  const offset = (page - 1) * 20
+  const response = await fetch(`/api/authors/${walletAddress}/tokens?offset=${offset}&limit=20`)
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${await response.text()}`)
+  }
+
+  return response.json()
+}
 
 export function CreatorMintPage() {
   const { creatorAddress } = useParams<{ creatorAddress: string }>()
@@ -25,6 +57,7 @@ export function CreatorMintPage() {
   const publicClient = usePublicClient()
   const [quantity, setQuantity] = useState(1)
   const [mintedTokenIds, setMintedTokenIds] = useState<number[]>([]) // Token IDs from BatchMinted event
+  const [nftPage, setNftPage] = useState(1)
 
   // Validate creator address
   const isCreatorAddressValid = creatorAddress ? isAddress(creatorAddress) : false
@@ -105,6 +138,20 @@ export function CreatorMintPage() {
     connectedWallet,
     isConfirmed && mintedTokenIds.length > 0 // Enable polling after mint success
   )
+
+  // Fetch author's NFT collection
+  const {
+    data: nftData,
+    error: nftError,
+    isLoading: nftLoading,
+  } = useQuery({
+    queryKey: ['creator-nfts', creatorAddress, nftPage],
+    queryFn: () => fetchAuthorTokens(creatorAddress!, nftPage),
+    enabled: !!creatorAddress && isCreatorAddressValid,
+    staleTime: 30000,
+  })
+
+  const totalPages = Math.ceil((nftData?.total || 0) / 20)
 
   /**
    * Handles quantity input changes with validation
@@ -358,6 +405,71 @@ export function CreatorMintPage() {
                         </div>
                       )}
                     </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Author's NFT Collection Section */}
+        {isCreatorAddressValid && (
+          <div className="mt-8 space-y-4 border border-gray-200 rounded-lg p-6 bg-white">
+            <h2 className="text-xl font-semibold">
+              {creatorAddress?.slice(0, 6)}...{creatorAddress?.slice(-4)} Collection
+            </h2>
+            <p className="text-sm text-gray-600">NFTs created by this author</p>
+
+            {/* Loading state */}
+            {nftLoading && (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded">
+                <p className="text-gray-700">Loading collection...</p>
+              </div>
+            )}
+
+            {/* Error state */}
+            {!nftLoading && nftError && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded">
+                <p className="text-red-800">Failed to load NFTs</p>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!nftLoading && !nftError && nftData && nftData.total === 0 && (
+              <div className="p-4 bg-gray-50 border border-gray-200 rounded">
+                <p className="text-gray-700">No NFTs yet</p>
+              </div>
+            )}
+
+            {/* NFT Grid */}
+            {!nftLoading && !nftError && nftData && nftData.total > 0 && (
+              <>
+                <NFTGrid
+                  tokens={nftData.tokens.map(token => ({
+                    tokenId: token.token_id.toString(),
+                  }))}
+                />
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between pt-4">
+                    <Button
+                      onClick={() => setNftPage(p => p - 1)}
+                      disabled={nftPage === 1 || nftLoading}
+                      variant="outline"
+                    >
+                      Previous
+                    </Button>
+                    <p className="text-sm text-gray-600">
+                      Page {nftPage} of {totalPages}
+                    </p>
+                    <Button
+                      onClick={() => setNftPage(p => p + 1)}
+                      disabled={nftPage === totalPages || nftLoading}
+                      variant="outline"
+                    >
+                      Next
+                    </Button>
                   </div>
                 )}
               </>

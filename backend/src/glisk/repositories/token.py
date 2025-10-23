@@ -215,7 +215,7 @@ class TokenRepository:
         data_stmt = (
             select(Token)
             .where(Token.author_id == author_id)  # type: ignore[arg-type]
-            .order_by(Token.created_at.desc())  # type: ignore[attr-defined]
+            .order_by(Token.token_id.desc())  # type: ignore[attr-defined] - Oldest first
             .offset(offset)
             .limit(limit)
         )

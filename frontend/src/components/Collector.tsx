@@ -71,12 +71,14 @@ export function Collector() {
   })
 
   // T052: Extract tokenIds from data.pages using flatMap (filter out failed results)
+  // Reverse to show oldest first (blockchain returns newest first via tokenOfOwnerByIndex)
   const tokenIds =
     ((data as any)?.pages
       ?.flatMap((page: any) =>
         page.map((result: any) => (result.status === 'success' ? result.result : null))
       )
-      .filter((id: any): id is bigint => id !== null) as bigint[]) || []
+      .filter((id: any): id is bigint => id !== null)
+      .reverse() as bigint[]) || []
 
   // T057: Calculate total pages for client-side pagination
   const totalPages = Math.ceil(tokenIds.length / 20)
