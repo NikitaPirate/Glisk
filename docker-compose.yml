@@ -1,53 +1,75 @@
 services:
   postgres:
     image: postgres:17
-    container_name: backend-postgres-1
+    container_name: glisk-postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-glisk}
       POSTGRES_USER: ${POSTGRES_USER:-glisk}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     command: ["postgres", "-c", "max_connections=200"]
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-glisk}"]
       interval: 5s
       timeout: 3s
       retries: 5
 
-  # Optional: Run migrations as separate one-time service
-  # Uncomment this and comment out entrypoint.sh if you want explicit migration control
-  # migrations:
-  #   build:
-  #     context: ./backend
-  #     dockerfile: Dockerfile
-  #   container_name: backend-migrations
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   env_file:
-  #     - .env
-  #   command: ["uv", "run", "alembic", "upgrade", "head"]
-  #   restart: "no"
-
-  backend-api:
+  backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: backend-api-1
+    container_name: glisk-backend
     depends_on:
       postgres:
         condition: service_healthy
-      # Uncomment if using separate migrations service:
-      # migrations:
-      #   condition: service_completed_successfully
     env_file:
       - .env
-    ports:
-      - "8000:8000"
+    networks:
+      - internal
     restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_CONTRACT_ADDRESS: ${GLISK_NFT_CONTRACT_ADDRESS}
+        VITE_CHAIN_ID: ${VITE_CHAIN_ID:-84532}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_WALLETCONNECT_PROJECT_ID: ${VITE_WALLETCONNECT_PROJECT_ID}
+        VITE_ONCHAINKIT_API_KEY: ${VITE_ONCHAINKIT_API_KEY}
+        VITE_PINATA_GATEWAY: ${VITE_PINATA_GATEWAY}
+        VITE_PINATA_GATEWAY_TOKEN: ${VITE_PINATA_GATEWAY_TOKEN}
+    container_name: glisk-frontend
+    depends_on:
+      - backend
+    networks:
+      - proxy
+      - internal
+    restart: unless-stopped
+    # Labels for automatic Traefik configuration (if using Traefik instead of NPM)
+    # If using NPM UI - configure manually, these labels can be ignored
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.glisk.rule=Host(`testnet.glisk.xyz`)"
+      - "traefik.http.services.glisk.loadbalancer.server.port=80"
+
+networks:
+  # Internal network for postgres <-> backend <-> frontend (nginx proxy)
+  internal:
+    name: glisk-internal
+    driver: bridge
+
+  # External proxy network (nginx-proxy-manager or similar)
+  # Uses server environment variable PROXY_DOCKER_NETWORK
+  # Network must already exist on the server
+  proxy:
+    name: ${PROXY_DOCKER_NETWORK}
+    external: true
 
 volumes:
   postgres_data:
+    name: glisk-postgres-data
