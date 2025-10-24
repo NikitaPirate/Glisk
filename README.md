@@ -9,19 +9,20 @@ GLISK is a monorepo for an NFT platform developed using GitHub Spec Kit methodol
 The repository is organized into three main domains:
 - `/contracts/` - Solidity smart contracts (ERC721Enumerable, batch minting, royalties)
 - `/backend/` - Off-chain services (webhooks, workers, recovery)
-- `/frontend/` - Web application (planned)
+- `/frontend/` - Web application (proof of concept)
 
-## Current Status
+## Season 0 Roadmap
 
-- ✅ **Contracts**: Complete NFT smart contract system with full test coverage
-- ✅ **Audit**: Automated security audit process via `/audit` command
-- ✅ **Backend**: Complete NFT lifecycle pipeline
-  - Webhook event detection (Alchemy)
-  - AI image generation (Replicate)
-  - IPFS upload and metadata (Pinata)
-  - Batch reveal automation (Keeper)
-  - Token recovery from blockchain state
-- 🚧 **Frontend**: User interface for minting and collection management
+- ✅ **Smart Contracts** - ERC721 with batch minting, royalties, on-chain reveals
+- ✅ **Backend Pipeline** - Webhooks → AI image generation → IPFS → automated reveals
+- ✅ **Frontend PoC** - Mint interface, profile management, author leaderboard, X integration
+- ✅ **Testnet Deployment** - Live on Base Sepolia
+- 🎨 **Professional UI/UX Design** - Complete user interface overhaul
+- 📱 **Base Mini App** - Seamless integration for Base app users
+- 🚀 **Mainnet Launch** - Production deployment on Base mainnet
+
+**Live Demo:** [glisk.xyz](https://glisk.xyz)
+**Contract:** `0x569d456c584Ac2bb2d66b075a31278630E7d43a0` (Base Sepolia)
 
 ## Pipeline
 

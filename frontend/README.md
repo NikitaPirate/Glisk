@@ -4,7 +4,11 @@ React-based Web3 frontend for the Glisk NFT minting platform.
 
 ## Overview
 
-This frontend allows users to mint NFTs by visiting creator-specific URLs (e.g., `/0x123...`). Users connect their Web3 wallet, select quantity (1-10), and mint NFTs that will be AI-generated based on the creator's prompt.
+This is a proof of concept frontend for the Glisk NFT platform with three main pages:
+
+- **`/`** - Author leaderboard: Discover top NFT creators ranked by total tokens minted
+- **`/{creatorAddress}`** - Mint page: Connect wallet, select quantity (1-10), mint AI-generated NFTs using the creator's prompt
+- **`/profile`** - Unified profile: Manage your AI generation prompt, claim creator rewards, link X (Twitter) account, view your authored and owned NFT collections
 
 **Technology Stack**:
 
@@ -15,6 +19,17 @@ This frontend allows users to mint NFTs by visiting creator-specific URLs (e.g.,
 - **React Router** (client-side routing)
 
 **Network**: Base Sepolia testnet (chainId: 84532)
+
+**Key Features**:
+
+- Multi-page navigation (leaderboard, mint, profile)
+- Wallet connection via RainbowKit (MetaMask, Coinbase Wallet, WalletConnect)
+- NFT minting with quantity selection (1-10 tokens per transaction)
+- Author discovery leaderboard (top creators by token count)
+- Profile management (set AI generation prompt for your NFTs)
+- Creator rewards claiming (withdraw accumulated ETH from mints)
+- X (Twitter) account linking via OAuth 2.0
+- NFT collection views using OnchainKit components (authored vs owned tabs)
 
 ## Quick Start
 
@@ -55,6 +70,18 @@ VITE_CHAIN_ID=84532
 
 See `.env.example` for template.
 
+## Live Demo
+
+**Testnet:** [glisk.xyz](https://glisk.xyz)
+**Network:** Base Sepolia (chainId: 84532)
+**Contract:** `0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0`
+
+**Example URLs:**
+
+- Leaderboard: https://glisk.xyz/
+- Mint page: https://glisk.xyz/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+- Profile: https://glisk.xyz/profile
+
 ## Project Structure
 
 ```
@@ -62,14 +89,21 @@ frontend/
 ├── src/
 │   ├── components/
 │   │   ├── ui/              # shadcn/ui components (auto-generated)
-│   │   └── Header.tsx       # Wallet connection UI
+│   │   ├── Header.tsx       # Wallet connection UI
+│   │   ├── PromptAuthor.tsx # Author profile management
+│   │   ├── Collector.tsx    # Owned NFTs view
+│   │   ├── NFTCard.tsx      # NFT display component
+│   │   ├── NFTGrid.tsx      # NFT grid layout
+│   │   └── TokenRevealCard.tsx  # Token reveal status
 │   ├── lib/
 │   │   ├── contract.ts      # Contract address/ABI constants
 │   │   ├── wagmi.ts         # wagmi configuration
 │   │   ├── utils.ts         # shadcn/ui utilities
 │   │   └── glisk-nft-abi.json  # Contract ABI (synced from backend)
 │   ├── pages/
-│   │   └── CreatorMintPage.tsx  # Main minting interface
+│   │   ├── AuthorLeaderboard.tsx  # Landing page with top authors
+│   │   ├── CreatorMintPage.tsx    # Mint interface
+│   │   └── ProfilePage.tsx        # Unified profile (author/collector tabs)
 │   ├── App.tsx              # Routing setup
 │   ├── main.tsx             # App entry point with providers
 │   └── index.css            # Global styles (Tailwind imports)
@@ -114,7 +148,11 @@ npm run format
 
 ### Key Concepts
 
-**Routing**: Dynamic route `/:creatorAddress` extracts creator address from URL
+**Routing**: Three main routes:
+
+- `/` - Author leaderboard
+- `/:creatorAddress` - Dynamic mint page (extracts creator address from URL)
+- `/profile` - Unified profile with tabs (`?tab=author` or `?tab=collector`)
 
 **Wallet Connection**: RainbowKit provides pre-built wallet modal (supports MetaMask, Coinbase Wallet, WalletConnect)
 
@@ -135,6 +173,14 @@ See [quickstart.md](../specs/005-frontend-foundation-with/quickstart.md) for det
 
 ### Quick Test
 
+**Test 1: Leaderboard**
+
+1. Visit `http://localhost:5173/`
+2. View list of top authors ranked by token count
+3. Click on any author to navigate to their mint page
+
+**Test 2: Minting**
+
 1. Visit `http://localhost:5173/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0` (example creator address)
 2. Click "Connect Wallet" button
 3. Select wallet and approve connection
@@ -143,6 +189,13 @@ See [quickstart.md](../specs/005-frontend-foundation-with/quickstart.md) for det
 6. Approve transaction in wallet
 7. Wait for confirmation (~10-30 seconds)
 8. Verify "Success!" message appears
+
+**Test 3: Profile Management**
+
+1. Connect wallet
+2. Visit `http://localhost:5173/profile`
+3. **Author Tab**: Set AI generation prompt, claim rewards (if available), link X account
+4. **Collector Tab**: View your owned NFTs with pagination
 
 ## Production Deployment
 
