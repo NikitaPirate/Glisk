@@ -83,13 +83,13 @@ export function ProfilePage() {
           <div className="flex space-x-2">
             <Button
               onClick={() => handleTabChange('author')}
-              variant={activeTab === 'author' ? 'default' : 'ghost'}
+              variant={activeTab === 'author' ? 'tab-active' : 'ghost'}
             >
               Prompt Author
             </Button>
             <Button
               onClick={() => handleTabChange('collector')}
-              variant={activeTab === 'collector' ? 'default' : 'ghost'}
+              variant={activeTab === 'collector' ? 'tab-active' : 'ghost'}
             >
               Collector
             </Button>

@@ -9,15 +9,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'text-primary font-semibold hover:text-primary/90',
+        default: 'text-[#FFBB00] font-semibold hover:text-[#E6A800]',
         destructive:
           'text-red-500 dark:text-red-400 font-semibold hover:text-red-600 dark:hover:text-red-300',
         outline:
           'text-blue-500 dark:text-blue-400 font-medium hover:text-blue-600 dark:hover:text-blue-300',
         secondary:
           'text-cyan-500 dark:text-cyan-400 font-medium hover:text-cyan-600 dark:hover:text-cyan-300',
-        ghost: 'text-zinc-600 dark:text-zinc-400 font-medium hover:text-foreground hover:underline',
-        link: 'text-primary underline-offset-4 hover:underline',
+        ghost:
+          'text-purple-600 dark:text-purple-400 font-medium hover:text-purple-700 dark:hover:text-purple-300',
+        'tab-active':
+          'text-purple-500 dark:text-purple-300 font-semibold hover:text-purple-600 dark:hover:text-purple-200',
+        link: 'text-[#FFBB00] underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',
@@ -51,7 +54,7 @@ function Button({
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), className)}
       {...props}
     />
   )
