@@ -50,8 +50,10 @@ export function ProfilePage() {
   if (!isConnected) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-          <p className="text-blue-800">Please connect your wallet to access your profile</p>
+        <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded">
+          <p className="text-blue-800 dark:text-blue-200">
+            Please connect your wallet to access your profile
+          </p>
         </div>
       </div>
     )
@@ -67,7 +69,7 @@ export function ProfilePage() {
         </div>
 
         {/* Identity Card Section */}
-        <div className="border border-border rounded-lg p-6 bg-card">
+        <div className="rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
           <h2 className="text-xl font-semibold mb-4">Your Identity</h2>
           <IdentityCard
             address={address as `0x${string}`}
@@ -77,27 +79,17 @@ export function ProfilePage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="border-b border-border">
-          <div className="flex space-x-1">
+        <div className="space-y-6">
+          <div className="flex space-x-2">
             <Button
               onClick={() => handleTabChange('author')}
               variant={activeTab === 'author' ? 'default' : 'ghost'}
-              className={`rounded-b-none ${
-                activeTab === 'author'
-                  ? 'border-b-2 border-primary'
-                  : 'border-b-2 border-transparent'
-              }`}
             >
               Prompt Author
             </Button>
             <Button
               onClick={() => handleTabChange('collector')}
               variant={activeTab === 'collector' ? 'default' : 'ghost'}
-              className={`rounded-b-none ${
-                activeTab === 'collector'
-                  ? 'border-b-2 border-primary'
-                  : 'border-b-2 border-transparent'
-              }`}
             >
               Collector
             </Button>

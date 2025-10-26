@@ -222,35 +222,39 @@ export function CreatorMintPage() {
     switch (status) {
       case 'waitingApproval':
         return (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800">Please approve the transaction in your wallet</p>
+          <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded">
+            <p className="text-blue-800 dark:text-blue-200">
+              Please approve the transaction in your wallet
+            </p>
           </div>
         )
       case 'pending':
         return (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800">Minting... waiting for confirmation</p>
+          <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded">
+            <p className="text-blue-800 dark:text-blue-200">Minting... waiting for confirmation</p>
           </div>
         )
       case 'success':
         return (
-          <div className="p-4 bg-green-50 border border-green-200 rounded">
-            <p className="text-green-800">Success! NFTs minted.</p>
+          <div className="p-4 bg-green-50 dark:bg-green-950 rounded">
+            <p className="text-green-800 dark:text-green-200">Success! NFTs minted.</p>
             {mintedTokenIds.length > 0 && (
-              <p className="text-green-700 text-sm mt-1">Token IDs: {mintedTokenIds.join(', ')}</p>
+              <p className="text-green-700 dark:text-green-300 text-sm mt-1">
+                Token IDs: {mintedTokenIds.join(', ')}
+              </p>
             )}
           </div>
         )
       case 'cancelled':
         return (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="text-yellow-800">Transaction cancelled</p>
+          <div className="p-4 bg-yellow-50 dark:bg-yellow-950 rounded">
+            <p className="text-yellow-800 dark:text-yellow-200">Transaction cancelled</p>
           </div>
         )
       case 'failed':
         return (
-          <div className="p-4 bg-red-50 border border-red-200 rounded">
-            <p className="text-red-800">
+          <div className="p-4 bg-red-50 dark:bg-red-950 rounded">
+            <p className="text-red-800 dark:text-red-200">
               Error: {receiptError?.message || writeError?.message || 'Transaction failed'}
             </p>
           </div>
@@ -271,12 +275,12 @@ export function CreatorMintPage() {
   if (!isCreatorAddressValid) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="p-4 bg-red-50 border border-red-200 rounded">
-          <p className="text-red-800 font-semibold">Invalid creator address</p>
-          <p className="text-red-700 mt-2">
+        <div className="p-4 bg-red-50 dark:bg-red-950 rounded">
+          <p className="text-red-800 dark:text-red-200 font-semibold">Invalid creator address</p>
+          <p className="text-red-700 dark:text-red-300 mt-2">
             The address "{creatorAddress}" is not a valid Ethereum address.
           </p>
-          <p className="text-red-700 mt-1 text-sm">
+          <p className="text-red-700 dark:text-red-300 mt-1 text-sm">
             Address must be a 40-character hex string starting with "0x" (e.g., 0x1234...5678)
           </p>
         </div>
@@ -296,14 +300,16 @@ export function CreatorMintPage() {
         </div>
 
         {!isConnected && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800">Please connect your wallet to continue</p>
+          <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded">
+            <p className="text-blue-800 dark:text-blue-200">
+              Please connect your wallet to continue
+            </p>
           </div>
         )}
 
         {isConnected && isWrongNetwork && (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="text-yellow-800">
+          <div className="p-4 bg-yellow-50 dark:bg-yellow-950 rounded">
+            <p className="text-yellow-800 dark:text-yellow-200">
               Please switch to Base Sepolia network (Chain ID: 84532)
             </p>
           </div>
@@ -312,14 +318,14 @@ export function CreatorMintPage() {
         {isConnected && !isWrongNetwork && (
           <div className="space-y-4">
             {isMintPriceLoading && (
-              <div className="p-4 bg-muted border border-border rounded">
+              <div className="p-4 bg-muted rounded">
                 <p className="text-foreground">Loading contract data...</p>
               </div>
             )}
 
             {mintPriceError && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded">
-                <p className="text-red-800">
+              <div className="p-4 bg-red-50 dark:bg-red-950 rounded">
+                <p className="text-red-800 dark:text-red-200">
                   Failed to load contract data. Please check the contract address in your
                   configuration.
                 </p>
@@ -361,7 +367,7 @@ export function CreatorMintPage() {
                 {/* Token Reveal Grid - Show after successful mint */}
                 {isConfirmed && mintedTokenIds.length > 0 && (
                   <div className="mt-8 space-y-4">
-                    <div className="border-t pt-6">
+                    <div className="pt-6">
                       <h2 className="text-2xl font-bold mb-2">🎰 Revealing your NFTs...</h2>
                       <p className="text-muted-foreground mb-4">
                         {allRevealed
@@ -372,8 +378,8 @@ export function CreatorMintPage() {
                       </p>
 
                       {pollingError && (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded mb-4">
-                          <p className="text-red-800 text-sm">{pollingError}</p>
+                        <div className="p-4 bg-red-50 dark:bg-red-950 rounded mb-4">
+                          <p className="text-red-800 dark:text-red-200 text-sm">{pollingError}</p>
                         </div>
                       )}
 
@@ -414,7 +420,7 @@ export function CreatorMintPage() {
 
         {/* Author's NFT Collection Section */}
         {isCreatorAddressValid && (
-          <div className="mt-8 space-y-4 border border-border rounded-lg p-6 bg-card">
+          <div className="mt-8 space-y-4 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
             <h2 className="text-xl font-semibold">
               {creatorAddress?.slice(0, 6)}...{creatorAddress?.slice(-4)} Collection
             </h2>
@@ -422,21 +428,21 @@ export function CreatorMintPage() {
 
             {/* Loading state */}
             {nftLoading && (
-              <div className="p-4 bg-muted border border-border rounded">
+              <div className="p-4 bg-muted rounded">
                 <p className="text-foreground">Loading collection...</p>
               </div>
             )}
 
             {/* Error state */}
             {!nftLoading && nftError && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded">
-                <p className="text-red-800">Failed to load NFTs</p>
+              <div className="p-4 bg-red-50 dark:bg-red-950 rounded">
+                <p className="text-red-800 dark:text-red-200">Failed to load NFTs</p>
               </div>
             )}
 
             {/* Empty state */}
             {!nftLoading && !nftError && nftData && nftData.total === 0 && (
-              <div className="p-4 bg-muted border border-border rounded">
+              <div className="p-4 bg-muted rounded">
                 <p className="text-foreground">No NFTs yet</p>
               </div>
             )}

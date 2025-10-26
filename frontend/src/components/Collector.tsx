@@ -104,7 +104,7 @@ export function Collector() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4 border border-border rounded-lg p-6 bg-card">
+      <div className="space-y-4 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
         <h2 className="text-xl font-semibold">Your Collected NFTs</h2>
         <p className="text-sm text-muted-foreground">
           NFTs that you own from the GLISK collection. These are tokens currently in your wallet.
@@ -112,7 +112,7 @@ export function Collector() {
 
         {/* T053: Loading state */}
         {isLoading && (
-          <div className="p-4 bg-muted border border-border rounded">
+          <div className="p-4 bg-muted rounded">
             <p className="text-foreground">Loading your collection...</p>
           </div>
         )}
@@ -123,8 +123,8 @@ export function Collector() {
             Runtime behavior is correct - this is purely a type inference limitation. */}
         {
           (hasError ? (
-            <div className="p-4 bg-red-50 border border-red-200 rounded">
-              <p className="text-red-800">Failed to load NFTs: {errorMessage}</p>
+            <div className="p-4 bg-red-50 dark:bg-red-950 rounded">
+              <p className="text-red-800 dark:text-red-200">Failed to load NFTs: {errorMessage}</p>
               <Button onClick={() => window.location.reload()} className="mt-2" variant="outline">
                 Retry
               </Button>
@@ -134,7 +134,7 @@ export function Collector() {
 
         {/* T055: Empty state */}
         {!isLoading && !hasError && Number(balance || 0n) === 0 && (
-          <div className="p-4 bg-muted border border-border rounded">
+          <div className="p-4 bg-muted rounded">
             <p className="text-foreground">No NFTs owned</p>
           </div>
         )}

@@ -385,29 +385,29 @@ export function PromptAuthor() {
       {/* Prompt Status Indicator */}
       <div>
         {promptStatus === 'loading' && (
-          <div className="p-3 bg-muted border border-border rounded inline-block">
+          <div className="p-3 bg-muted rounded inline-block">
             <p className="text-sm text-foreground">Loading status...</p>
           </div>
         )}
         {promptStatus === 'has_prompt' && (
-          <div className="p-3 bg-green-50 border border-green-200 rounded inline-block">
-            <p className="text-sm text-green-800">✓ Prompt configured</p>
+          <div className="p-3 bg-green-50 dark:bg-green-950 rounded inline-block">
+            <p className="text-sm text-green-800 dark:text-green-200">✓ Prompt configured</p>
           </div>
         )}
         {promptStatus === 'no_prompt' && (
-          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded inline-block">
-            <p className="text-sm text-yellow-800">⚠ No prompt set</p>
+          <div className="p-3 bg-yellow-50 dark:bg-yellow-950 rounded inline-block">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200">⚠ No prompt set</p>
           </div>
         )}
         {promptStatus === 'error' && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded inline-block">
-            <p className="text-sm text-red-800">Failed to load status</p>
+          <div className="p-3 bg-red-50 dark:bg-red-950 rounded inline-block">
+            <p className="text-sm text-red-800 dark:text-red-200">Failed to load status</p>
           </div>
         )}
       </div>
 
       {/* Prompt Editor Section */}
-      <div className="space-y-4 border border-border rounded-lg p-6 bg-card">
+      <div className="space-y-4 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
         <h2 className="text-xl font-semibold">AI Generation Prompt</h2>
         <p className="text-sm text-muted-foreground">
           Set your AI generation prompt for NFTs minted with your wallet address. This prompt
@@ -423,7 +423,7 @@ export function PromptAuthor() {
             value={promptText}
             onChange={e => setPromptText(e.target.value)}
             placeholder="e.g., Surreal neon landscapes with futuristic architecture"
-            className="w-full min-h-[120px] px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-y"
+            className="w-full min-h-[120px] px-3 py-2 bg-muted rounded-md focus:outline-none focus:bg-zinc-200 dark:focus:bg-zinc-700 focus:shadow-[0_0_0_3px_rgba(255,187,0,0.3)] resize-y transition-all"
             maxLength={1001} // Allow typing to 1001 to show validation error
           />
           <div className="flex justify-between items-center">
@@ -455,32 +455,34 @@ export function PromptAuthor() {
 
         {/* Prompt Status Messages */}
         {saveStatus === 'signing' && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800">Please sign the message in your wallet to continue</p>
+          <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded">
+            <p className="text-blue-800 dark:text-blue-200">
+              Please sign the message in your wallet to continue
+            </p>
           </div>
         )}
 
         {saveStatus === 'cancelled' && (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="text-yellow-800">{promptErrorMessage}</p>
+          <div className="p-4 bg-yellow-50 dark:bg-yellow-950 rounded">
+            <p className="text-yellow-800 dark:text-yellow-200">{promptErrorMessage}</p>
           </div>
         )}
 
         {saveStatus === 'error' && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded">
-            <p className="text-red-800">{promptErrorMessage}</p>
+          <div className="p-4 bg-red-50 dark:bg-red-950 rounded">
+            <p className="text-red-800 dark:text-red-200">{promptErrorMessage}</p>
           </div>
         )}
 
         {saveStatus === 'success' && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded">
-            <p className="text-green-800">{promptSuccessMessage}</p>
+          <div className="p-4 bg-green-50 dark:bg-green-950 rounded">
+            <p className="text-green-800 dark:text-green-200">{promptSuccessMessage}</p>
           </div>
         )}
       </div>
 
       {/* X Account Linking Section */}
-      <div className="space-y-4 border border-border rounded-lg p-6 bg-card">
+      <div className="space-y-4 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
         <h2 className="text-xl font-semibold">X (Twitter) Account</h2>
         <p className="text-sm text-muted-foreground">
           Link your X account to display your handle in NFT metadata. This helps collectors discover
@@ -489,7 +491,7 @@ export function PromptAuthor() {
 
         {/* Loading State */}
         {xLoading === 'fetching' && (
-          <div className="p-3 bg-muted border border-border rounded">
+          <div className="p-3 bg-muted rounded">
             <p className="text-sm text-foreground">Loading profile...</p>
           </div>
         )}
@@ -497,8 +499,10 @@ export function PromptAuthor() {
         {/* Twitter Handle Display (if linked) */}
         {xLoading !== 'fetching' && twitterHandle && (
           <div className="space-y-3">
-            <div className="p-4 bg-green-50 border border-green-200 rounded">
-              <p className="text-sm font-medium text-green-800">✓ Linked: @{twitterHandle}</p>
+            <div className="p-4 bg-green-50 dark:bg-green-950 rounded">
+              <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                ✓ Linked: @{twitterHandle}
+              </p>
             </div>
             <p className="text-xs text-muted-foreground">
               Your X handle is included in NFT metadata for all tokens minted with your wallet.
@@ -529,32 +533,36 @@ export function PromptAuthor() {
 
         {/* X Status Messages */}
         {xLoading === 'signing' && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800">Please sign the message in your wallet to continue</p>
+          <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded">
+            <p className="text-blue-800 dark:text-blue-200">
+              Please sign the message in your wallet to continue
+            </p>
           </div>
         )}
 
         {xLoading === 'linking' && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800">Redirecting to X for authorization...</p>
+          <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded">
+            <p className="text-blue-800 dark:text-blue-200">
+              Redirecting to X for authorization...
+            </p>
           </div>
         )}
 
         {xErrorMessage && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded">
-            <p className="text-red-800">{xErrorMessage}</p>
+          <div className="p-4 bg-red-50 dark:bg-red-950 rounded">
+            <p className="text-red-800 dark:text-red-200">{xErrorMessage}</p>
           </div>
         )}
 
         {xSuccessMessage && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded">
-            <p className="text-green-800">{xSuccessMessage}</p>
+          <div className="p-4 bg-green-50 dark:bg-green-950 rounded">
+            <p className="text-green-800 dark:text-green-200">{xSuccessMessage}</p>
           </div>
         )}
       </div>
 
       {/* T043: Authored NFTs Section */}
-      <div className="space-y-4 border border-border rounded-lg p-6 bg-card">
+      <div className="space-y-4 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
         <h2 className="text-xl font-semibold">Your Authored NFTs</h2>
         <p className="text-sm text-muted-foreground">
           NFTs where you provided the AI generation prompt. These are tokens minted with your wallet
@@ -563,15 +571,15 @@ export function PromptAuthor() {
 
         {/* T036: Loading state */}
         {authoredNFTsLoading && (
-          <div className="p-4 bg-muted border border-border rounded">
+          <div className="p-4 bg-muted rounded">
             <p className="text-foreground">Loading...</p>
           </div>
         )}
 
         {/* T037: Error state */}
         {!authoredNFTsLoading && authoredNFTsError && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded">
-            <p className="text-red-800">Failed to load NFTs. Please try again.</p>
+          <div className="p-4 bg-red-50 dark:bg-red-950 rounded">
+            <p className="text-red-800 dark:text-red-200">Failed to load NFTs. Please try again.</p>
           </div>
         )}
 
@@ -580,7 +588,7 @@ export function PromptAuthor() {
           !authoredNFTsError &&
           authoredNFTsData &&
           authoredNFTsData.total === 0 && (
-            <div className="p-4 bg-muted border border-border rounded">
+            <div className="p-4 bg-muted rounded">
               <p className="text-foreground">No authored NFTs yet.</p>
             </div>
           )}
@@ -624,7 +632,7 @@ export function PromptAuthor() {
       </div>
 
       {/* Security Notice */}
-      <div className="text-sm text-muted-foreground border-l-4 border-border pl-4">
+      <div className="text-sm text-muted-foreground bg-muted rounded-lg p-4">
         <p className="font-medium text-foreground">Security & Privacy Notice</p>
         <p className="mt-1">
           Your prompt is stored securely and only used for image generation. It is never exposed via

@@ -36,7 +36,7 @@ export function TokenRevealCard({ tokenId, status, imageUrl }: TokenRevealCardPr
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-card">
+    <div className="overflow-hidden bg-zinc-50 dark:bg-zinc-900 rounded-lg">
       {/* Image or Skeleton */}
       <div className="relative aspect-square bg-muted">
         {isRevealed && imageUrl ? (
@@ -54,7 +54,7 @@ export function TokenRevealCard({ tokenId, status, imageUrl }: TokenRevealCardPr
       </div>
 
       {/* Footer with status */}
-      <div className="p-3 border-t">
+      <div className="p-4 bg-muted">
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-foreground">Glisk NFT #{tokenId}</p>
           <span

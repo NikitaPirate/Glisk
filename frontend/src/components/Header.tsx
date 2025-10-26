@@ -6,7 +6,7 @@ export function Header() {
   const { isConnected } = useAccount()
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-border">
+    <header className="flex items-center justify-between px-6 py-6">
       <div className="flex items-center gap-6">
         <Link to="/" className="text-xl font-semibold hover:text-foreground/80">
           Glisk NFT
