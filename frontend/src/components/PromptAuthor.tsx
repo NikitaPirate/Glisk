@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { NFTGrid } from '@/components/NFTGrid'
 
 type PromptStatus = 'loading' | 'has_prompt' | 'no_prompt' | 'error'
@@ -222,7 +223,7 @@ export function PromptAuthor() {
   return (
     <div className="space-y-6">
       {/* Prompt Editor Section */}
-      <div className="space-y-4 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
+      <Card className="px-6 gap-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold">Prompt</h2>
           {promptStatus === 'loading' && (
@@ -243,7 +244,7 @@ export function PromptAuthor() {
           id="prompt"
           value={promptText}
           onChange={e => setPromptText(e.target.value)}
-          className="w-full min-h-[120px] px-3 py-2 bg-muted rounded-md focus:outline-none focus:bg-zinc-200 dark:focus:bg-zinc-700 focus:shadow-[0_0_0_3px_rgba(255,187,0,0.3)] resize-y transition-all"
+          className="w-full min-h-[120px] px-3 py-2 bg-muted rounded-md bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:bg-zinc-200 dark:focus:bg-zinc-700 focus:shadow-[0_0_0_3px_rgba(255,187,0,0.3)] resize-y transition-all"
           maxLength={1001}
         />
 
@@ -284,10 +285,10 @@ export function PromptAuthor() {
         {saveStatus === 'success' && (
           <p className="text-sm text-green-600 dark:text-green-400">{promptSuccessMessage}</p>
         )}
-      </div>
+      </Card>
 
       {/* T043: Authored NFTs Section */}
-      <div className="space-y-4 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
+      <Card className="px-6 gap-4">
         <h2 className="text-xl font-semibold">Your Authored NFTs</h2>
 
         {/* T036: Loading state */}
@@ -340,7 +341,7 @@ export function PromptAuthor() {
               )}
             </>
           )}
-      </div>
+      </Card>
     </div>
   )
 }

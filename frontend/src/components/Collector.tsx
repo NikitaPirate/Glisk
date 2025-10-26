@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useAccount, useReadContract, useInfiniteReadContracts } from 'wagmi'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { NFTGrid } from '@/components/NFTGrid'
 import { CONTRACT_ADDRESS, GLISK_NFT_ABI } from '@/lib/contract'
 
@@ -104,7 +105,7 @@ export function Collector() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
+      <Card className="px-6 gap-4">
         <h2 className="text-xl font-semibold">Your Collected NFTs</h2>
 
         {/* T053: Loading state */}
@@ -176,7 +177,7 @@ export function Collector() {
             )}
           </>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

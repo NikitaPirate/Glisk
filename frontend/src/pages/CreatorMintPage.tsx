@@ -12,6 +12,7 @@ import { useQuery } from '@tanstack/react-query'
 import { isAddress, parseEventLogs } from 'viem'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { CONTRACT_ADDRESS, GLISK_NFT_ABI } from '@/lib/contract'
 import { TokenRevealCard } from '@/components/TokenRevealCard'
 import { useTokenPolling } from '@/hooks/useTokenPolling'
@@ -371,7 +372,7 @@ export function CreatorMintPage() {
 
         {/* Author's NFT Collection Section */}
         {isCreatorAddressValid && (
-          <div className="mt-8 space-y-4 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
+          <Card className="mt-8 px-6 gap-4">
             <h2 className="text-xl font-semibold">
               {creatorAddress?.slice(0, 6)}...{creatorAddress?.slice(-4)} Collection
             </h2>
@@ -422,7 +423,7 @@ export function CreatorMintPage() {
                 )}
               </>
             )}
-          </div>
+          </Card>
         )}
       </div>
     </div>

@@ -7,6 +7,7 @@ import { baseSepolia } from 'wagmi/chains'
 import { PromptAuthor } from '@/components/PromptAuthor'
 import { Collector } from '@/components/Collector'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 
 type LoadingState = 'idle' | 'fetching' | 'linking' | 'signing'
 
@@ -196,7 +197,7 @@ export function ProfilePage() {
         </div>
 
         {/* Identity Card Section */}
-        <div className="rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900 space-y-4">
+        <Card className="px-6 gap-4">
           <h2 className="text-xl font-semibold">Your Identity</h2>
           <IdentityCard
             address={address as `0x${string}`}
@@ -225,7 +226,7 @@ export function ProfilePage() {
               <p className="text-sm text-red-600 dark:text-red-400">{xErrorMessage}</p>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Tab Navigation */}
         <div className="space-y-6">

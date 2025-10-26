@@ -36,7 +36,7 @@ export function TokenRevealCard({ tokenId, status, imageUrl }: TokenRevealCardPr
   }
 
   return (
-    <div className="overflow-hidden bg-zinc-50 dark:bg-zinc-900 rounded-lg">
+    <div className="overflow-hidden bg-background rounded-lg">
       {/* Image or Skeleton */}
       <div className="relative aspect-square bg-muted">
         {isRevealed && imageUrl ? (
