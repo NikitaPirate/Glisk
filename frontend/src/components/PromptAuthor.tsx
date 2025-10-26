@@ -444,7 +444,8 @@ export function PromptAuthor() {
             saveStatus === 'signing' ||
             saveStatus === 'saving'
           }
-          className="w-full max-w-xs"
+          size="xl"
+          className="w-full"
         >
           {saveStatus === 'signing'
             ? 'Waiting for signature...'
@@ -516,6 +517,7 @@ export function PromptAuthor() {
             <Button
               onClick={linkXAccount}
               disabled={xLoading === 'signing' || xLoading === 'linking'}
+              variant="secondary"
               className="w-full max-w-xs"
             >
               {xLoading === 'signing'
