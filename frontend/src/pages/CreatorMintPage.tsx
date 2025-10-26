@@ -292,7 +292,7 @@ export function CreatorMintPage() {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold mb-2">Mint NFT</h1>
-          <p className="text-gray-600">Minting for creator: {creatorAddress}</p>
+          <p className="text-muted-foreground">Minting for creator: {creatorAddress}</p>
         </div>
 
         {!isConnected && (
@@ -312,8 +312,8 @@ export function CreatorMintPage() {
         {isConnected && !isWrongNetwork && (
           <div className="space-y-4">
             {isMintPriceLoading && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-                <p className="text-gray-700">Loading contract data...</p>
+              <div className="p-4 bg-muted border border-border rounded">
+                <p className="text-foreground">Loading contract data...</p>
               </div>
             )}
 
@@ -329,7 +329,7 @@ export function CreatorMintPage() {
             {!isMintPriceLoading && !mintPriceError && (
               <>
                 <div className="space-y-2">
-                  <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="quantity" className="block text-sm font-medium text-foreground">
                     Quantity (1-10):
                   </label>
                   <Input
@@ -341,7 +341,7 @@ export function CreatorMintPage() {
                     onChange={handleQuantityChange}
                     className="max-w-xs"
                   />
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     You will mint {quantity} NFT{quantity > 1 ? 's' : ''}
                   </p>
                 </div>
@@ -363,7 +363,7 @@ export function CreatorMintPage() {
                   <div className="mt-8 space-y-4">
                     <div className="border-t pt-6">
                       <h2 className="text-2xl font-bold mb-2">🎰 Revealing your NFTs...</h2>
-                      <p className="text-gray-600 mb-4">
+                      <p className="text-muted-foreground mb-4">
                         {allRevealed
                           ? 'All tokens revealed! View them in your profile.'
                           : isPolling
@@ -414,16 +414,16 @@ export function CreatorMintPage() {
 
         {/* Author's NFT Collection Section */}
         {isCreatorAddressValid && (
-          <div className="mt-8 space-y-4 border border-gray-200 rounded-lg p-6 bg-white">
+          <div className="mt-8 space-y-4 border border-border rounded-lg p-6 bg-card">
             <h2 className="text-xl font-semibold">
               {creatorAddress?.slice(0, 6)}...{creatorAddress?.slice(-4)} Collection
             </h2>
-            <p className="text-sm text-gray-600">NFTs created by this author</p>
+            <p className="text-sm text-muted-foreground">NFTs created by this author</p>
 
             {/* Loading state */}
             {nftLoading && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-                <p className="text-gray-700">Loading collection...</p>
+              <div className="p-4 bg-muted border border-border rounded">
+                <p className="text-foreground">Loading collection...</p>
               </div>
             )}
 
@@ -436,8 +436,8 @@ export function CreatorMintPage() {
 
             {/* Empty state */}
             {!nftLoading && !nftError && nftData && nftData.total === 0 && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-                <p className="text-gray-700">No NFTs yet</p>
+              <div className="p-4 bg-muted border border-border rounded">
+                <p className="text-foreground">No NFTs yet</p>
               </div>
             )}
 
@@ -460,7 +460,7 @@ export function CreatorMintPage() {
                     >
                       Previous
                     </Button>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       Page {nftPage} of {totalPages}
                     </p>
                     <Button

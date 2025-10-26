@@ -6,15 +6,15 @@ export function Header() {
   const { isConnected } = useAccount()
 
   return (
-    <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+    <header className="flex items-center justify-between px-6 py-4 border-b border-border">
       <div className="flex items-center gap-6">
-        <Link to="/" className="text-xl font-semibold hover:text-gray-700">
+        <Link to="/" className="text-xl font-semibold hover:text-foreground/80">
           Glisk NFT
         </Link>
         {isConnected && (
           <Link
             to="/profile?tab=author"
-            className="text-sm font-medium text-gray-700 hover:text-gray-900"
+            className="text-sm font-medium text-foreground hover:text-foreground/90"
           >
             Profile
           </Link>

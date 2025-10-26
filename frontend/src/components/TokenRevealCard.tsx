@@ -36,9 +36,9 @@ export function TokenRevealCard({ tokenId, status, imageUrl }: TokenRevealCardPr
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden bg-white">
+    <div className="border rounded-lg overflow-hidden bg-card">
       {/* Image or Skeleton */}
-      <div className="relative aspect-square bg-gray-100">
+      <div className="relative aspect-square bg-muted">
         {isRevealed && imageUrl ? (
           // Final revealed state - show image
           <img src={imageUrl} alt={`NFT #${tokenId}`} className="w-full h-full object-cover" />
@@ -46,8 +46,8 @@ export function TokenRevealCard({ tokenId, status, imageUrl }: TokenRevealCardPr
           // Loading state - shimmer skeleton
           <div className="absolute inset-0 shimmer-skeleton flex items-center justify-center">
             <div className="text-center space-y-2">
-              <div className="text-4xl font-bold text-gray-400">#{tokenId}</div>
-              <div className="text-sm text-gray-500">{getStatusMessage()}</div>
+              <div className="text-4xl font-bold text-muted-foreground">#{tokenId}</div>
+              <div className="text-sm text-muted-foreground">{getStatusMessage()}</div>
             </div>
           </div>
         )}
@@ -56,7 +56,7 @@ export function TokenRevealCard({ tokenId, status, imageUrl }: TokenRevealCardPr
       {/* Footer with status */}
       <div className="p-3 border-t">
         <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-gray-700">Glisk NFT #{tokenId}</p>
+          <p className="text-sm font-medium text-foreground">Glisk NFT #{tokenId}</p>
           <span
             className={`text-xs px-2 py-1 rounded ${
               isRevealed

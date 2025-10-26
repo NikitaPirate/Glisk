@@ -21,15 +21,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <OnchainKitProvider
-          apiKey={cdpApiKey}
-          chain={baseSepolia}
-          config={{
-            appearance: {
-              mode: 'light',
-            },
-          }}
-        >
+        <OnchainKitProvider apiKey={cdpApiKey} chain={baseSepolia}>
           <RainbowKitProvider>
             <App />
           </RainbowKitProvider>

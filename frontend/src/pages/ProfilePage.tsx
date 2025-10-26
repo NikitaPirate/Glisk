@@ -63,11 +63,11 @@ export function ProfilePage() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold mb-2">Profile</h1>
-          <p className="text-gray-600">Manage your prompt, X account, and view your NFTs</p>
+          <p className="text-muted-foreground">Manage your prompt, X account, and view your NFTs</p>
         </div>
 
         {/* Identity Card Section */}
-        <div className="border border-gray-200 rounded-lg p-6 bg-white">
+        <div className="border border-border rounded-lg p-6 bg-card">
           <h2 className="text-xl font-semibold mb-4">Your Identity</h2>
           <IdentityCard
             address={address as `0x${string}`}
@@ -77,14 +77,14 @@ export function ProfilePage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-border">
           <div className="flex space-x-1">
             <Button
               onClick={() => handleTabChange('author')}
               variant={activeTab === 'author' ? 'default' : 'ghost'}
               className={`rounded-b-none ${
                 activeTab === 'author'
-                  ? 'border-b-2 border-blue-500'
+                  ? 'border-b-2 border-primary'
                   : 'border-b-2 border-transparent'
               }`}
             >
@@ -95,7 +95,7 @@ export function ProfilePage() {
               variant={activeTab === 'collector' ? 'default' : 'ghost'}
               className={`rounded-b-none ${
                 activeTab === 'collector'
-                  ? 'border-b-2 border-blue-500'
+                  ? 'border-b-2 border-primary'
                   : 'border-b-2 border-transparent'
               }`}
             >

@@ -104,16 +104,16 @@ export function Collector() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4 border border-gray-200 rounded-lg p-6 bg-white">
+      <div className="space-y-4 border border-border rounded-lg p-6 bg-card">
         <h2 className="text-xl font-semibold">Your Collected NFTs</h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           NFTs that you own from the GLISK collection. These are tokens currently in your wallet.
         </p>
 
         {/* T053: Loading state */}
         {isLoading && (
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-            <p className="text-gray-700">Loading your collection...</p>
+          <div className="p-4 bg-muted border border-border rounded">
+            <p className="text-foreground">Loading your collection...</p>
           </div>
         )}
 
@@ -134,8 +134,8 @@ export function Collector() {
 
         {/* T055: Empty state */}
         {!isLoading && !hasError && Number(balance || 0n) === 0 && (
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-            <p className="text-gray-700">No NFTs owned</p>
+          <div className="p-4 bg-muted border border-border rounded">
+            <p className="text-foreground">No NFTs owned</p>
           </div>
         )}
 
@@ -158,7 +158,7 @@ export function Collector() {
                 >
                   Previous
                 </Button>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-muted-foreground">
                   Page {ownedPage} of {totalPages}
                 </p>
                 <Button

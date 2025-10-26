@@ -21,8 +21,8 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
   // Error state
   if ('error' in nftData) {
     return (
-      <div className="border rounded-lg p-4 bg-gray-50">
-        <p className="text-sm text-gray-500">Failed to load NFT #{tokenId}</p>
+      <div className="border rounded-lg p-4 bg-muted">
+        <p className="text-sm text-muted-foreground">Failed to load NFT #{tokenId}</p>
       </div>
     )
   }
@@ -35,13 +35,13 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
       {/* Compact card in grid */}
       <div
         onClick={() => setIsOpen(true)}
-        className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-white cursor-pointer group"
+        className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-card cursor-pointer group"
       >
         {/* Image */}
-        <div className="relative aspect-square bg-gray-100">
+        <div className="relative aspect-square bg-muted">
           {isLoading ? (
             <div className="absolute inset-0 flex items-center justify-center">
-              <p className="text-sm text-gray-400">Loading...</p>
+              <p className="text-sm text-muted-foreground">Loading...</p>
             </div>
           ) : (
             <img
@@ -71,7 +71,7 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
           <div className="space-y-4">
             {/* Large image */}
             {nftData.imageUrl && (
-              <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+              <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
                 <img
                   src={nftData.imageUrl}
                   alt={nftData.name || `NFT #${tokenId}`}
@@ -84,14 +84,14 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
             <div className="space-y-3">
               {/* Token ID */}
               <div>
-                <p className="text-sm font-medium text-gray-500">Token ID</p>
+                <p className="text-sm font-medium text-muted-foreground">Token ID</p>
                 <p className="text-base">#{tokenId}</p>
               </div>
 
               {/* Description */}
               {nftData.description && (
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Description</p>
+                  <p className="text-sm font-medium text-muted-foreground">Description</p>
                   <p className="text-base">{nftData.description}</p>
                 </div>
               )}
@@ -99,7 +99,7 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
               {/* Author Address */}
               {nftData.authorAddress && (
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Prompt Author</p>
+                  <p className="text-sm font-medium text-muted-foreground">Prompt Author</p>
                   <p className="text-base font-mono text-sm break-all">{nftData.authorAddress}</p>
                 </div>
               )}
@@ -107,12 +107,12 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
               {/* Author X Handle */}
               {nftData.authorXHandle && (
                 <div>
-                  <p className="text-sm font-medium text-gray-500">Author X Handle</p>
+                  <p className="text-sm font-medium text-muted-foreground">Author X Handle</p>
                   <a
                     href={`https://x.com/${nftData.authorXHandle.replace('@', '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-base text-blue-600 hover:underline"
+                    className="text-base text-primary hover:underline"
                   >
                     {nftData.authorXHandle}
                   </a>

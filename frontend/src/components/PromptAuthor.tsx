@@ -373,20 +373,20 @@ export function PromptAuthor() {
   const charCount = promptText.length
   const charCountColor =
     charCount === 0
-      ? 'text-gray-500'
+      ? 'text-muted-foreground'
       : charCount > 1000
         ? 'text-red-600'
         : charCount > 900
           ? 'text-yellow-600'
-          : 'text-gray-700'
+          : 'text-foreground'
 
   return (
     <div className="space-y-6">
       {/* Prompt Status Indicator */}
       <div>
         {promptStatus === 'loading' && (
-          <div className="p-3 bg-gray-50 border border-gray-200 rounded inline-block">
-            <p className="text-sm text-gray-700">Loading status...</p>
+          <div className="p-3 bg-muted border border-border rounded inline-block">
+            <p className="text-sm text-foreground">Loading status...</p>
           </div>
         )}
         {promptStatus === 'has_prompt' && (
@@ -407,15 +407,15 @@ export function PromptAuthor() {
       </div>
 
       {/* Prompt Editor Section */}
-      <div className="space-y-4 border border-gray-200 rounded-lg p-6 bg-white">
+      <div className="space-y-4 border border-border rounded-lg p-6 bg-card">
         <h2 className="text-xl font-semibold">AI Generation Prompt</h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Set your AI generation prompt for NFTs minted with your wallet address. This prompt
           controls how AI generates images for your tokens.
         </p>
 
         <div className="space-y-2">
-          <label htmlFor="prompt" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="prompt" className="block text-sm font-medium text-foreground">
             Prompt Text (1-1000 characters):
           </label>
           <textarea
@@ -423,7 +423,7 @@ export function PromptAuthor() {
             value={promptText}
             onChange={e => setPromptText(e.target.value)}
             placeholder="e.g., Surreal neon landscapes with futuristic architecture"
-            className="w-full min-h-[120px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
+            className="w-full min-h-[120px] px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-y"
             maxLength={1001} // Allow typing to 1001 to show validation error
           />
           <div className="flex justify-between items-center">
@@ -480,17 +480,17 @@ export function PromptAuthor() {
       </div>
 
       {/* X Account Linking Section */}
-      <div className="space-y-4 border border-gray-200 rounded-lg p-6 bg-white">
+      <div className="space-y-4 border border-border rounded-lg p-6 bg-card">
         <h2 className="text-xl font-semibold">X (Twitter) Account</h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Link your X account to display your handle in NFT metadata. This helps collectors discover
           you on X.
         </p>
 
         {/* Loading State */}
         {xLoading === 'fetching' && (
-          <div className="p-3 bg-gray-50 border border-gray-200 rounded">
-            <p className="text-sm text-gray-700">Loading profile...</p>
+          <div className="p-3 bg-muted border border-border rounded">
+            <p className="text-sm text-foreground">Loading profile...</p>
           </div>
         )}
 
@@ -500,7 +500,7 @@ export function PromptAuthor() {
             <div className="p-4 bg-green-50 border border-green-200 rounded">
               <p className="text-sm font-medium text-green-800">✓ Linked: @{twitterHandle}</p>
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Your X handle is included in NFT metadata for all tokens minted with your wallet.
             </p>
           </div>
@@ -520,7 +520,7 @@ export function PromptAuthor() {
                   ? 'Redirecting to X...'
                   : 'Link X Account'}
             </Button>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               You'll be redirected to X to authorize the connection. We only request permission to
               read your profile information.
             </p>
@@ -554,17 +554,17 @@ export function PromptAuthor() {
       </div>
 
       {/* T043: Authored NFTs Section */}
-      <div className="space-y-4 border border-gray-200 rounded-lg p-6 bg-white">
+      <div className="space-y-4 border border-border rounded-lg p-6 bg-card">
         <h2 className="text-xl font-semibold">Your Authored NFTs</h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           NFTs where you provided the AI generation prompt. These are tokens minted with your wallet
           address as the prompt author.
         </p>
 
         {/* T036: Loading state */}
         {authoredNFTsLoading && (
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-            <p className="text-gray-700">Loading...</p>
+          <div className="p-4 bg-muted border border-border rounded">
+            <p className="text-foreground">Loading...</p>
           </div>
         )}
 
@@ -580,8 +580,8 @@ export function PromptAuthor() {
           !authoredNFTsError &&
           authoredNFTsData &&
           authoredNFTsData.total === 0 && (
-            <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-              <p className="text-gray-700">No authored NFTs yet.</p>
+            <div className="p-4 bg-muted border border-border rounded">
+              <p className="text-foreground">No authored NFTs yet.</p>
             </div>
           )}
 
@@ -607,7 +607,7 @@ export function PromptAuthor() {
                   >
                     Previous
                   </Button>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     Page {authoredPage} of {totalPages}
                   </p>
                   <Button
@@ -624,8 +624,8 @@ export function PromptAuthor() {
       </div>
 
       {/* Security Notice */}
-      <div className="text-sm text-gray-500 border-l-4 border-gray-300 pl-4">
-        <p className="font-medium text-gray-700">Security & Privacy Notice</p>
+      <div className="text-sm text-muted-foreground border-l-4 border-border pl-4">
+        <p className="font-medium text-foreground">Security & Privacy Notice</p>
         <p className="mt-1">
           Your prompt is stored securely and only used for image generation. It is never exposed via
           API responses. For X linking, we only request permission to read your profile information

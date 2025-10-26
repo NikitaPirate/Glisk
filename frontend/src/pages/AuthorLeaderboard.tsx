@@ -28,12 +28,12 @@ export default function AuthorLeaderboard() {
 
   // Loading state
   if (isLoading) {
-    return <div className="p-8 text-gray-500">Loading...</div>
+    return <div className="p-8 text-muted-foreground">Loading...</div>
   }
 
   // Empty state
   if (authors.length === 0) {
-    return <div className="p-8 text-gray-500">No authors yet</div>
+    return <div className="p-8 text-muted-foreground">No authors yet</div>
   }
 
   // Leaderboard display
@@ -45,11 +45,13 @@ export default function AuthorLeaderboard() {
           <div
             key={author.author_address}
             onClick={() => navigate(`/${author.author_address}`)}
-            className="border border-gray-300 rounded p-4 hover:border-blue-500 cursor-pointer transition-colors"
+            className="border border-border rounded p-4 hover:border-primary cursor-pointer transition-colors"
           >
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <span className="text-gray-600 font-semibold min-w-[2rem]">{index + 1}.</span>
+                <span className="text-muted-foreground font-semibold min-w-[2rem]">
+                  {index + 1}.
+                </span>
                 <Identity address={author.author_address as `0x${string}`}>
                   <Avatar />
                   <Name>
@@ -58,7 +60,7 @@ export default function AuthorLeaderboard() {
                   <Address />
                 </Identity>
               </div>
-              <span className="text-gray-600">
+              <span className="text-muted-foreground">
                 {author.total_tokens} token{author.total_tokens !== 1 ? 's' : ''}
               </span>
             </div>
