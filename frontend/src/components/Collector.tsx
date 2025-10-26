@@ -106,26 +106,18 @@ export function Collector() {
     <div className="space-y-6">
       <div className="space-y-4 rounded-lg p-6 bg-zinc-50 dark:bg-zinc-900">
         <h2 className="text-xl font-semibold">Your Collected NFTs</h2>
-        <p className="text-sm text-muted-foreground">
-          NFTs that you own from the GLISK collection. These are tokens currently in your wallet.
-        </p>
 
         {/* T053: Loading state */}
-        {isLoading && (
-          <div className="p-4 bg-muted rounded">
-            <p className="text-foreground">Loading your collection...</p>
-          </div>
-        )}
+        {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
 
         {/* T054: Error state */}
-        {/* TypeScript strict mode workaround: 'as any' needed for conditional rendering.
-            TypeScript cannot infer ReactNode type from hasError boolean + ternary operator.
-            Runtime behavior is correct - this is purely a type inference limitation. */}
         {
           (hasError ? (
-            <div className="p-4 bg-red-50 dark:bg-red-950 rounded">
-              <p className="text-red-800 dark:text-red-200">Failed to load NFTs: {errorMessage}</p>
-              <Button onClick={() => window.location.reload()} className="mt-2" variant="outline">
+            <div className="space-y-2">
+              <p className="text-sm text-red-600 dark:text-red-400">
+                Failed to load NFTs: {errorMessage}
+              </p>
+              <Button onClick={() => window.location.reload()} size="sm" variant="outline">
                 Retry
               </Button>
             </div>
@@ -134,9 +126,7 @@ export function Collector() {
 
         {/* T055: Empty state */}
         {!isLoading && !hasError && Number(balance || 0n) === 0 && (
-          <div className="p-4 bg-muted rounded">
-            <p className="text-foreground">No NFTs owned</p>
-          </div>
+          <p className="text-sm text-muted-foreground">No NFTs</p>
         )}
 
         {/* NFT Grid */}

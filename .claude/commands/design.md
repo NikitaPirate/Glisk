@@ -66,6 +66,28 @@ Glisk uses **spatial contrast** as its primary design language - different zones
 - Small: `text-sm` for metadata
 - Tight leading in action zones: `leading-tight`
 
+## Content & Copy Principles
+
+**Core Rule: Write Nothing**
+- AI assistant NEVER generates, suggests, or writes interface copy
+- Only implement EXACT text provided by user
+- If text is missing → leave placeholder or ask user
+- If text seems too long → ask user to shorten, don't edit
+
+**Exceptions (only when explicitly requested):**
+- Technical strings: "Loading...", "Error", form validation
+- Button actions when obvious: "Save", "Cancel", "Connect"
+- NOTHING else
+
+**Why:**
+Every word has cost. Every explanation adds friction. Glisk users are crypto-native - they don't need hand-holding. The interface should be self-evident through structure and visual hierarchy, not through explanatory text.
+
+**In practice:**
+- Section headers: 1-3 words maximum
+- Descriptions: only if user provides them
+- Help text: avoid entirely, use tooltips if critical
+- Error messages: technical and brief
+
 ## Spacing Rules
 
 **Action Zones:**
