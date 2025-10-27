@@ -6,155 +6,116 @@
 /**
  * Semantic Color Tokens Reference
  *
- * Use these semantic tokens in your components instead of hardcoded colors.
- * They automatically switch between light and dark themes via @media (prefers-color-scheme: dark).
+ * Uses OKLCH color space from Shadcn for perceptually uniform colors.
+ * Colors automatically switch between light and dark themes via @media (prefers-color-scheme: dark).
  *
- * Backgrounds:
- *   bg-background      - Main page background (white/black)
- *   bg-card            - Card/panel background (matches bg-background for minimal visual separation)
- *   bg-popover         - Popover/tooltip background
- *   bg-muted           - Subtle background for loading states, placeholders (zinc-100/zinc-800)
- *   bg-accent          - Accent background
+ * Color Palette: Cyan (tech/Web3 aesthetic) + Yellow accent
+ * Design Philosophy: Flat design with bold shadows - "masses" (backgrounds, cards) use subtle colors,
+ *                    interactive elements use vibrant cyan shades for contrast
+ *
+ * Backgrounds (minimal cyan tint):
+ *   bg-background      - Main page background (almost white / almost black with micro cyan)
+ *   bg-card            - Card/panel background (cyan-50 / cyan-950 - subtle cyan tint)
+ *   bg-popover         - Popover/tooltip background (cyan-50 / cyan-950)
+ *   bg-muted           - Subtle background for loading states (cyan-50 / cyan-950)
+ *
+ * Interactive elements (vibrant cyan):
+ *   bg-accent          - Accent background (cyan-300 / cyan-700 - noticeable)
+ *   bg-secondary       - Secondary button background (cyan-400 / cyan-600 - vibrant)
+ *   border-border      - Standard borders (cyan-400 / cyan-600)
+ *   border-input       - Input borders (cyan-300 / cyan-700)
  *
  * Text:
- *   text-foreground    - Primary text color (zinc-950/zinc-50)
- *   text-muted-foreground - Secondary text, labels, placeholders (zinc-500/zinc-400)
- *   text-primary       - Accent text on primary color
- *   text-card-foreground - Text on card backgrounds
+ *   text-foreground    - Primary text color (zinc-950 / zinc-50)
+ *   text-muted-foreground - Secondary text, labels (cyan-600 / cyan-400)
+ *   text-secondary-foreground - Text on secondary buttons (zinc-950 / white)
  *
- * Borders:
- *   border-border      - Standard borders (zinc-200/zinc-800)
- *   border-input       - Input borders
- *   border-ring        - Focus ring color (yellow accent)
- *
- * Interactive:
+ * Primary (yellow accent):
  *   bg-primary         - Primary button background (#FFBB00 sun yellow)
- *   text-primary-foreground - Text on primary background
- *   bg-secondary       - Secondary button background
- *   bg-destructive     - Destructive actions (red-500)
+ *   text-primary-foreground - Text on primary background (pure black)
+ *   border-ring        - Focus ring color (yellow)
+ *
+ * Shadows (flat design):
+ *   --shadow-color     - Shadow color variable (black in light / cyan glow in dark)
+ *                        Experiment with dark mode options in @layer theme block
  *
  * Status Colors (use hardcoded for semantic meaning):
- *   bg-green-50 text-green-800  - Success states
- *   bg-blue-50 text-blue-800    - Info/neutral states
- *   bg-yellow-50 text-yellow-800 - Warning states
- *   bg-red-50 text-red-800      - Error states
+ *   text-green-600 dark:text-green-400  - Success states
+ *   text-blue-600 dark:text-blue-400    - Info/neutral states
+ *   text-yellow-600 dark:text-yellow-400 - Warning states
+ *   text-red-600 dark:text-red-400      - Error states
  */
 
-@theme inline {
+@theme {
+  /* Radius */
+  --radius: 0.125rem; /* Sharp corners - 2px (rounded-sm) */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+
+  --shadow-color: 21 94 117; /* cyan-800 - very dark cyan */
+
+  /* Light theme - cyan palette in OKLCH format */
+  --color-background: oklch(0.995 0.005 201); /* almost white with micro cyan tint */
+  --color-foreground: oklch(0.23 0.006 286); /* zinc-950 */
+
+  --color-card: oklch(0.98 0.02 201); /* cyan-50 - subtle cyan tint */
+  --color-card-foreground: oklch(0.23 0.006 286); /* zinc-950 */
+
+  --color-popover: oklch(0.98 0.02 201); /* cyan-50 */
+  --color-popover-foreground: oklch(0.23 0.006 286); /* zinc-950 */
+
+  --color-primary: oklch(0.82 0.15 88); /* #FFBB00 yellow */
+  --color-primary-foreground: oklch(0 0 0); /* pure black */
+
+  --color-secondary: oklch(0.76 0.14 201); /* cyan-400 - vibrant cyan */
+  --color-secondary-foreground: oklch(0.23 0.006 286); /* zinc-950 */
+
+  --color-muted: oklch(0.98 0.02 201); /* cyan-50 */
+  --color-muted-foreground: oklch(0.54 0.13 207); /* cyan-600 - more contrast */
+
+  --color-accent: oklch(0.85 0.1 201); /* cyan-300 - noticeable accent */
+  --color-accent-foreground: oklch(0.23 0.006 286); /* zinc-950 */
+
+  --color-destructive: oklch(0.62 0.24 27); /* red-500 */
+
+  --color-border: oklch(0.76 0.14 201); /* cyan-400 - stronger borders */
+  --color-input: oklch(0.85 0.1 201); /* cyan-300 - visible inputs */
+  --color-ring: oklch(0.82 0.15 88); /* yellow */
 }
 
-:root {
-  --radius: 0.125rem; /* Sharp corners - 2px (rounded-sm) */
+@layer theme {
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Dark theme overrides */
+      --color-background: oklch(0.13 0.015 215); /* almost black with micro cyan tint */
+      --color-foreground: oklch(0.985 0 0); /* zinc-50 */
 
-  /* Light theme - minimalist with zinc palette */
-  --background: 255 255 255; /* white */
-  --foreground: 9 9 11; /* zinc-950 */
+      /* Shadow colors for dark mode - EXPERIMENT WITH THESE */
+      /* --shadow-color: 0 255 255; Option 1: cyan glow (current) */
+      /* --shadow-color: 103 232 249; Option 2: cyan-300 (softer) */
+      /* --shadow-color: 255 255 255; Option 3: white subtle */
+      --shadow-color: 34 211 238; /* Option 4: cyan-400 (vibrant) */
 
-  --card: 255 255 255; /* white */
-  --card-foreground: 9 9 11; /* zinc-950 */
+      --color-card: oklch(0.18 0.04 215); /* cyan-950 - dark cyan tint */
+      --color-card-foreground: oklch(0.985 0 0); /* zinc-50 */
 
-  --popover: 255 255 255; /* white */
-  --popover-foreground: 9 9 11; /* zinc-950 */
+      --color-popover: oklch(0.18 0.04 215); /* cyan-950 */
+      --color-popover-foreground: oklch(0.985 0 0); /* zinc-50 */
 
-  /* Sun yellow accent - works on white background */
-  --primary: 255 187 0; /* #FFBB00 */
-  --primary-foreground: 9 9 11; /* zinc-950 - dark text on yellow */
+      --color-secondary: oklch(0.54 0.13 207); /* cyan-600 - vibrant on dark */
+      --color-secondary-foreground: oklch(0.985 0 0); /* white */
 
-  /* Secondary - subtle with border */
-  --secondary: 250 250 250; /* zinc-50 */
-  --secondary-foreground: 9 9 11; /* zinc-950 */
+      --color-muted: oklch(0.18 0.04 215); /* cyan-950 */
+      --color-muted-foreground: oklch(0.76 0.14 201); /* cyan-400 - bright text */
 
-  --muted: 244 244 245; /* zinc-100 */
-  --muted-foreground: 113 113 122; /* zinc-500 */
+      --color-accent: oklch(0.48 0.1 209); /* cyan-700 - noticeable accent */
+      --color-accent-foreground: oklch(0.985 0 0); /* white */
 
-  --accent: 244 244 245; /* zinc-100 */
-  --accent-foreground: 9 9 11; /* zinc-950 */
-
-  --destructive: 239 68 68; /* red-500 */
-
-  --border: 228 228 231; /* zinc-200 */
-  --input: 228 228 231; /* zinc-200 */
-  --ring: 255 187 0; /* yellow accent */
-
-  --chart-1: 255 187 0;
-  --chart-2: 113 113 122;
-  --chart-3: 63 63 70;
-  --chart-4: 212 212 216;
-  --chart-5: 161 161 170;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Dark theme - black background with zinc palette */
-    --background: 0 0 0; /* pure black */
-    --foreground: 250 250 250; /* zinc-50 */
-
-    --card: 0 0 0; /* pure black - matches background */
-    --card-foreground: 250 250 250; /* zinc-50 */
-
-    --popover: 24 24 27; /* zinc-900 */
-    --popover-foreground: 250 250 250; /* zinc-50 */
-
-    /* Sun yellow accent - same in dark theme */
-    --primary: 255 187 0; /* #FFBB00 */
-    --primary-foreground: 9 9 11; /* zinc-950 - dark text on yellow */
-
-    /* Secondary - transparent with border */
-    --secondary: 39 39 42; /* zinc-800 */
-    --secondary-foreground: 250 250 250; /* zinc-50 */
-
-    --muted: 39 39 42; /* zinc-800 */
-    --muted-foreground: 161 161 170; /* zinc-400 */
-
-    --accent: 39 39 42; /* zinc-800 */
-    --accent-foreground: 250 250 250; /* zinc-50 */
-
-    --destructive: 239 68 68; /* red-500 */
-
-    --border: 39 39 42; /* zinc-800 */
-    --input: 39 39 42; /* zinc-800 */
-    --ring: 255 187 0; /* yellow accent */
-
-    --chart-1: 255 187 0;
-    --chart-2: 161 161 170;
-    --chart-3: 113 113 122;
-    --chart-4: 63 63 70;
-    --chart-5: 82 82 91;
+      --color-border: oklch(0.54 0.13 207); /* cyan-600 - visible borders */
+      --color-input: oklch(0.48 0.1 209); /* cyan-700 - visible inputs */
+    }
   }
 }
 
