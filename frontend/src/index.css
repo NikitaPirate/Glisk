@@ -164,6 +164,22 @@
     box-shadow: 3px 3px 0px 0px rgb(var(--shadow-color));
     transform: translate(3px, 3px);
   }
+
+  /* Focus states - for textarea and inputs */
+  .focus-lift:focus {
+    box-shadow: 2px 2px 0px 0px rgb(var(--shadow-color));
+  }
+
+  /* Focus color change - darker on focus (light/dark adaptive) */
+  .focus-darken:focus {
+    background-color: oklch(0.8 0.12 201); /* cyan-350 light mode - darker than accent */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .focus-darken:focus {
+      background-color: oklch(0.42 0.11 207); /* cyan-750 dark mode - darker than accent */
+    }
+  }
 }
 
 /**

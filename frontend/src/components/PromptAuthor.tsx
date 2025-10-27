@@ -244,7 +244,7 @@ export function PromptAuthor() {
           id="prompt"
           value={promptText}
           onChange={e => setPromptText(e.target.value)}
-          className="w-full min-h-[120px] p-6 rounded-none bg-accent shadow-interactive focus:outline-none focus:shadow-interactive-lg resize-y transition-all"
+          className="w-full min-h-[120px] p-6 rounded-none bg-accent shadow-interactive focus-lift focus-darken focus:outline-none resize-y transition-all"
           maxLength={1001}
         />
 
