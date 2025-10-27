@@ -19,6 +19,13 @@ export function Header() {
               >
                 Glisk NFT
               </Link>
+              <NavLink to="/">
+                {({ isActive }) => (
+                  <Button variant={isActive ? 'tab-active' : 'ghost'} size="sm">
+                    Home
+                  </Button>
+                )}
+              </NavLink>
               {isConnected && (
                 <NavLink to="/profile?tab=author">
                   {({ isActive }) => (
