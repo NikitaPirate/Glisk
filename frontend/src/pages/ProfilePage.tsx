@@ -221,6 +221,23 @@ export function ProfilePage() {
               <p className="text-sm text-red-600 dark:text-red-400">{xErrorMessage}</p>
             )}
           </div>
+
+          {/* Share Button */}
+          <Button
+            onClick={() => {
+              const tweetText =
+                'My AI prompt is live on @getglisk! Check it out and mint some NFTs ✨'
+              const shareUrl = `https://glisk.xyz/${address}`
+              const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                tweetText
+              )}&url=${encodeURIComponent(shareUrl)}`
+              window.open(twitterUrl, '_blank')
+            }}
+            variant="primary-action"
+            className="w-full h-24 text-6xl font-black"
+          >
+            SHARE
+          </Button>
         </Card>
 
         {/* Tab Navigation */}

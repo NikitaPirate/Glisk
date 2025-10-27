@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Hex } from 'viem'
+import { Copy, Check } from 'lucide-react'
 import { useGliskNFTData } from '@/hooks/useGliskNFTData'
 import {
   Dialog,
@@ -8,6 +9,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 interface NFTCardProps {
   contractAddress: Hex
@@ -17,6 +19,7 @@ interface NFTCardProps {
 export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [showErrorAfterDelay, setShowErrorAfterDelay] = useState(false)
+  const [isCopied, setIsCopied] = useState(false)
   const nftData = useGliskNFTData(contractAddress, tokenId)
 
   // Grace period: don't show error immediately (give blockchain/IPFS time to sync)
@@ -52,6 +55,47 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
 
   // Loading state (metadata still fetching)
   const isLoading = !nftData.imageUrl
+
+  // Copy image to clipboard (convert to PNG via Canvas to avoid WebP issues)
+  const handleCopyImage = async () => {
+    if (!nftData.imageUrl) return
+
+    try {
+      // Create temporary image element
+      const img = new Image()
+      img.crossOrigin = 'anonymous' // Enable CORS
+      img.src = nftData.imageUrl
+
+      // Wait for image to load
+      await new Promise((resolve, reject) => {
+        img.onload = resolve
+        img.onerror = reject
+      })
+
+      // Draw image on canvas
+      const canvas = document.createElement('canvas')
+      canvas.width = img.naturalWidth
+      canvas.height = img.naturalHeight
+      const ctx = canvas.getContext('2d')
+      ctx?.drawImage(img, 0, 0)
+
+      // Convert canvas to PNG blob
+      const blob = await new Promise<Blob>(resolve => {
+        canvas.toBlob(blob => resolve(blob!), 'image/png')
+      })
+
+      // Copy PNG to clipboard
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+
+      setIsCopied(true)
+
+      setTimeout(() => {
+        setIsCopied(false)
+      }, 2000)
+    } catch (error) {
+      console.error('Failed to copy image:', error)
+    }
+  }
 
   return (
     <>
@@ -89,12 +133,35 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
           <div className="space-y-16">
             {/* Large image */}
             {nftData.imageUrl && (
-              <div className="relative aspect-square bg-muted overflow-hidden">
-                <img
-                  src={nftData.imageUrl}
-                  alt={nftData.name || `NFT #${tokenId}`}
-                  className="w-full h-full object-contain"
-                />
+              <div className="space-y-4">
+                <div className="relative aspect-square bg-muted overflow-hidden">
+                  <img
+                    src={nftData.imageUrl}
+                    alt={nftData.name || `NFT #${tokenId}`}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+
+                {/* Copy Image Button */}
+                <Button
+                  onClick={handleCopyImage}
+                  disabled={isCopied}
+                  variant="secondary"
+                  size="lg"
+                  className="w-full"
+                >
+                  {isCopied ? (
+                    <>
+                      <Check className="w-5 h-5" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-5 h-5" />
+                      Copy Image to Clipboard
+                    </>
+                  )}
+                </Button>
               </div>
             )}
 
