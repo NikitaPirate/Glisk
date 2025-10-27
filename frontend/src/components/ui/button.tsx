@@ -14,8 +14,6 @@ const buttonVariants = cva(
           'bg-[#FFBB00] text-black font-bold shadow-interactive-lg hover-lift-lg active-press-lg',
         destructive:
           'text-red-500 dark:text-red-400 font-semibold hover:text-red-600 dark:hover:text-red-300',
-        outline:
-          'text-blue-500 dark:text-blue-400 font-medium hover:text-blue-600 dark:hover:text-blue-300',
         secondary:
           'bg-secondary text-secondary-foreground font-medium shadow-interactive-lg hover-lift-lg active-press-lg',
         ghost: 'bg-secondary text-secondary-foreground font-medium shadow-interactive hover-lift',

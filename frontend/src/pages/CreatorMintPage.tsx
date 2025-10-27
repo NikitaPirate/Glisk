@@ -405,7 +405,7 @@ export function CreatorMintPage() {
                     <Button
                       onClick={() => setNftPage(p => p - 1)}
                       disabled={nftPage === 1 || nftLoading}
-                      variant="outline"
+                      variant="ghost"
                     >
                       Previous
                     </Button>
@@ -415,7 +415,7 @@ export function CreatorMintPage() {
                     <Button
                       onClick={() => setNftPage(p => p + 1)}
                       disabled={nftPage === totalPages || nftLoading}
-                      variant="outline"
+                      variant="ghost"
                     >
                       Next
                     </Button>

@@ -193,11 +193,11 @@ export function ProfilePage() {
       <div>
         {/* Header */}
         <div>
-          <h1 className="text-6xl font-bold mb-24">Profile</h1>
+          <h1 className="text-4xl font-bold mb-24">Profile</h1>
         </div>
 
         {/* Identity Card Section */}
-        <Card className="px-8 gap-6 mb-40">
+        <Card className="px-8 gap-6 mb-16">
           <h2 className="text-2xl font-bold">Your Identity</h2>
           <IdentityCard
             address={address as `0x${string}`}

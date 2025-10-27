@@ -221,7 +221,7 @@ export function PromptAuthor() {
   }
 
   return (
-    <div className="space-y-40">
+    <div className="space-y-16">
       {/* Prompt Editor Section */}
       <Card className="px-8 gap-6">
         <div className="flex items-center justify-between">
@@ -324,7 +324,7 @@ export function PromptAuthor() {
                   <Button
                     onClick={() => setAuthoredPage(p => p - 1)}
                     disabled={authoredPage === 1 || authoredNFTsLoading}
-                    variant="outline"
+                    variant="ghost"
                   >
                     Previous
                   </Button>
@@ -334,7 +334,7 @@ export function PromptAuthor() {
                   <Button
                     onClick={() => setAuthoredPage(p => p + 1)}
                     disabled={authoredPage === totalPages || authoredNFTsLoading}
-                    variant="outline"
+                    variant="ghost"
                   >
                     Next
                   </Button>

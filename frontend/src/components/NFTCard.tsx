@@ -35,7 +35,7 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
       {/* Compact card in grid */}
       <div
         onClick={() => setIsOpen(true)}
-        className="border rounded-lg overflow-hidden shadow-interactive hover-lift transition-shadow bg-card cursor-pointer group"
+        className="overflow-hidden shadow-interactive hover-lift transition-shadow bg-card cursor-pointer group"
       >
         {/* Image */}
         <div className="relative aspect-square bg-muted">
@@ -51,27 +51,22 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
             />
           )}
         </div>
-
-        {/* Title */}
-        <div className="p-3">
-          <h3 className="font-semibold text-sm truncate">
-            {nftData.name || `Glisk NFT #${tokenId}`}
-          </h3>
-        </div>
       </div>
 
       {/* Expanded dialog */}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
-            <DialogTitle>{nftData.name || `Glisk NFT #${tokenId}`}</DialogTitle>
+            <DialogTitle className="text-3xl">
+              {nftData.name || `Glisk NFT #${tokenId}`}
+            </DialogTitle>
             <DialogDescription className="sr-only">NFT Details</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-16">
             {/* Large image */}
             {nftData.imageUrl && (
-              <div className="relative aspect-square bg-muted rounded-lg overflow-hidden">
+              <div className="relative aspect-square bg-muted overflow-hidden">
                 <img
                   src={nftData.imageUrl}
                   alt={nftData.name || `NFT #${tokenId}`}
@@ -81,17 +76,17 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
             )}
 
             {/* Metadata */}
-            <div className="space-y-3">
+            <div className="space-y-8">
               {/* Token ID */}
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Token ID</p>
-                <p className="text-base">#{tokenId}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-2">Token ID</p>
+                <p className="text-lg font-mono">#{tokenId}</p>
               </div>
 
               {/* Description */}
               {nftData.description && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Description</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Description</p>
                   <p className="text-base">{nftData.description}</p>
                 </div>
               )}
@@ -99,15 +94,15 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
               {/* Author Address */}
               {nftData.authorAddress && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Prompt Author</p>
-                  <p className="text-base font-mono text-sm break-all">{nftData.authorAddress}</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Prompt Author</p>
+                  <p className="text-base font-mono break-all">{nftData.authorAddress}</p>
                 </div>
               )}
 
               {/* Author X Handle */}
               {nftData.authorXHandle && (
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Author X Handle</p>
+                  <p className="text-sm font-medium text-muted-foreground mb-2">Author X Handle</p>
                   <a
                     href={`https://x.com/${nftData.authorXHandle.replace('@', '')}`}
                     target="_blank"

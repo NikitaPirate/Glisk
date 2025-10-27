@@ -118,7 +118,7 @@ export function Collector() {
               <p className="text-sm text-red-600 dark:text-red-400">
                 Failed to load NFTs: {errorMessage}
               </p>
-              <Button onClick={() => window.location.reload()} size="sm" variant="outline">
+              <Button onClick={() => window.location.reload()} size="sm" variant="ghost">
                 Retry
               </Button>
             </div>
@@ -145,7 +145,7 @@ export function Collector() {
                 <Button
                   onClick={() => setOwnedPage(p => p - 1)}
                   disabled={ownedPage === 1 || isLoading}
-                  variant="outline"
+                  variant="ghost"
                 >
                   Previous
                 </Button>
@@ -155,7 +155,7 @@ export function Collector() {
                 <Button
                   onClick={() => setOwnedPage(p => p + 1)}
                   disabled={ownedPage === totalPages || isLoading}
-                  variant="outline"
+                  variant="ghost"
                 >
                   Next
                 </Button>
@@ -168,7 +168,7 @@ export function Collector() {
                 <Button
                   onClick={() => fetchNextPage()}
                   disabled={isLoading}
-                  variant="outline"
+                  variant="ghost"
                   className="w-full"
                 >
                   Load More from Blockchain
