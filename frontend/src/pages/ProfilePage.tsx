@@ -229,19 +229,23 @@ export function ProfilePage() {
         </Card>
 
         {/* Tab Navigation */}
-        <div className="flex gap-4 mb-32">
-          <Button
-            onClick={() => handleTabChange('author')}
-            variant={activeTab === 'author' ? 'tab-active' : 'ghost'}
-          >
-            Prompt Author
-          </Button>
-          <Button
-            onClick={() => handleTabChange('collector')}
-            variant={activeTab === 'collector' ? 'tab-active' : 'ghost'}
-          >
-            Collector
-          </Button>
+        <div className="mb-16">
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              onClick={() => handleTabChange('author')}
+              variant={activeTab === 'author' ? 'tab-active' : 'ghost'}
+              className="w-full"
+            >
+              Prompt Author
+            </Button>
+            <Button
+              onClick={() => handleTabChange('collector')}
+              variant={activeTab === 'collector' ? 'tab-active' : 'ghost'}
+              className="w-full"
+            >
+              Collector
+            </Button>
+          </div>
         </div>
 
         {/* Tab Content */}
