@@ -11,17 +11,16 @@ const buttonVariants = cva(
       variant: {
         default: 'text-[#FFBB00] font-semibold hover:text-[#E6A800]',
         'primary-action':
-          'bg-[#FFBB00] text-black font-bold shadow-[6px_6px_0px_0px_rgb(var(--shadow-color))] hover:shadow-[3px_3px_0px_0px_rgb(var(--shadow-color))] active:shadow-[3px_3px_0px_0px_rgb(var(--shadow-color))] active:translate-x-[3px] active:translate-y-[3px]',
+          'bg-[#FFBB00] text-black font-bold shadow-interactive-lg hover-lift-lg active-press-lg',
         destructive:
           'text-red-500 dark:text-red-400 font-semibold hover:text-red-600 dark:hover:text-red-300',
         outline:
           'text-blue-500 dark:text-blue-400 font-medium hover:text-blue-600 dark:hover:text-blue-300',
         secondary:
-          'bg-secondary text-secondary-foreground font-medium shadow-[6px_6px_0px_0px_rgb(var(--shadow-color))] hover:shadow-[3px_3px_0px_0px_rgb(var(--shadow-color))] active:shadow-[3px_3px_0px_0px_rgb(var(--shadow-color))] active:translate-x-[3px] active:translate-y-[3px]',
-        ghost:
-          'bg-secondary text-secondary-foreground font-medium hover:brightness-90 shadow-[2px_2px_0px_0px_rgb(var(--shadow-color))]',
+          'bg-secondary text-secondary-foreground font-medium shadow-interactive-lg hover-lift-lg active-press-lg',
+        ghost: 'bg-secondary text-secondary-foreground font-medium shadow-interactive hover-lift',
         'tab-active':
-          'bg-secondary text-secondary-foreground font-semibold hover:brightness-90 shadow-[2px_2px_0px_0px_rgb(var(--shadow-color))]',
+          'bg-secondary text-secondary-foreground font-medium shadow-interactive-sm translate-x-[2px] translate-y-[2px]',
         link: 'text-[#FFBB00] underline-offset-4 hover:underline',
       },
       size: {

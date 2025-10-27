@@ -128,3 +128,72 @@
     color: rgb(var(--foreground));
   }
 }
+
+@layer utilities {
+  /* Interactive shadows - consistent flat design system */
+
+  /* Base shadow sizes */
+  .shadow-interactive-sm {
+    box-shadow: 2px 2px 0px 0px rgb(var(--shadow-color));
+  }
+
+  .shadow-interactive {
+    box-shadow: 4px 4px 0px 0px rgb(var(--shadow-color));
+  }
+
+  .shadow-interactive-lg {
+    box-shadow: 6px 6px 0px 0px rgb(var(--shadow-color));
+  }
+
+  /* Hover states - shadow reduces (element "lifts" closer to screen) */
+  .hover-lift:hover {
+    box-shadow: 2px 2px 0px 0px rgb(var(--shadow-color));
+  }
+
+  .hover-lift-lg:hover {
+    box-shadow: 3px 3px 0px 0px rgb(var(--shadow-color));
+  }
+
+  /* Active/Press states - minimal shadow + translate (element "pressed") */
+  .active-press:active {
+    box-shadow: 1px 1px 0px 0px rgb(var(--shadow-color));
+    transform: translate(2px, 2px);
+  }
+
+  .active-press-lg:active {
+    box-shadow: 3px 3px 0px 0px rgb(var(--shadow-color));
+    transform: translate(3px, 3px);
+  }
+}
+
+/**
+ * INTERACTIVE SHADOW SYSTEM DOCUMENTATION
+ *
+ * Centralized flat design shadow utilities for consistent animations across all components.
+ *
+ * BASE SHADOW CLASSES (rest state):
+ *   .shadow-interactive-sm  → 2px shadow (inactive tabs, subtle elements)
+ *   .shadow-interactive     → 4px shadow (cards, active tabs, textareas)
+ *   .shadow-interactive-lg  → 6px shadow (primary/secondary buttons)
+ *
+ * HOVER EFFECTS (shadow reduces - element "lifts" closer to screen):
+ *   .hover-lift    → reduces to 2px on hover
+ *   .hover-lift-lg → reduces to 3px on hover
+ *
+ * ACTIVE/PRESS EFFECTS (minimal shadow + translate - element "pressed"):
+ *   .active-press    → 1px shadow + translate(2px, 2px)
+ *   .active-press-lg → 3px shadow + translate(3px, 3px)
+ *
+ * USAGE EXAMPLES:
+ *   Primary button:    "shadow-interactive-lg hover-lift-lg active-press-lg"
+ *   Secondary button:  "shadow-interactive-lg hover-lift-lg active-press-lg"
+ *   Tab (inactive):    "shadow-interactive-sm hover-lift"
+ *   Tab (active):      "shadow-interactive hover-lift"
+ *   Card (static):     "shadow-interactive"
+ *   Textarea (focus):  "shadow-interactive focus:shadow-interactive-lg"
+ *   NFT card (hover):  "shadow-interactive hover-lift"
+ *
+ * All classes automatically use rgb(var(--shadow-color)) for light/dark theme adaptation:
+ *   Light mode: cyan-800 (rgb 21 94 117) - dark cyan shadow
+ *   Dark mode:  cyan-400 (rgb 34 211 238) - bright cyan glow
+ */

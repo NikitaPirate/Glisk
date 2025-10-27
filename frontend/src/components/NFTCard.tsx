@@ -35,7 +35,7 @@ export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
       {/* Compact card in grid */}
       <div
         onClick={() => setIsOpen(true)}
-        className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow bg-card cursor-pointer group"
+        className="border rounded-lg overflow-hidden shadow-interactive hover-lift transition-shadow bg-card cursor-pointer group"
       >
         {/* Image */}
         <div className="relative aspect-square bg-muted">
