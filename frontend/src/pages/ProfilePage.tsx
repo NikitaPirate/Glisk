@@ -189,16 +189,16 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="space-y-6">
+    <div className="container mx-auto px-12 py-20 max-w-4xl">
+      <div>
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">Profile</h1>
+          <h1 className="text-6xl font-bold mb-24">Profile</h1>
         </div>
 
         {/* Identity Card Section */}
-        <Card className="px-6 gap-4">
-          <h2 className="text-xl font-semibold">Your Identity</h2>
+        <Card className="px-8 gap-6 mb-40">
+          <h2 className="text-2xl font-bold">Your Identity</h2>
           <IdentityCard
             address={address as `0x${string}`}
             chain={baseSepolia}
@@ -206,7 +206,7 @@ export function ProfilePage() {
           />
 
           {/* X Account - Minimal */}
-          <div className="pt-2 space-y-2">
+          <div className="pt-4 space-y-4">
             {xLoading === 'fetching' ? (
               <p className="text-sm text-muted-foreground">Loading...</p>
             ) : twitterHandle ? (
@@ -216,7 +216,7 @@ export function ProfilePage() {
                 onClick={linkXAccount}
                 disabled={xLoading === 'signing' || xLoading === 'linking'}
                 variant="secondary"
-                size="sm"
+                size="lg"
               >
                 {xLoading === 'signing' || xLoading === 'linking' ? 'Linking...' : 'Link X'}
               </Button>
@@ -229,21 +229,19 @@ export function ProfilePage() {
         </Card>
 
         {/* Tab Navigation */}
-        <div className="space-y-6">
-          <div className="flex space-x-2">
-            <Button
-              onClick={() => handleTabChange('author')}
-              variant={activeTab === 'author' ? 'tab-active' : 'ghost'}
-            >
-              Prompt Author
-            </Button>
-            <Button
-              onClick={() => handleTabChange('collector')}
-              variant={activeTab === 'collector' ? 'tab-active' : 'ghost'}
-            >
-              Collector
-            </Button>
-          </div>
+        <div className="flex gap-4 mb-32">
+          <Button
+            onClick={() => handleTabChange('author')}
+            variant={activeTab === 'author' ? 'tab-active' : 'ghost'}
+          >
+            Prompt Author
+          </Button>
+          <Button
+            onClick={() => handleTabChange('collector')}
+            variant={activeTab === 'collector' ? 'tab-active' : 'ghost'}
+          >
+            Collector
+          </Button>
         </div>
 
         {/* Tab Content */}

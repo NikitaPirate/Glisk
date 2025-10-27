@@ -105,8 +105,8 @@ export function Collector() {
 
   return (
     <div className="space-y-6">
-      <Card className="px-6 gap-4">
-        <h2 className="text-xl font-semibold">Your Collected NFTs</h2>
+      <Card className="px-8 gap-6">
+        <h2 className="text-2xl font-bold">Your Collected NFTs</h2>
 
         {/* T053: Loading state */}
         {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}

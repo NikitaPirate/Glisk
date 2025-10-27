@@ -221,11 +221,11 @@ export function PromptAuthor() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-40">
       {/* Prompt Editor Section */}
-      <Card className="px-6 gap-4">
+      <Card className="px-8 gap-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Prompt</h2>
+          <h2 className="text-2xl font-bold">Prompt</h2>
           {promptStatus === 'loading' && (
             <p className="text-sm text-muted-foreground">Loading...</p>
           )}
@@ -244,7 +244,7 @@ export function PromptAuthor() {
           id="prompt"
           value={promptText}
           onChange={e => setPromptText(e.target.value)}
-          className="w-full min-h-[120px] px-3 py-2 bg-muted rounded-md bg-zinc-50 dark:bg-zinc-900 focus:outline-none focus:bg-zinc-200 dark:focus:bg-zinc-700 focus:shadow-[0_0_0_3px_rgba(255,187,0,0.3)] resize-y transition-all"
+          className="w-full min-h-[120px] p-6 rounded-none bg-zinc-50 dark:bg-zinc-900 shadow-[4px_4px_0px_0px_#000000] focus:outline-none focus:shadow-[6px_6px_0px_0px_#000000] resize-y transition-all"
           maxLength={1001}
         />
 
@@ -257,8 +257,9 @@ export function PromptAuthor() {
             saveStatus === 'signing' ||
             saveStatus === 'saving'
           }
+          variant="primary-action"
           size="xl"
-          className="w-full"
+          className="w-full mt-6"
         >
           {saveStatus === 'signing'
             ? 'Waiting for signature...'
@@ -288,8 +289,8 @@ export function PromptAuthor() {
       </Card>
 
       {/* T043: Authored NFTs Section */}
-      <Card className="px-6 gap-4">
-        <h2 className="text-xl font-semibold">Your Authored NFTs</h2>
+      <Card className="px-8 gap-6">
+        <h2 className="text-2xl font-bold">Your Authored NFTs</h2>
 
         {/* T036: Loading state */}
         {authoredNFTsLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
