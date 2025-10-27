@@ -1,20 +1,17 @@
 interface TokenRevealCardProps {
   tokenId: number
   status: string
-  imageUrl: string | null
 }
 
 /**
  * TokenRevealCard - Displays NFT token during reveal process
  *
  * Shows shimmer skeleton loader while token is being generated/uploaded/revealed.
- * Displays final image when status reaches 'revealed'.
+ * Once revealed, replaced by NFTCard component.
  *
- * Status flow: detected → generating → uploading → ready → revealed
+ * Status flow: detected → generating → uploading → ready
  */
-export function TokenRevealCard({ tokenId, status, imageUrl }: TokenRevealCardProps) {
-  const isRevealed = status === 'revealed'
-
+export function TokenRevealCard({ tokenId, status }: TokenRevealCardProps) {
   // Status message mapping
   const getStatusMessage = () => {
     switch (status) {
@@ -26,8 +23,6 @@ export function TokenRevealCard({ tokenId, status, imageUrl }: TokenRevealCardPr
         return 'Uploading to IPFS...'
       case 'ready':
         return 'Revealing on-chain...'
-      case 'revealed':
-        return '✓ Revealed'
       case 'failed':
         return '✗ Failed'
       default:
@@ -36,38 +31,14 @@ export function TokenRevealCard({ tokenId, status, imageUrl }: TokenRevealCardPr
   }
 
   return (
-    <div className="overflow-hidden bg-background rounded-lg">
-      {/* Image or Skeleton */}
+    <div className="overflow-hidden bg-card shadow-interactive">
+      {/* Shimmer skeleton loader */}
       <div className="relative aspect-square bg-muted">
-        {isRevealed && imageUrl ? (
-          // Final revealed state - show image
-          <img src={imageUrl} alt={`NFT #${tokenId}`} className="w-full h-full object-cover" />
-        ) : (
-          // Loading state - shimmer skeleton
-          <div className="absolute inset-0 shimmer-skeleton flex items-center justify-center">
-            <div className="text-center space-y-2">
-              <div className="text-4xl font-bold text-muted-foreground">#{tokenId}</div>
-              <div className="text-sm text-muted-foreground">{getStatusMessage()}</div>
-            </div>
+        <div className="absolute inset-0 shimmer-skeleton flex items-center justify-center">
+          <div className="text-center space-y-2">
+            <div className="text-4xl font-bold text-muted-foreground">#{tokenId}</div>
+            <div className="text-sm text-muted-foreground">{getStatusMessage()}</div>
           </div>
-        )}
-      </div>
-
-      {/* Footer with status */}
-      <div className="p-4 bg-muted">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium text-foreground">Glisk NFT #{tokenId}</p>
-          <span
-            className={`text-xs px-2 py-1 rounded ${
-              isRevealed
-                ? 'bg-green-100 text-green-700'
-                : status === 'failed'
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-blue-100 text-blue-700'
-            }`}
-          >
-            {getStatusMessage()}
-          </span>
         </div>
       </div>
 
@@ -84,12 +55,23 @@ export function TokenRevealCard({ tokenId, status, imageUrl }: TokenRevealCardPr
         .shimmer-skeleton {
           background: linear-gradient(
             90deg,
-            #f0f0f0 0%,
-            #e0e0e0 50%,
-            #f0f0f0 100%
+            oklch(0.98 0.02 201) 0%,
+            oklch(0.85 0.1 201) 50%,
+            oklch(0.98 0.02 201) 100%
           );
           background-size: 200% 100%;
           animation: shimmer 2s infinite;
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .shimmer-skeleton {
+            background: linear-gradient(
+              90deg,
+              oklch(0.18 0.04 215) 0%,
+              oklch(0.48 0.1 209) 50%,
+              oklch(0.18 0.04 215) 100%
+            );
+          }
         }
       `}</style>
     </div>

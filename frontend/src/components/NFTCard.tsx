@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { Hex } from 'viem'
 import { useGliskNFTData } from '@/hooks/useGliskNFTData'
 import {
@@ -16,13 +16,36 @@ interface NFTCardProps {
 
 export function NFTCard({ contractAddress, tokenId }: NFTCardProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [showErrorAfterDelay, setShowErrorAfterDelay] = useState(false)
   const nftData = useGliskNFTData(contractAddress, tokenId)
 
-  // Error state
-  if ('error' in nftData) {
+  // Grace period: don't show error immediately (give blockchain/IPFS time to sync)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowErrorAfterDelay(true)
+    }, 3000) // 3 second grace period
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  // Error state (only show after grace period)
+  if ('error' in nftData && showErrorAfterDelay) {
     return (
       <div className="border rounded-lg p-4 bg-muted">
         <p className="text-sm text-muted-foreground">Failed to load NFT #{tokenId}</p>
+      </div>
+    )
+  }
+
+  // If error but still within grace period, show loading
+  if ('error' in nftData) {
+    return (
+      <div className="overflow-hidden shadow-interactive hover-lift transition-shadow bg-card cursor-pointer">
+        <div className="relative aspect-square bg-muted">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          </div>
+        </div>
       </div>
     )
   }
