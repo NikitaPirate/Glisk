@@ -191,11 +191,6 @@ export function ProfilePage() {
   return (
     <div className="container mx-auto px-12 py-20 max-w-4xl">
       <div>
-        {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold mb-24">Profile</h1>
-        </div>
-
         {/* Identity Card Section */}
         <Card className="px-8 gap-6 mb-16">
           <h2 className="text-2xl font-bold">Your Identity</h2>

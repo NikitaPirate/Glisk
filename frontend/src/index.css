@@ -136,6 +136,18 @@
   p {
     @apply text-foreground;
   }
+
+  /* Override RainbowKit styles to match Glisk flat design */
+  /* Remove all border-radius (sharp corners everywhere) */
+  [data-rk] * {
+    border-radius: 0 !important;
+  }
+
+  /* Remove borders from buttons and modals */
+  [data-rk] button,
+  [data-rk] [role='dialog'] {
+    border: none !important;
+  }
 }
 
 @layer utilities {
@@ -222,3 +234,31 @@
  *   Light mode: cyan-800 (rgb 21 94 117) - dark cyan shadow
  *   Dark mode:  cyan-400 (rgb 34 211 238) - bright cyan glow
  */
+
+/**
+ * IMPORTANT: OnchainKit CSS Overrides
+ *
+ * These overrides MUST remain at the END of this file (after all @layer blocks).
+ * DO NOT move them into @layer base - they need to load AFTER OnchainKit's default styles.
+ *
+ * If OnchainKit backgrounds become visible again, verify that:
+ * 1. These rules are still at the end of index.css
+ * 2. OnchainKit CSS is imported in main.tsx (not via @import in this file)
+ * 3. !important flags are present on all CSS variables
+ *
+ * Context: OnchainKit styles.css loads after index.css (imported in main.tsx),
+ * so we need !important to override their defaults and maintain Glisk's transparent design.
+ */
+
+/* Force transparent backgrounds for all OnchainKit components */
+:root {
+  --ock-background: transparent !important;
+  --ock-background-alternate: transparent !important;
+  --ock-background-inverse: transparent !important;
+  --ock-line: transparent !important;
+  --ock-shadow-default: none !important;
+
+  /* Use Glisk colors for OnchainKit text */
+  --ock-foreground: var(--color-foreground);
+  --ock-foreground-muted: var(--color-muted-foreground);
+}
