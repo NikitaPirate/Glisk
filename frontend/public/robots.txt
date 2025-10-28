@@ -1,0 +1,6 @@
+# Glisk robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://glisk.xyz/sitemap.xml

@@ -13,11 +13,8 @@ export function Header() {
         <Card className="px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <Link
-                to="/"
-                className="text-xl font-semibold text-foreground hover:text-foreground/80 transition-transform hover:scale-105"
-              >
-                Glisk NFT
+              <Link to="/" className="transition-transform hover:scale-105">
+                <img src="/full_logo.svg" alt="Glisk" className="h-24" />
               </Link>
               <NavLink to="/">
                 {({ isActive }) => (
