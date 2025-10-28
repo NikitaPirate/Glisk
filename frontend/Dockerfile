@@ -1,4 +1,9 @@
 # Multi-stage build: build React app with Node 22, serve with Nginx
+# syntax=docker/dockerfile:1.4
+
+# Build with BuildKit for faster rebuilds (caches npm downloads):
+#   DOCKER_BUILDKIT=1 docker build -t frontend .
+# Or enable globally in /etc/docker/daemon.json: {"features": {"buildkit": true}}
 
 # ---- Stage 1: Build frontend ----
 FROM node:22-alpine AS build
@@ -23,9 +28,10 @@ ENV VITE_ONCHAINKIT_API_KEY=$VITE_ONCHAINKIT_API_KEY
 ENV VITE_PINATA_GATEWAY=$VITE_PINATA_GATEWAY
 ENV VITE_PINATA_GATEWAY_TOKEN=$VITE_PINATA_GATEWAY_TOKEN
 
-# Install dependencies
+# Install dependencies with BuildKit cache (dramatically speeds up rebuilds)
 COPY package*.json ./
-RUN npm ci || npm install
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci || npm install
 
 # Copy sources and build
 COPY . .
