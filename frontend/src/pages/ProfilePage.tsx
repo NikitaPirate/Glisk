@@ -3,18 +3,17 @@ import { useAccount, useSignMessage } from 'wagmi'
 import { useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { IdentityCard } from '@coinbase/onchainkit/identity'
-import { baseSepolia } from 'wagmi/chains'
 import { PromptAuthor } from '@/components/PromptAuthor'
 import { Collector } from '@/components/Collector'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { network } from '@/lib/wagmi'
 
 type LoadingState = 'idle' | 'fetching' | 'linking' | 'signing'
 
-// Coinbase Verified attestation schema ID for Base Sepolia
-const COINBASE_VERIFIED_SCHEMA_ID =
-  '0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9'
+// Coinbase Verified attestation schema ID
+const COINBASE_VERIFIED_SCHEMA_ID = network.attestationSchema
 
 const VALID_TABS = ['author', 'collector'] as const
 type TabType = (typeof VALID_TABS)[number]
@@ -201,7 +200,7 @@ export function ProfilePage() {
           <h2 className="text-2xl font-bold">Your Identity</h2>
           <IdentityCard
             address={address as `0x${string}`}
-            chain={baseSepolia}
+            chain={network.chain}
             schemaId={COINBASE_VERIFIED_SCHEMA_ID}
           />
 

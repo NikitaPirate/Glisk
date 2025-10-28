@@ -158,6 +158,10 @@ After modifying contracts, sync the ABI to backend:
 ## Code Style
 Solidity ^0.8.20: Follow standard conventions
 
+## Network Configuration
+
+The application is config-driven and supports both Base Sepolia and Base Mainnet. Set `NETWORK=BASE_MAINNET` (backend) and `VITE_NETWORK=BASE_MAINNET` (frontend) in .env files. Contract addresses must match the selected network (see `contracts/deployments/`).
+
 ## Backend Features
 
 ### Mint Event Detection System (003-003b-event-detection)
@@ -191,8 +195,8 @@ Solidity ^0.8.20: Follow standard conventions
 ```bash
 ALCHEMY_API_KEY=your_api_key
 ALCHEMY_WEBHOOK_SECRET=your_signing_key
-GLISK_NFT_CONTRACT_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
-NETWORK=BASE_SEPOLIA
+GLISK_NFT_CONTRACT_ADDRESS=0xb43185E67D4Fb27115AC419C9F8A335cC0B837B9
+NETWORK=BASE_MAINNET
 DEFAULT_PROMPT=Geometric patterns and vibrant colors with text saying 'No prompt yet - author still thinking...'
 ```
 
@@ -630,8 +634,8 @@ python -m glisk.cli.recover_tokens --limit 50 --dry-run
 ```bash
 # Already configured from 003-003b-event-detection
 ALCHEMY_API_KEY=your_api_key
-GLISK_NFT_CONTRACT_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
-NETWORK=BASE_SEPOLIA
+GLISK_NFT_CONTRACT_ADDRESS=0xb43185E67D4Fb27115AC419C9F8A335cC0B837B9
+NETWORK=BASE_MAINNET
 ```
 
 **Testing**:

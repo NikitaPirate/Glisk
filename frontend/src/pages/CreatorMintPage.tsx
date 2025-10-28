@@ -10,11 +10,11 @@ import {
 } from 'wagmi'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { isAddress, parseEventLogs } from 'viem'
-import { baseSepolia } from 'wagmi/chains'
 import { IdentityCard } from '@coinbase/onchainkit/identity'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { CONTRACT_ADDRESS, GLISK_NFT_ABI } from '@/lib/contract'
+import { network } from '@/lib/wagmi'
 import { TokenRevealCard } from '@/components/TokenRevealCard'
 import { NFTCard } from '@/components/NFTCard'
 import { useTokenPolling } from '@/hooks/useTokenPolling'
@@ -299,11 +299,10 @@ export function CreatorMintPage() {
   }
 
   // Network validation
-  const isWrongNetwork = chainId !== 84532
+  const isWrongNetwork = chainId !== network.chainId
 
-  // Coinbase Verified attestation schema ID for Base Sepolia
-  const COINBASE_VERIFIED_SCHEMA_ID =
-    '0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9'
+  // Coinbase Verified attestation schema ID
+  const COINBASE_VERIFIED_SCHEMA_ID = network.attestationSchema
 
   return (
     <div className="container mx-auto px-12 py-20 max-w-4xl">
@@ -317,7 +316,7 @@ export function CreatorMintPage() {
               <>
                 <IdentityCard
                   address={creatorAddress as `0x${string}`}
-                  chain={baseSepolia}
+                  chain={network.chain}
                   schemaId={COINBASE_VERIFIED_SCHEMA_ID}
                 />
 

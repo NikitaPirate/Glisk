@@ -4,9 +4,8 @@ import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RainbowKitProvider, lightTheme, darkTheme } from '@rainbow-me/rainbowkit'
 import { OnchainKitProvider } from '@coinbase/onchainkit'
-import { baseSepolia } from 'wagmi/chains'
 
-import { config } from './lib/wagmi'
+import { config, network } from './lib/wagmi'
 import { WalletAvatar } from './components/WalletAvatar'
 import './index.css'
 import '@rainbow-me/rainbowkit/styles.css'
@@ -53,7 +52,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <OnchainKitProvider apiKey={cdpApiKey} chain={baseSepolia}>
+        <OnchainKitProvider apiKey={cdpApiKey} chain={network.chain}>
           <RainbowKitProvider theme={gliskTheme} avatar={WalletAvatar}>
             <App />
           </RainbowKitProvider>

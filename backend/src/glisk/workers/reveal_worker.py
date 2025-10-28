@@ -330,7 +330,11 @@ async def run_reveal_worker(
     batch_wait_time = settings.batch_reveal_wait_seconds
 
     # Initialize Web3 and keeper service
-    alchemy_rpc_url = f"https://base-sepolia.g.alchemy.com/v2/{settings.alchemy_api_key}"
+    network_url_mapping = {
+        "BASE_SEPOLIA": f"https://base-sepolia.g.alchemy.com/v2/{settings.alchemy_api_key}",
+        "BASE_MAINNET": f"https://base-mainnet.g.alchemy.com/v2/{settings.alchemy_api_key}",
+    }
+    alchemy_rpc_url = network_url_mapping[settings.network]
     w3 = Web3(Web3.HTTPProvider(alchemy_rpc_url))
 
     keeper = KeeperService(
