@@ -1,0 +1,11 @@
+{
+  "contractAddress": "0xb43185E67D4Fb27115AC419C9F8A335cC0B837B9",
+  "chainId": 8453,
+  "blockNumber": 37432871,
+  "deployer": "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
+  "name": "GLISK Season 0",
+  "symbol": "GLISK0",
+  "placeholderURI": "ipfs://bafkreihld5yx5vudecokbzjerfwyibzsxq2jxuzi7blnxx2uuz72ouoame",
+  "initialMintPrice": "250000000000000",
+  "timestamp": 1761655089
+}
