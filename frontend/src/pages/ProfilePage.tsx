@@ -198,32 +198,52 @@ export function ProfilePage() {
         {/* Identity Card Section */}
         <Card className="px-8 gap-6 mb-16">
           <h2 className="text-2xl font-bold">Your Identity</h2>
-          <IdentityCard
-            address={address as `0x${string}`}
-            chain={network.chain}
-            schemaId={COINBASE_VERIFIED_SCHEMA_ID}
-          />
 
-          {/* X Account - Minimal */}
-          <div className="pt-4 space-y-4">
-            {xLoading === 'fetching' ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : twitterHandle ? (
-              <p className="text-sm text-green-600 dark:text-green-400">✓ @{twitterHandle}</p>
-            ) : (
-              <Button
-                onClick={linkXAccount}
-                disabled={xLoading === 'signing' || xLoading === 'linking'}
-                variant="secondary"
-                size="lg"
-              >
-                {xLoading === 'signing' || xLoading === 'linking' ? 'Linking...' : 'Link X'}
-              </Button>
-            )}
+          <div className="flex flex-wrap gap-8 items-center p-16">
+            {/* Left: IdentityCard */}
+            <div className="flex-1 min-w-64">
+              <IdentityCard
+                address={address as `0x${string}`}
+                chain={network.chain}
+                schemaId={COINBASE_VERIFIED_SCHEMA_ID}
+              />
+            </div>
 
-            {xErrorMessage && (
-              <p className="text-sm text-red-600 dark:text-red-400">{xErrorMessage}</p>
-            )}
+            {/* Right: X Account */}
+            <div className="flex-1 p-4 min-w-64 max-w-lg space-y-4">
+              {xLoading === 'fetching' ? (
+                <p className="text-base text-muted-foreground">Loading...</p>
+              ) : (
+                <div className="flex items-center gap-4">
+                  <span className="text-3xl">𝕏</span>
+
+                  {twitterHandle && (
+                    <p className="text-base text-green-600 dark:text-green-400 whitespace-nowrap">
+                      ✓ @{twitterHandle}
+                    </p>
+                  )}
+
+                  <Button
+                    onClick={linkXAccount}
+                    disabled={xLoading === 'signing' || xLoading === 'linking'}
+                    variant="secondary"
+                    size="lg"
+                  >
+                    {xLoading === 'signing' || xLoading === 'linking'
+                      ? twitterHandle
+                        ? 'Rebinding...'
+                        : 'Linking...'
+                      : twitterHandle
+                        ? 'Rebind X'
+                        : 'Link X'}
+                  </Button>
+                </div>
+              )}
+
+              {xErrorMessage && (
+                <p className="text-sm text-red-600 dark:text-red-400">{xErrorMessage}</p>
+              )}
+            </div>
           </div>
 
           {/* Share Button */}

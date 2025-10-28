@@ -152,26 +152,7 @@ async def start_x_oauth(
             wallet_address=checksummed_address,
         )
 
-        # Step 3: Check if author already has X account linked (prevent re-linking)
-        async with await uow_factory() as uow:
-            existing_author = await uow.authors.get_by_wallet(checksummed_address)
-
-            if existing_author and existing_author.twitter_handle:
-                logger.warning(
-                    "x_oauth_already_linked",
-                    wallet_address=checksummed_address,
-                    twitter_handle=existing_author.twitter_handle,
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=(
-                        f"X account already linked "
-                        f"(@{existing_author.twitter_handle}). "
-                        "Cannot re-link in MVP."
-                    ),
-                )
-
-        # Step 4: Initialize OAuth service and generate authorization URL
+        # Step 3: Initialize OAuth service and generate authorization URL
         oauth_service = XOAuthService(
             client_id=settings.x_client_id,
             client_secret=settings.x_client_secret,
