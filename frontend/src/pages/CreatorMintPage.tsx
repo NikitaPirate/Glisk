@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import {
   useAccount,
   useReadContract,
@@ -8,12 +8,15 @@ import {
   useChainId,
   usePublicClient,
 } from 'wagmi'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { isAddress, parseEventLogs } from 'viem'
-import { Input } from '@/components/ui/input'
+import { baseSepolia } from 'wagmi/chains'
+import { IdentityCard } from '@coinbase/onchainkit/identity'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { CONTRACT_ADDRESS, GLISK_NFT_ABI } from '@/lib/contract'
 import { TokenRevealCard } from '@/components/TokenRevealCard'
+import { NFTCard } from '@/components/NFTCard'
 import { useTokenPolling } from '@/hooks/useTokenPolling'
 import { NFTGrid } from '@/components/NFTGrid'
 
@@ -38,9 +41,24 @@ interface TokensResponse {
   limit: number
 }
 
+interface AuthorDTO {
+  wallet_address: string
+  twitter_handle: string | null
+}
+
 async function fetchAuthorTokens(walletAddress: string, page: number): Promise<TokensResponse> {
   const offset = (page - 1) * 20
   const response = await fetch(`/api/authors/${walletAddress}/tokens?offset=${offset}&limit=20`)
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${await response.text()}`)
+  }
+
+  return response.json()
+}
+
+async function fetchAuthorData(walletAddress: string): Promise<AuthorDTO> {
+  const response = await fetch(`/api/authors/${walletAddress}`)
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${await response.text()}`)
@@ -53,8 +71,8 @@ export function CreatorMintPage() {
   const { creatorAddress } = useParams<{ creatorAddress: string }>()
   const { isConnected, address: connectedWallet } = useAccount()
   const chainId = useChainId()
-  const navigate = useNavigate()
   const publicClient = usePublicClient()
+  const queryClient = useQueryClient()
   const [quantity, setQuantity] = useState(1)
   const [mintedTokenIds, setMintedTokenIds] = useState<number[]>([]) // Token IDs from BatchMinted event
   const [nftPage, setNftPage] = useState(1)
@@ -128,16 +146,19 @@ export function CreatorMintPage() {
   }, [receipt, publicClient])
 
   // Poll for token status updates
-  const {
-    tokens,
-    isPolling,
-    allRevealed,
-    error: pollingError,
-  } = useTokenPolling(
+  const { tokens, allRevealed } = useTokenPolling(
     mintedTokenIds,
     connectedWallet,
     isConfirmed && mintedTokenIds.length > 0 // Enable polling after mint success
   )
+
+  // Fetch author data
+  const { data: authorData, isLoading: authorLoading } = useQuery({
+    queryKey: ['author-data', creatorAddress],
+    queryFn: () => fetchAuthorData(creatorAddress!),
+    enabled: !!creatorAddress && isCreatorAddressValid,
+    staleTime: 60000,
+  })
 
   // Fetch author's NFT collection
   const {
@@ -191,6 +212,15 @@ export function CreatorMintPage() {
     })
   }
 
+  const handleMintMore = () => {
+    // Reset mint state (triggers Card Transformation back to mint form)
+    setMintedTokenIds([])
+    setQuantity(1)
+
+    // Invalidate gallery query to fetch newly minted NFTs
+    queryClient.invalidateQueries({ queryKey: ['creator-nfts', creatorAddress] })
+  }
+
   /**
    * Derives transaction status from wagmi hooks state
    * Priority order (from highest to lowest):
@@ -222,38 +252,30 @@ export function CreatorMintPage() {
     switch (status) {
       case 'waitingApproval':
         return (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800">Please approve the transaction in your wallet</p>
-          </div>
+          <p className="text-sm text-blue-600 dark:text-blue-400">
+            Please approve the transaction in your wallet
+          </p>
         )
       case 'pending':
-        return (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800">Minting... waiting for confirmation</p>
-          </div>
-        )
+        return <p className="text-sm text-blue-600 dark:text-blue-400">Minting...</p>
       case 'success':
         return (
-          <div className="p-4 bg-green-50 border border-green-200 rounded">
-            <p className="text-green-800">Success! NFTs minted.</p>
+          <div className="space-y-1">
+            <p className="text-sm text-green-600 dark:text-green-400">Success! NFTs minted.</p>
             {mintedTokenIds.length > 0 && (
-              <p className="text-green-700 text-sm mt-1">Token IDs: {mintedTokenIds.join(', ')}</p>
+              <p className="text-sm text-green-600 dark:text-green-400">
+                Token IDs: {mintedTokenIds.join(', ')}
+              </p>
             )}
           </div>
         )
       case 'cancelled':
-        return (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="text-yellow-800">Transaction cancelled</p>
-          </div>
-        )
+        return <p className="text-sm text-yellow-600 dark:text-yellow-400">Transaction cancelled</p>
       case 'failed':
         return (
-          <div className="p-4 bg-red-50 border border-red-200 rounded">
-            <p className="text-red-800">
-              Error: {receiptError?.message || writeError?.message || 'Transaction failed'}
-            </p>
-          </div>
+          <p className="text-sm text-red-600 dark:text-red-400">
+            Error: {receiptError?.message || writeError?.message || 'Transaction failed'}
+          </p>
         )
       default:
         return null
@@ -263,7 +285,7 @@ export function CreatorMintPage() {
   if (!creatorAddress) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <p className="text-red-600">Error: No creator address provided</p>
+        <p className="text-sm text-red-600 dark:text-red-400">Error: No creator address provided</p>
       </div>
     )
   }
@@ -271,15 +293,7 @@ export function CreatorMintPage() {
   if (!isCreatorAddressValid) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="p-4 bg-red-50 border border-red-200 rounded">
-          <p className="text-red-800 font-semibold">Invalid creator address</p>
-          <p className="text-red-700 mt-2">
-            The address "{creatorAddress}" is not a valid Ethereum address.
-          </p>
-          <p className="text-red-700 mt-1 text-sm">
-            Address must be a 40-character hex string starting with "0x" (e.g., 0x1234...5678)
-          </p>
-        </div>
+        <p className="text-sm text-red-600 dark:text-red-400">Invalid creator address</p>
       </div>
     )
   }
@@ -287,158 +301,149 @@ export function CreatorMintPage() {
   // Network validation
   const isWrongNetwork = chainId !== 84532
 
-  return (
-    <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Mint NFT</h1>
-          <p className="text-gray-600">Minting for creator: {creatorAddress}</p>
-        </div>
+  // Coinbase Verified attestation schema ID for Base Sepolia
+  const COINBASE_VERIFIED_SCHEMA_ID =
+    '0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9'
 
-        {!isConnected && (
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800">Please connect your wallet to continue</p>
-          </div>
+  return (
+    <div className="container mx-auto px-12 py-20 max-w-4xl">
+      <div className="space-y-16">
+        {/* Author Identity Section */}
+        {isCreatorAddressValid && (
+          <Card className="px-8 gap-6 mb-16">
+            {authorLoading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : (
+              <>
+                <IdentityCard
+                  address={creatorAddress as `0x${string}`}
+                  chain={baseSepolia}
+                  schemaId={COINBASE_VERIFIED_SCHEMA_ID}
+                />
+
+                {/* X Account */}
+                {authorData?.twitter_handle && (
+                  <p className="text-sm text-green-600 dark:text-green-400">
+                    ✓ @{authorData.twitter_handle}
+                  </p>
+                )}
+              </>
+            )}
+          </Card>
         )}
 
+        {!isConnected && <p className="text-sm text-blue-600 dark:text-blue-400">Connect wallet</p>}
+
         {isConnected && isWrongNetwork && (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="text-yellow-800">
-              Please switch to Base Sepolia network (Chain ID: 84532)
-            </p>
-          </div>
+          <p className="text-sm text-yellow-600 dark:text-yellow-400">Switch to Base Sepolia</p>
         )}
 
         {isConnected && !isWrongNetwork && (
-          <div className="space-y-4">
-            {isMintPriceLoading && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-                <p className="text-gray-700">Loading contract data...</p>
-              </div>
-            )}
+          <Card className="px-16 py-24 max-w-4xl mx-auto">
+            {isMintPriceLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
 
             {mintPriceError && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded">
-                <p className="text-red-800">
-                  Failed to load contract data. Please check the contract address in your
-                  configuration.
-                </p>
-              </div>
+              <p className="text-sm text-red-600 dark:text-red-400">Contract error</p>
             )}
 
             {!isMintPriceLoading && !mintPriceError && (
               <>
-                <div className="space-y-2">
-                  <label htmlFor="quantity" className="block text-sm font-medium text-gray-700">
-                    Quantity (1-10):
-                  </label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={quantity}
-                    onChange={handleQuantityChange}
-                    className="max-w-xs"
-                  />
-                  <p className="text-sm text-gray-500">
-                    You will mint {quantity} NFT{quantity > 1 ? 's' : ''}
-                  </p>
-                </div>
-
-                <Button
-                  onClick={handleMint}
-                  disabled={
-                    !isConnected || !mintPrice || isWritePending || isConfirming || isWrongNetwork
-                  }
-                  className="w-full max-w-xs"
-                >
-                  {isWritePending || isConfirming ? 'Minting...' : 'Mint NFTs'}
-                </Button>
-
-                <StatusMessage />
-
-                {/* Token Reveal Grid - Show after successful mint */}
-                {isConfirmed && mintedTokenIds.length > 0 && (
-                  <div className="mt-8 space-y-4">
-                    <div className="border-t pt-6">
-                      <h2 className="text-2xl font-bold mb-2">🎰 Revealing your NFTs...</h2>
-                      <p className="text-gray-600 mb-4">
-                        {allRevealed
-                          ? 'All tokens revealed! View them in your profile.'
-                          : isPolling
-                            ? 'Your NFTs are being generated and revealed on-chain. This may take a few minutes.'
-                            : 'Waiting for backend processing...'}
-                      </p>
-
-                      {pollingError && (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded mb-4">
-                          <p className="text-red-800 text-sm">{pollingError}</p>
-                        </div>
-                      )}
-
-                      {/* Grid of TokenRevealCards */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                        {mintedTokenIds.map(tokenId => {
-                          const tokenData = tokens.get(tokenId)
-                          return (
-                            <TokenRevealCard
-                              key={tokenId}
-                              tokenId={tokenId}
-                              status={tokenData?.status || 'detected'}
-                              imageUrl={tokenData?.image_url || null}
-                            />
-                          )
-                        })}
-                      </div>
-
-                      {/* View Profile Button - Show when all revealed */}
-                      {allRevealed && (
-                        <div className="flex justify-center">
-                          <Button
-                            onClick={() => navigate('/profile?tab=author')}
-                            size="lg"
-                            className="px-8"
-                          >
-                            View in Profile
-                          </Button>
-                        </div>
+                {/* Card Transformation: Show EITHER mint form OR revealing workflow */}
+                {!(isConfirmed && mintedTokenIds.length > 0) ? (
+                  // MINT FORM STATE
+                  <div className="space-y-16">
+                    {/* Monumental Quantity Input */}
+                    <div className="space-y-4">
+                      <input
+                        id="quantity"
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={quantity}
+                        onChange={handleQuantityChange}
+                        placeholder="1-10"
+                        className="w-full h-24 text-5xl text-center font-bold rounded-none bg-accent shadow-interactive focus-lift focus-darken focus:outline-none transition-all p-6"
+                      />
+                      {quantity > 10 && (
+                        <p className="text-sm text-red-600 dark:text-red-400 text-center">Max 10</p>
                       )}
                     </div>
+
+                    {/* Monumental MINT Button */}
+                    <Button
+                      onClick={handleMint}
+                      disabled={
+                        !isConnected ||
+                        !mintPrice ||
+                        isWritePending ||
+                        isConfirming ||
+                        isWrongNetwork ||
+                        quantity > 10
+                      }
+                      variant="primary-action"
+                      className="w-full h-24 text-6xl font-black"
+                    >
+                      {isWritePending || isConfirming ? 'MINTING...' : 'MINT'}
+                    </Button>
+
+                    <StatusMessage />
+                  </div>
+                ) : (
+                  // REVEALING WORKFLOW STATE
+                  <div className="space-y-16">
+                    {/* Grid of reveal cards and revealed NFTs */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {mintedTokenIds.map(tokenId => {
+                        const tokenData = tokens.get(tokenId)
+                        const isRevealed = tokenData?.status === 'revealed'
+
+                        return isRevealed ? (
+                          <NFTCard
+                            key={tokenId}
+                            contractAddress={CONTRACT_ADDRESS}
+                            tokenId={tokenId.toString()}
+                          />
+                        ) : (
+                          <TokenRevealCard
+                            key={tokenId}
+                            tokenId={tokenId}
+                            status={tokenData?.status || 'detected'}
+                          />
+                        )
+                      })}
+                    </div>
+
+                    {/* Monumental MINT MORE Button - Show when all revealed */}
+                    {allRevealed && (
+                      <Button
+                        onClick={handleMintMore}
+                        variant="primary-action"
+                        className="w-full h-24 text-6xl font-black"
+                      >
+                        MINT MORE
+                      </Button>
+                    )}
                   </div>
                 )}
               </>
             )}
-          </div>
+          </Card>
         )}
 
-        {/* Author's NFT Collection Section */}
+        {/* Author's NFT Gallery */}
         {isCreatorAddressValid && (
-          <div className="mt-8 space-y-4 border border-gray-200 rounded-lg p-6 bg-white">
-            <h2 className="text-xl font-semibold">
-              {creatorAddress?.slice(0, 6)}...{creatorAddress?.slice(-4)} Collection
-            </h2>
-            <p className="text-sm text-gray-600">NFTs created by this author</p>
-
+          <Card className="px-8 gap-6">
             {/* Loading state */}
-            {nftLoading && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-                <p className="text-gray-700">Loading collection...</p>
-              </div>
-            )}
+            {nftLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
 
             {/* Error state */}
             {!nftLoading && nftError && (
-              <div className="p-4 bg-red-50 border border-red-200 rounded">
-                <p className="text-red-800">Failed to load NFTs</p>
-              </div>
+              <p className="text-sm text-red-600 dark:text-red-400">Error</p>
             )}
 
             {/* Empty state */}
             {!nftLoading && !nftError && nftData && nftData.total === 0 && (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-                <p className="text-gray-700">No NFTs yet</p>
-              </div>
+              <p className="text-sm text-muted-foreground">No NFTs</p>
             )}
 
             {/* NFT Grid */}
@@ -456,17 +461,17 @@ export function CreatorMintPage() {
                     <Button
                       onClick={() => setNftPage(p => p - 1)}
                       disabled={nftPage === 1 || nftLoading}
-                      variant="outline"
+                      variant="ghost"
                     >
                       Previous
                     </Button>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       Page {nftPage} of {totalPages}
                     </p>
                     <Button
                       onClick={() => setNftPage(p => p + 1)}
                       disabled={nftPage === totalPages || nftLoading}
-                      variant="outline"
+                      variant="ghost"
                     >
                       Next
                     </Button>
@@ -474,7 +479,7 @@ export function CreatorMintPage() {
                 )}
               </>
             )}
-          </div>
+          </Card>
         )}
       </div>
     </div>

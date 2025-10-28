@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useAccount, useReadContract, useInfiniteReadContracts } from 'wagmi'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { NFTGrid } from '@/components/NFTGrid'
 import { CONTRACT_ADDRESS, GLISK_NFT_ABI } from '@/lib/contract'
 
@@ -32,6 +33,7 @@ export function Collector() {
   })
 
   // T049, T050, T051: Implement useInfiniteReadContracts with pagination
+  // Fetch backwards from end to show newest NFTs first
   const {
     data,
     error: tokensError,
@@ -42,21 +44,26 @@ export function Collector() {
     cacheKey: `owned-nfts-${address}`,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contracts: ((pageParam: any) => {
-      const startIndex = pageParam as number
+      const offsetFromEnd = pageParam as number
       const balanceNum = Number(balance || 0n)
 
+      // Calculate actual start index (counting backwards from end)
+      const endIndex = balanceNum - offsetFromEnd
+      const startIndex = Math.max(0, endIndex - TOKENS_PER_PAGE)
+
       // T051: Calculate tokens in batch to avoid over-fetching
-      const tokensInBatch = Math.min(TOKENS_PER_PAGE, balanceNum - startIndex)
+      const tokensInBatch = endIndex - startIndex
 
       if (tokensInBatch <= 0) {
         return []
       }
 
+      // Fetch backwards: start from highest index in range
       return Array.from({ length: tokensInBatch }, (_, i) => ({
         address: CONTRACT_ADDRESS,
         abi: ABI,
         functionName: 'tokenOfOwnerByIndex',
-        args: [address!, BigInt(startIndex + i)],
+        args: [address!, BigInt(endIndex - 1 - i)],
       }))
     }) as any,
     query: {
@@ -64,27 +71,29 @@ export function Collector() {
       initialPageParam: 0,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getNextPageParam: (_: any, __: any, lastPageParam: any) => {
-        const nextIndex = (lastPageParam as number) + TOKENS_PER_PAGE
-        return nextIndex < Number(balance || 0n) ? nextIndex : undefined
+        const nextOffsetFromEnd = (lastPageParam as number) + TOKENS_PER_PAGE
+        return nextOffsetFromEnd < Number(balance || 0n) ? nextOffsetFromEnd : undefined
       },
     },
   })
 
   // T052: Extract tokenIds from data.pages using flatMap (filter out failed results)
-  // Reverse to show oldest first (blockchain returns newest first via tokenOfOwnerByIndex)
+  // Tokens are already in newest-first order (we fetch backwards from end)
   const tokenIds =
     ((data as any)?.pages
       ?.flatMap((page: any) =>
         page.map((result: any) => (result.status === 'success' ? result.result : null))
       )
-      .filter((id: any): id is bigint => id !== null)
-      .reverse() as bigint[]) || []
+      .filter((id: any): id is bigint => id !== null) as bigint[]) || []
 
   // T057: Calculate total pages for client-side pagination
   const totalPages = Math.ceil(tokenIds.length / 20)
 
   // T058: Get tokens for current page
   const currentPageTokens = tokenIds.slice((ownedPage - 1) * 20, ownedPage * 20)
+
+  // Combined loading state
+  const isLoading = balanceLoading || tokensLoading
 
   // T062: Reset pagination when wallet changes
   useEffect(() => {
@@ -93,8 +102,15 @@ export function Collector() {
     }
   }, [address])
 
-  // Combined loading state
-  const isLoading = balanceLoading || tokensLoading
+  // Auto-load more NFTs when user reaches last page of loaded tokens
+  useEffect(() => {
+    if (!hasNextPage || isLoading) return
+
+    // If user is on last page of loaded tokens, fetch more
+    if (ownedPage === totalPages && hasNextPage) {
+      fetchNextPage()
+    }
+  }, [ownedPage, totalPages, hasNextPage, fetchNextPage, isLoading])
 
   // Combined error state
   const hasError: boolean = !!balanceError || !!tokensError
@@ -104,28 +120,20 @@ export function Collector() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4 border border-gray-200 rounded-lg p-6 bg-white">
-        <h2 className="text-xl font-semibold">Your Collected NFTs</h2>
-        <p className="text-sm text-gray-600">
-          NFTs that you own from the GLISK collection. These are tokens currently in your wallet.
-        </p>
+      <Card className="px-8 gap-6">
+        <h2 className="text-2xl font-bold">Your Collected NFTs</h2>
 
         {/* T053: Loading state */}
-        {isLoading && (
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-            <p className="text-gray-700">Loading your collection...</p>
-          </div>
-        )}
+        {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
 
         {/* T054: Error state */}
-        {/* TypeScript strict mode workaround: 'as any' needed for conditional rendering.
-            TypeScript cannot infer ReactNode type from hasError boolean + ternary operator.
-            Runtime behavior is correct - this is purely a type inference limitation. */}
         {
           (hasError ? (
-            <div className="p-4 bg-red-50 border border-red-200 rounded">
-              <p className="text-red-800">Failed to load NFTs: {errorMessage}</p>
-              <Button onClick={() => window.location.reload()} className="mt-2" variant="outline">
+            <div className="space-y-2">
+              <p className="text-sm text-red-600 dark:text-red-400">
+                Failed to load NFTs: {errorMessage}
+              </p>
+              <Button onClick={() => window.location.reload()} size="sm" variant="ghost">
                 Retry
               </Button>
             </div>
@@ -134,9 +142,7 @@ export function Collector() {
 
         {/* T055: Empty state */}
         {!isLoading && !hasError && Number(balance || 0n) === 0 && (
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded">
-            <p className="text-gray-700">No NFTs owned</p>
-          </div>
+          <p className="text-sm text-muted-foreground">No NFTs</p>
         )}
 
         {/* NFT Grid */}
@@ -148,45 +154,32 @@ export function Collector() {
               }))}
             />
 
-            {/* T059, T060, T061: Pagination controls */}
-            {totalPages > 1 && (
+            {/* T059, T060, T061: Pagination controls with auto-loading */}
+            {(totalPages > 1 || hasNextPage) && (
               <div className="flex items-center justify-between pt-4">
                 <Button
                   onClick={() => setOwnedPage(p => p - 1)}
                   disabled={ownedPage === 1 || isLoading}
-                  variant="outline"
+                  variant="ghost"
                 >
                   Previous
                 </Button>
-                <p className="text-sm text-gray-600">
-                  Page {ownedPage} of {totalPages}
+                <p className="text-sm text-muted-foreground">
+                  Page {ownedPage} · {currentPageTokens.length} NFTs
+                  {tokensLoading && hasNextPage && ' (loading more...)'}
                 </p>
                 <Button
                   onClick={() => setOwnedPage(p => p + 1)}
-                  disabled={ownedPage === totalPages || isLoading}
-                  variant="outline"
+                  disabled={ownedPage * 20 >= Number(balance || 0n) || isLoading}
+                  variant="ghost"
                 >
                   Next
                 </Button>
               </div>
             )}
-
-            {/* Load more pages from blockchain if needed */}
-            {hasNextPage && tokenIds.length < Number(balance) && (
-              <div className="pt-4">
-                <Button
-                  onClick={() => fetchNextPage()}
-                  disabled={isLoading}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Load More from Blockchain
-                </Button>
-              </div>
-            )}
           </>
         )}
-      </div>
+      </Card>
     </div>
   )
 }

@@ -1,120 +1,265 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
-@theme inline {
+/**
+ * Semantic Color Tokens Reference
+ *
+ * Uses OKLCH color space from Shadcn for perceptually uniform colors.
+ * Colors automatically switch between light and dark themes via @media (prefers-color-scheme: dark).
+ *
+ * Color Palette: Cyan (tech/Web3 aesthetic) + Yellow accent
+ * Design Philosophy: Flat design with bold shadows - "masses" (backgrounds, cards) use subtle colors,
+ *                    interactive elements use vibrant cyan shades for contrast
+ *
+ * Backgrounds (minimal cyan tint):
+ *   bg-background      - Main page background (almost white / almost black with micro cyan)
+ *   bg-card            - Card/panel background (cyan-50 / cyan-950 - subtle cyan tint)
+ *   bg-popover         - Popover/tooltip background (cyan-50 / cyan-950)
+ *   bg-muted           - Subtle background for loading states (cyan-50 / cyan-950)
+ *
+ * Interactive elements (vibrant cyan):
+ *   bg-accent          - Accent background (cyan-300 / cyan-700 - noticeable)
+ *   bg-secondary       - Secondary button background (cyan-400 / cyan-600 - vibrant)
+ *   border-border      - Standard borders (cyan-400 / cyan-600)
+ *   border-input       - Input borders (cyan-300 / cyan-700)
+ *
+ * Text:
+ *   text-foreground    - Primary text color (zinc-950 / zinc-50)
+ *   text-muted-foreground - Secondary text, labels (cyan-600 / cyan-400)
+ *   text-secondary-foreground - Text on secondary buttons (zinc-950 / white)
+ *
+ * Primary (yellow accent):
+ *   bg-primary         - Primary button background (#FFBB00 sun yellow)
+ *   text-primary-foreground - Text on primary background (pure black)
+ *   border-ring        - Focus ring color (yellow)
+ *
+ * Shadows (flat design):
+ *   --shadow-color     - Shadow color variable (black in light / cyan glow in dark)
+ *                        Experiment with dark mode options in @layer theme block
+ *
+ * Status Colors (use hardcoded for semantic meaning):
+ *   text-green-600 dark:text-green-400  - Success states
+ *   text-blue-600 dark:text-blue-400    - Info/neutral states
+ *   text-yellow-600 dark:text-yellow-400 - Warning states
+ *   text-red-600 dark:text-red-400      - Error states
+ */
+
+@theme {
+  /* Radius */
+  --radius: 0.125rem; /* Sharp corners - 2px (rounded-sm) */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+
+  --shadow-color: 21 94 117; /* cyan-800 - very dark cyan */
+
+  /* Light theme - cyan palette in OKLCH format */
+  --color-background: oklch(0.995 0.005 201); /* almost white with micro cyan tint */
+  --color-foreground: oklch(0.23 0.006 286); /* zinc-950 */
+
+  --color-card: oklch(0.98 0.02 201); /* cyan-50 - subtle cyan tint */
+  --color-card-foreground: oklch(0.23 0.006 286); /* zinc-950 */
+
+  --color-popover: oklch(0.98 0.02 201); /* cyan-50 */
+  --color-popover-foreground: oklch(0.23 0.006 286); /* zinc-950 */
+
+  --color-primary: oklch(0.82 0.15 88); /* #FFBB00 yellow */
+  --color-primary-foreground: oklch(0 0 0); /* pure black */
+
+  --color-secondary: oklch(0.76 0.14 201); /* cyan-400 - vibrant cyan */
+  --color-secondary-foreground: oklch(0.23 0.006 286); /* zinc-950 */
+
+  --color-muted: oklch(0.98 0.02 201); /* cyan-50 */
+  --color-muted-foreground: oklch(0.54 0.13 207); /* cyan-600 - more contrast */
+
+  --color-accent: oklch(0.85 0.1 201); /* cyan-300 - noticeable accent */
+  --color-accent-foreground: oklch(0.23 0.006 286); /* zinc-950 */
+
+  --color-destructive: oklch(0.62 0.24 27); /* red-500 */
+
+  --color-border: oklch(0.76 0.14 201); /* cyan-400 - stronger borders */
+  --color-input: oklch(0.85 0.1 201); /* cyan-300 - visible inputs */
+  --color-ring: oklch(0.82 0.15 88); /* yellow */
 }
 
-:root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
+@layer theme {
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Dark theme overrides */
+      --color-background: oklch(0.13 0.015 215); /* almost black with micro cyan tint */
+      --color-foreground: oklch(0.985 0 0); /* zinc-50 */
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+      /* Shadow colors for dark mode - EXPERIMENT WITH THESE */
+      /* --shadow-color: 0 255 255; Option 1: cyan glow (current) */
+      /* --shadow-color: 103 232 249; Option 2: cyan-300 (softer) */
+      /* --shadow-color: 255 255 255; Option 3: white subtle */
+      --shadow-color: 34 211 238; /* Option 4: cyan-400 (vibrant) */
+
+      --color-card: oklch(0.18 0.04 215); /* cyan-950 - dark cyan tint */
+      --color-card-foreground: oklch(0.985 0 0); /* zinc-50 */
+
+      --color-popover: oklch(0.18 0.04 215); /* cyan-950 */
+      --color-popover-foreground: oklch(0.985 0 0); /* zinc-50 */
+
+      --color-secondary: oklch(0.54 0.13 207); /* cyan-600 - vibrant on dark */
+      --color-secondary-foreground: oklch(0.985 0 0); /* white */
+
+      --color-muted: oklch(0.18 0.04 215); /* cyan-950 */
+      --color-muted-foreground: oklch(0.76 0.14 201); /* cyan-400 - bright text */
+
+      --color-accent: oklch(0.48 0.1 209); /* cyan-700 - noticeable accent */
+      --color-accent-foreground: oklch(0.985 0 0); /* white */
+
+      --color-border: oklch(0.54 0.13 207); /* cyan-600 - visible borders */
+      --color-input: oklch(0.48 0.1 209); /* cyan-700 - visible inputs */
+    }
+  }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: rgb(var(--background));
+    color: rgb(var(--foreground));
+    overflow-y: scroll;
   }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p {
+    @apply text-foreground;
+  }
+
+  /* Override RainbowKit styles to match Glisk flat design */
+  /* Remove all border-radius (sharp corners everywhere) */
+  [data-rk] * {
+    border-radius: 0 !important;
+  }
+
+  /* Remove borders from buttons and modals */
+  [data-rk] button,
+  [data-rk] [role='dialog'] {
+    border: none !important;
+  }
+}
+
+@layer utilities {
+  /* Interactive shadows - consistent flat design system */
+
+  /* Base shadow sizes */
+  .shadow-interactive-sm {
+    box-shadow: 2px 2px 0px 0px rgb(var(--shadow-color));
+  }
+
+  .shadow-interactive {
+    box-shadow: 4px 4px 0px 0px rgb(var(--shadow-color));
+  }
+
+  .shadow-interactive-lg {
+    box-shadow: 6px 6px 0px 0px rgb(var(--shadow-color));
+  }
+
+  /* Hover states - shadow reduces (element "lifts" closer to screen) */
+  .hover-lift:hover {
+    box-shadow: 2px 2px 0px 0px rgb(var(--shadow-color));
+  }
+
+  .hover-lift-lg:hover {
+    box-shadow: 3px 3px 0px 0px rgb(var(--shadow-color));
+  }
+
+  /* Active/Press states - minimal shadow + translate (element "pressed") */
+  .active-press:active {
+    box-shadow: 1px 1px 0px 0px rgb(var(--shadow-color));
+    transform: translate(2px, 2px);
+  }
+
+  .active-press-lg:active {
+    box-shadow: 3px 3px 0px 0px rgb(var(--shadow-color));
+    transform: translate(3px, 3px);
+  }
+
+  /* Focus states - for textarea and inputs */
+  .focus-lift:focus {
+    box-shadow: 2px 2px 0px 0px rgb(var(--shadow-color));
+  }
+
+  /* Focus color change - darker on focus (light/dark adaptive) */
+  .focus-darken:focus {
+    background-color: oklch(0.8 0.12 201); /* cyan-350 light mode - darker than accent */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .focus-darken:focus {
+      background-color: oklch(0.42 0.11 207); /* cyan-750 dark mode - darker than accent */
+    }
+  }
+}
+
+/**
+ * INTERACTIVE SHADOW SYSTEM DOCUMENTATION
+ *
+ * Centralized flat design shadow utilities for consistent animations across all components.
+ *
+ * BASE SHADOW CLASSES (rest state):
+ *   .shadow-interactive-sm  → 2px shadow (inactive tabs, subtle elements)
+ *   .shadow-interactive     → 4px shadow (cards, active tabs, textareas)
+ *   .shadow-interactive-lg  → 6px shadow (primary/secondary buttons)
+ *
+ * HOVER EFFECTS (shadow reduces - element "lifts" closer to screen):
+ *   .hover-lift    → reduces to 2px on hover
+ *   .hover-lift-lg → reduces to 3px on hover
+ *
+ * ACTIVE/PRESS EFFECTS (minimal shadow + translate - element "pressed"):
+ *   .active-press    → 1px shadow + translate(2px, 2px)
+ *   .active-press-lg → 3px shadow + translate(3px, 3px)
+ *
+ * USAGE EXAMPLES:
+ *   Primary button:    "shadow-interactive-lg hover-lift-lg active-press-lg"
+ *   Secondary button:  "shadow-interactive-lg hover-lift-lg active-press-lg"
+ *   Tab (inactive):    "shadow-interactive-sm hover-lift"
+ *   Tab (active):      "shadow-interactive hover-lift"
+ *   Card (static):     "shadow-interactive"
+ *   Textarea (focus):  "shadow-interactive focus:shadow-interactive-lg"
+ *   NFT card (hover):  "shadow-interactive hover-lift"
+ *
+ * All classes automatically use rgb(var(--shadow-color)) for light/dark theme adaptation:
+ *   Light mode: cyan-800 (rgb 21 94 117) - dark cyan shadow
+ *   Dark mode:  cyan-400 (rgb 34 211 238) - bright cyan glow
+ */
+
+/**
+ * IMPORTANT: OnchainKit CSS Overrides
+ *
+ * These overrides MUST remain at the END of this file (after all @layer blocks).
+ * DO NOT move them into @layer base - they need to load AFTER OnchainKit's default styles.
+ *
+ * If OnchainKit backgrounds become visible again, verify that:
+ * 1. These rules are still at the end of index.css
+ * 2. OnchainKit CSS is imported in main.tsx (not via @import in this file)
+ * 3. !important flags are present on all CSS variables
+ *
+ * Context: OnchainKit styles.css loads after index.css (imported in main.tsx),
+ * so we need !important to override their defaults and maintain Glisk's transparent design.
+ */
+
+/* Force transparent backgrounds for all OnchainKit components */
+:root {
+  --ock-background: transparent !important;
+  --ock-background-alternate: transparent !important;
+  --ock-background-inverse: transparent !important;
+  --ock-line: transparent !important;
+  --ock-shadow-default: none !important;
+
+  /* Use Glisk colors for OnchainKit text */
+  --ock-foreground: var(--color-foreground);
+  --ock-foreground-muted: var(--color-muted-foreground);
 }
