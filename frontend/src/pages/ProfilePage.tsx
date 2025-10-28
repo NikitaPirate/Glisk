@@ -8,6 +8,7 @@ import { PromptAuthor } from '@/components/PromptAuthor'
 import { Collector } from '@/components/Collector'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 type LoadingState = 'idle' | 'fetching' | 'linking' | 'signing'
 
@@ -27,6 +28,10 @@ export function ProfilePage() {
   const [twitterHandle, setTwitterHandle] = useState<string | null>(null)
   const [xLoading, setXLoading] = useState<LoadingState>('idle')
   const [xErrorMessage, setXErrorMessage] = useState('')
+
+  // Share dialog state
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+  const [copySuccess, setCopySuccess] = useState(false)
 
   // Signature hook for X linking
   const { signMessage, data: signature, error: signError } = useSignMessage()
@@ -224,21 +229,55 @@ export function ProfilePage() {
 
           {/* Share Button */}
           <Button
-            onClick={() => {
-              const tweetText =
-                'My AI prompt is live on @getglisk! Check it out and mint some NFTs ✨'
-              const shareUrl = `https://glisk.xyz/${address}`
-              const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                tweetText
-              )}&url=${encodeURIComponent(shareUrl)}`
-              window.open(twitterUrl, '_blank')
-            }}
+            onClick={() => setShareDialogOpen(true)}
             variant="primary-action"
             className="w-full h-24 text-6xl font-black"
           >
             SHARE
           </Button>
         </Card>
+
+        {/* Share Dialog */}
+        <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Share Your Prompt</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 pt-4">
+              {/* Share to X */}
+              <Button
+                onClick={() => {
+                  const tweetText =
+                    'My AI prompt is live on @getglisk! Check it out and mint some NFTs ✨'
+                  const shareUrl = `https://glisk.xyz/${address}`
+                  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                    tweetText
+                  )}&url=${encodeURIComponent(shareUrl)}`
+                  window.open(twitterUrl, '_blank')
+                  setShareDialogOpen(false)
+                }}
+                variant="primary-action"
+                className="w-full h-16 text-2xl font-bold"
+              >
+                Share to X
+              </Button>
+
+              {/* Copy Link */}
+              <Button
+                onClick={() => {
+                  const shareUrl = `https://glisk.xyz/${address}`
+                  navigator.clipboard.writeText(shareUrl)
+                  setCopySuccess(true)
+                  setTimeout(() => setCopySuccess(false), 2000)
+                }}
+                variant="secondary"
+                className="w-full h-16 text-2xl font-bold"
+              >
+                {copySuccess ? 'Copied!' : 'Copy Link'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Tab Navigation */}
         <div className="mb-16">
