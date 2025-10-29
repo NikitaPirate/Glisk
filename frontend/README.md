@@ -15,10 +15,11 @@ This is a proof of concept frontend for the Glisk NFT platform with three main p
 - **React 18** + **TypeScript** + **Vite** (build tool)
 - **RainbowKit** (wallet connection UI)
 - **wagmi** + **viem** (Ethereum interactions)
+- **@farcaster/miniapp-sdk** (Base mini app integration)
 - **Tailwind CSS** + **shadcn/ui** (styling)
 - **React Router** (client-side routing)
 
-**Network**: Base Sepolia testnet (chainId: 84532)
+**Network**: Base Mainnet (chainId: 8453)
 
 **Key Features**:
 
@@ -30,6 +31,22 @@ This is a proof of concept frontend for the Glisk NFT platform with three main p
 - Creator rewards claiming (withdraw accumulated ETH from mints)
 - X (Twitter) account linking via OAuth 2.0
 - NFT collection views using OnchainKit components (authored vs owned tabs)
+- **Base mini app integration** - Farcaster SDK for social discovery and identity
+
+## Base Mini App Integration
+
+Glisk is integrated with the **Base App** ecosystem as a mini app, providing:
+
+- **Social Discovery**: Your app appears in Base App search and categories
+- **Farcaster Identity**: Users can authenticate with their Farcaster accounts (FID)
+- **Rich Embeds**: Share your app with beautiful previews in Base feeds
+- **Seamless Launch**: Users can launch Glisk directly from Base App
+
+**How it works**: Base mini apps use the Farcaster protocol for social identity and discovery. The `@farcaster/miniapp-sdk` handles app lifecycle (splash screen dismissal) and provides authentication/social features.
+
+**Compatibility**: The SDK is fully compatible with your existing wallet stack (RainbowKit, wagmi, OnchainKit). No breaking changes.
+
+**Learn more**: See [BASE_MINIAPP.md](BASE_MINIAPP.md) for deployment guide, manifest configuration, and account association setup.
 
 ## Quick Start
 
@@ -37,7 +54,7 @@ This is a proof of concept frontend for the Glisk NFT platform with three main p
 
 - **Node.js 18+** and **npm**
 - **Web3 wallet** browser extension (MetaMask, Coinbase Wallet, etc.)
-- **Base Sepolia testnet ETH** (get from [Base Sepolia faucet](https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet))
+- **Base Mainnet ETH** (for minting NFTs and gas fees)
 
 ### Setup Instructions
 
@@ -64,22 +81,22 @@ App runs at `http://localhost:5173`
 Create `frontend/.env` file (gitignored):
 
 ```bash
-VITE_CONTRACT_ADDRESS=0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
-VITE_CHAIN_ID=84532
+VITE_CONTRACT_ADDRESS=0xb43185E67D4Fb27115AC419C9F8A335cC0B837B9
+VITE_CHAIN_ID=8453
 ```
 
 See `.env.example` for template.
 
 ## Live Demo
 
-**Testnet:** [glisk.xyz](https://glisk.xyz)
-**Network:** Base Sepolia (chainId: 84532)
-**Contract:** `0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0`
+**Production:** [glisk.xyz](https://glisk.xyz)
+**Network:** Base Mainnet (chainId: 8453)
+**Contract:** `0xb43185E67D4Fb27115AC419C9F8A335cC0B837B9`
 
 **Example URLs:**
 
 - Leaderboard: https://glisk.xyz/
-- Mint page: https://glisk.xyz/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
+- Mint page: https://glisk.xyz/0xb43185E67D4Fb27115AC419C9F8A335cC0B837B9
 - Profile: https://glisk.xyz/profile
 
 ## Project Structure
@@ -259,11 +276,11 @@ Vite automatically loads `.env.production` during `npm run build`.
 
 **Transaction fails with "wrong network"**:
 
-- Switch wallet to Base Sepolia network (chainId: 84532)
-- Add Base Sepolia manually in wallet settings:
-  - Network Name: Base Sepolia
-  - RPC URL: https://sepolia.base.org
-  - Chain ID: 84532
+- Switch wallet to Base Mainnet network (chainId: 8453)
+- Add Base Mainnet manually in wallet settings:
+  - Network Name: Base
+  - RPC URL: https://mainnet.base.org
+  - Chain ID: 8453
   - Currency Symbol: ETH
 
 **Contract ABI not found**:
@@ -289,19 +306,20 @@ Vite automatically loads `.env.production` during `npm run build`.
 
 **Transaction pending forever**:
 
-- Check Base Sepolia network status (may be slow during congestion)
-- View transaction on [BaseScan](https://sepolia.basescan.org/)
+- Check Base Mainnet network status (may be slow during congestion)
+- View transaction on [BaseScan](https://basescan.org/)
 - Transaction will complete eventually (wagmi polls automatically)
 
 ### Useful Links
 
-- **Base Sepolia Faucet**: https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet
-- **BaseScan Testnet**: https://sepolia.basescan.org/address/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0
-- **Base Sepolia RPC**: https://sepolia.base.org
+- **BaseScan (Mainnet)**: https://basescan.org/address/0xb43185E67D4Fb27115AC419C9F8A335cC0B837B9
+- **Base Mainnet RPC**: https://mainnet.base.org
+- **Base Documentation**: https://docs.base.org/
 - **WalletConnect Cloud**: https://cloud.walletconnect.com/ (for project ID)
 
 ## Documentation
 
+- **Base Mini App Guide**: `BASE_MINIAPP.md` - Farcaster SDK integration and deployment
 - **Feature Spec**: `specs/005-frontend-foundation-with/spec.md`
 - **Implementation Plan**: `specs/005-frontend-foundation-with/plan.md`
 - **Quickstart Guide**: `specs/005-frontend-foundation-with/quickstart.md`
@@ -310,12 +328,12 @@ Vite automatically loads `.env.production` during `npm run build`.
 
 ## Smart Contract
 
-**GliskNFT Contract** (Base Sepolia):
+**GliskNFT Contract** (Base Mainnet):
 
-- **Address**: `0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0`
+- **Address**: `0xb43185E67D4Fb27115AC419C9F8A335cC0B837B9`
 - **ABI**: `frontend/src/lib/glisk-nft-abi.json`
 - **Mint Function**: `mint(address promptAuthor, uint256 quantity) payable`
-- **Network**: Base Sepolia (chainId: 84532)
+- **Network**: Base Mainnet (chainId: 8453)
 
 ## License
 

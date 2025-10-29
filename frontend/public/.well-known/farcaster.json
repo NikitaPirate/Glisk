@@ -1,0 +1,29 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjI1OTQ4NywidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDY4QjUyRjc3NzcwZTk4NjZhMzAzNzgwMmRDYTIwYjNCM2YzZWY0QUIifQ",
+    "payload": "eyJkb21haW4iOiJnbGlzay54eXoifQ",
+    "signature": "eg3PBBWiIRfEmJsvjkA7BO22zVBb2XS3jfBkRb/O4bwAKa8yUD1oXDd64K+3NZeprF9XDmw6zTP1BPkyQUfrFhw="
+  },
+  "baseBuilder": {
+    "ownerAddress": "0x16f6D6251f79383F2f2e6Beeb6D7A6A79e4AF674"
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "Glisk",
+    "homeUrl": "https://glisk.xyz",
+    "iconUrl": "https://glisk.xyz/app-icon.png",
+    "splashImageUrl": "https://glisk.xyz/android-chrome-512x512.png",
+    "splashBackgroundColor": "#000000",
+    "subtitle": "AI-Generated NFTs on Base",
+    "description": "Mint unique AI-generated NFTs using creators' custom prompts. Discover top creators, connect your wallet, and collect one-of-a-kind digital art on Base.",
+    "primaryCategory": "art-creativity",
+    "tags": ["nft", "ai", "art", "base", "web3"],
+    "screenshotUrls": [],
+    "heroImageUrl": "https://glisk.xyz/android-chrome-512x512.png",
+    "tagline": "Create and Collect AI Art NFTs",
+    "ogTitle": "Glisk - AI NFT Platform",
+    "ogDescription": "Mint AI-generated NFTs from top creators on Base blockchain",
+    "ogImageUrl": "https://glisk.xyz/android-chrome-512x512.png",
+    "noindex": true
+  }
+}

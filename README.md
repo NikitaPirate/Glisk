@@ -17,12 +17,12 @@ The repository is organized into three main domains:
 - ✅ **Backend Pipeline** - Webhooks → AI image generation → IPFS → automated reveals
 - ✅ **Frontend PoC** - Mint interface, profile management, author leaderboard, X integration
 - ✅ **Testnet Deployment** - Live on Base Sepolia
-- 🎨 **Professional UI/UX Design** - Complete user interface overhaul
-- 📱 **Base Mini App** - Seamless integration for Base app users
-- 🚀 **Mainnet Launch** - Production deployment on Base mainnet
+- ✅ **Professional UI/UX Design** - Complete user interface overhaul
+- ✅ **Mainnet Launch** - Production deployment on Base mainnet
+- 🚧 **Base Mini App** - Farcaster SDK integration (v1 deployed, ongoing improvements)
 
 **Live Demo:** [glisk.xyz](https://glisk.xyz)
-**Contract:** `0x569d456c584Ac2bb2d66b075a31278630E7d43a0` (Base Sepolia)
+**Contract:** `0xb43185E67D4Fb27115AC419C9F8A335cC0B837B9` (Base Mainnet)
 
 ## Pipeline
 
@@ -47,7 +47,7 @@ I follow GitHub Spec Kit methodology for specification-driven development. Learn
 **Smart Contracts:**
 - Solidity ^0.8.20, OpenZeppelin Contracts v5
 - Foundry (forge, anvil, cast)
-- Base Sepolia / Base Mainnet (Ethereum L2)
+- Base Mainnet (Ethereum L2)
 
 **Backend:**
 - Python 3.13, FastAPI, SQLModel
@@ -67,6 +67,8 @@ I follow GitHub Spec Kit methodology for specification-driven development. Learn
 
 - **[Contracts](contracts/README.md)** - Smart contract implementation details
 - **[Backend](backend/README.md)** - API, database, architecture
+- **[Frontend](frontend/README.md)** - Web application and Base mini app integration
+- **[Base Mini App](frontend/BASE_MINIAPP.md)** - Farcaster SDK setup and deployment guide
 - **[Workers](backend/src/glisk/workers/README.md)** - Background workers (image generation, IPFS, reveal)
 - **[Token Recovery](backend/src/glisk/cli/README.md)** - CLI for recovering missing tokens
 - **[Specifications](specs/)** - Feature specs and implementation plans
