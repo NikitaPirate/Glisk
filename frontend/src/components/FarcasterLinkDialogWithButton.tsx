@@ -9,26 +9,6 @@ import {
 } from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
-// Type for Farcaster sign-in response (based on actual Auth Kit response)
-interface FarcasterSignInResponse {
-  fid: number
-  username: string
-  message?: string
-  signature?: string
-  pfp?: string
-  displayName?: string
-  bio?: string
-  address?: string
-  // Additional fields from the actual response
-  state?: string
-  nonce?: string
-  signatureParams?: {
-    message?: string
-    signature?: string
-  }
-  [key: string]: any // Allow other fields for discovery
-}
-
 interface FarcasterLinkDialogProps {
   open: boolean
   onClose: () => void
@@ -51,7 +31,7 @@ export function FarcasterLinkDialogWithButton({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleFarcasterSuccess = async (res: FarcasterSignInResponse) => {
+  const handleFarcasterSuccess = async (res: any) => {
     // Extract message and signature from the correct location
     const message = res.signatureParams?.message || res.message
     const signature = res.signatureParams?.signature || res.signature

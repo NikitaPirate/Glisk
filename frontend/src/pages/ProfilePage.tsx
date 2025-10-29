@@ -337,7 +337,7 @@ export function ProfilePage() {
   }
 
   // Handle Farcaster link success
-  const handleFarcasterSuccess = (username: string, fid: number) => {
+  const handleFarcasterSuccess = (username: string, _fid: number) => {
     setFarcasterAuth(prev => ({
       ...prev,
       handle: username,
