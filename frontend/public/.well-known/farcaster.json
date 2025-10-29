@@ -1,11 +1,11 @@
 {
   "accountAssociation": {
-    "header": "REPLACE_AFTER_DEPLOYMENT",
-    "payload": "REPLACE_AFTER_DEPLOYMENT",
-    "signature": "REPLACE_AFTER_DEPLOYMENT"
+    "header": "eyJmaWQiOjI1OTQ4NywidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDY4QjUyRjc3NzcwZTk4NjZhMzAzNzgwMmRDYTIwYjNCM2YzZWY0QUIifQ",
+    "payload": "eyJkb21haW4iOiJnbGlzay54eXoifQ",
+    "signature": "eg3PBBWiIRfEmJsvjkA7BO22zVBb2XS3jfBkRb/O4bwAKa8yUD1oXDd64K+3NZeprF9XDmw6zTP1BPkyQUfrFhw="
   },
   "baseBuilder": {
-    "ownerAddress": "REPLACE_WITH_BASE_ACCOUNT_ADDRESS"
+    "ownerAddress": "0x68B52F77770e9866a3037802dCa20b3B3f3ef4AB"
   },
   "miniapp": {
     "version": "1",
