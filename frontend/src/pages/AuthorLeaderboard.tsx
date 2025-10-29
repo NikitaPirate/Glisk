@@ -30,7 +30,7 @@ export default function AuthorLeaderboard() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto px-12 py-20 max-w-4xl">
+      <div className="page-container">
         <p className="text-sm text-muted-foreground">Loading...</p>
       </div>
     )
@@ -39,7 +39,7 @@ export default function AuthorLeaderboard() {
   // Empty state
   if (authors.length === 0) {
     return (
-      <div className="container mx-auto px-12 py-20 max-w-4xl">
+      <div className="page-container">
         <p className="text-sm text-muted-foreground">No authors yet</p>
       </div>
     )
@@ -47,7 +47,7 @@ export default function AuthorLeaderboard() {
 
   // Leaderboard display
   return (
-    <div className="container mx-auto px-12 py-20 max-w-4xl">
+    <div className="page-container">
       <Card className="px-8">
         <div className="space-y-6">
           {authors.map((author, index) => (

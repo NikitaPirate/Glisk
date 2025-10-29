@@ -202,6 +202,16 @@
       background-color: oklch(0.42 0.11 207); /* cyan-750 dark mode - darker than accent */
     }
   }
+
+  /* Base container - horizontal structure (width constraints + responsive padding) */
+  .container-base {
+    @apply container mx-auto px-4 sm:px-12 max-w-4xl;
+  }
+
+  /* Page container - base + vertical spacing */
+  .page-container {
+    @apply container-base py-12 sm:py-20;
+  }
 }
 
 /**

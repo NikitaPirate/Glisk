@@ -193,7 +193,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-12 py-20 max-w-4xl">
+    <div className="page-container">
       <div>
         {/* Identity Card Section */}
         <Card className="px-8 gap-6 mb-16">

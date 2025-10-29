@@ -305,7 +305,7 @@ export function CreatorMintPage() {
   const COINBASE_VERIFIED_SCHEMA_ID = network.attestationSchema
 
   return (
-    <div className="container mx-auto px-12 py-20 max-w-4xl">
+    <div className="page-container">
       <div className="space-y-16">
         {/* Author Identity Section */}
         {isCreatorAddressValid && (
