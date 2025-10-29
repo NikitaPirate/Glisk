@@ -199,7 +199,7 @@ export function ProfilePage() {
         <Card className="px-8 gap-6 mb-16">
           <h2 className="text-2xl font-bold">Your Identity</h2>
 
-          <div className="flex flex-wrap gap-8 items-center p-16">
+          <div className="flex flex-wrap gap-8 items-center p-4 sm:p-16">
             {/* Left: IdentityCard */}
             <div className="flex-1 min-w-64">
               <IdentityCard

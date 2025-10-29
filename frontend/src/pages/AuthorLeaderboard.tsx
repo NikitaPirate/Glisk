@@ -48,13 +48,13 @@ export default function AuthorLeaderboard() {
   // Leaderboard display
   return (
     <div className="page-container">
-      <Card className="px-8">
+      <Card className="sm:px-8 px-4">
         <div className="space-y-6">
           {authors.map((author, index) => (
             <div
               key={author.author_address}
               onClick={() => navigate(`/${author.author_address}`)}
-              className="p-6 bg-accent shadow-interactive hover-lift cursor-pointer transition-all"
+              className="sm:p-6 p-4 bg-accent shadow-interactive hover-lift cursor-pointer transition-all"
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-3">
