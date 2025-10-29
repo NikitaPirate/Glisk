@@ -11,7 +11,7 @@
     "version": "1",
     "name": "Glisk",
     "homeUrl": "https://glisk.xyz",
-    "iconUrl": "https://glisk.xyz/full_logo.svg",
+    "iconUrl": "https://glisk.xyz/app-icon.png",
     "splashImageUrl": "https://glisk.xyz/android-chrome-512x512.png",
     "splashBackgroundColor": "#000000",
     "subtitle": "AI-Generated NFTs on Base",
