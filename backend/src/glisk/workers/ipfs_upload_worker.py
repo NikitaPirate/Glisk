@@ -26,20 +26,26 @@ from glisk.services.ipfs.pinata_client import PinataClient
 logger = structlog.get_logger(__name__)
 
 
-def build_metadata(token: Token, image_cid: str, twitter_handle: str | None = None) -> dict:
+def build_metadata(
+    token: Token,
+    image_cid: str,
+    twitter_handle: str | None = None,
+    farcaster_handle: str | None = None,
+) -> dict:
     """Build ERC721 metadata JSON for token.
 
     Args:
         token: Token model instance
         image_cid: IPFS CID of uploaded image
         twitter_handle: Optional X (Twitter) username of the author (without @ symbol)
+        farcaster_handle: Optional Farcaster username of the author (without @ symbol)
 
     Returns:
         ERC721 metadata dictionary with keys:
         - name (str): Token name (e.g., "GLISK S0 #123")
         - description (str): Token description with social link
         - image (str): IPFS URI (ipfs://<image_cid>)
-        - attributes (list): Array of trait objects (includes X handle if available)
+        - attributes (list): Array of trait objects (includes social handles if available)
     """
     metadata = {
         "name": f"GLISK S0 #{token.token_id}",
@@ -52,6 +58,12 @@ def build_metadata(token: Token, image_cid: str, twitter_handle: str | None = No
     if twitter_handle:
         metadata["attributes"].append(
             {"trait_type": "Author X Handle", "value": f"@{twitter_handle}"}
+        )
+
+    # Add Farcaster handle as attribute if available (visible on NFT marketplaces)
+    if farcaster_handle:
+        metadata["attributes"].append(
+            {"trait_type": "Author Farcaster Handle", "value": f"@{farcaster_handle}"}
         )
 
     return metadata
@@ -71,8 +83,8 @@ async def process_single_token(
     2. Fetch token by ID (attach to session)
     3. Create Pinata client
     4. Upload image to IPFS → get image CID
-    5. Fetch author by wallet address → get twitter_handle (if exists)
-    6. Build metadata with image CID and twitter_handle (if available)
+    5. Fetch author by wallet address → get twitter_handle and farcaster_handle (if exist)
+    6. Build metadata with image CID and social handles (if available)
     7. Upload metadata to IPFS → get metadata CID
     8. Update token with CIDs and status: uploading → ready
     9. Create audit records for both uploads
@@ -135,14 +147,20 @@ async def process_single_token(
                 retry_count=attempt_number - 1,
             )
 
-            # Step 3: Fetch author to get twitter_handle
+            # Step 3: Fetch author to get twitter_handle and farcaster_handle
             author = await session.scalar(
                 select(Author).where(Author.id == attached_token.author_id)
             )
             twitter_handle = author.twitter_handle if author else None
+            farcaster_handle = author.farcaster_handle if author else None
 
-            # Step 4: Build metadata with author's twitter handle (if available)
-            metadata = build_metadata(attached_token, image_cid, twitter_handle=twitter_handle)
+            # Step 4: Build metadata with author's social handles (if available)
+            metadata = build_metadata(
+                attached_token,
+                image_cid,
+                twitter_handle=twitter_handle,
+                farcaster_handle=farcaster_handle,
+            )
 
             # Step 5: Upload metadata to IPFS
             metadata_cid = await pinata.upload_metadata(metadata, attached_token.token_id)

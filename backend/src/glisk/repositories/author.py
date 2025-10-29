@@ -22,6 +22,7 @@ class AuthorRepository:
     - list_all: Paginated list of all authors
     - upsert_author_prompt: Create or update author's prompt text
     - upsert_x_handle: Create or update author's X (Twitter) handle
+    - upsert_farcaster_handle: Create or update author's Farcaster handle
     - get_author_leaderboard: Top 50 authors ranked by token count
     """
 
@@ -170,6 +171,51 @@ class AuthorRepository:
             new_author = Author(
                 wallet_address=wallet_address,  # Triggers wallet validation
                 twitter_handle=twitter_handle,  # Triggers twitter handle validation
+                prompt_text=None,  # Will be set when author updates their prompt
+            )
+            return await self.add(new_author)
+
+    async def upsert_farcaster_handle(self, wallet_address: str, farcaster_handle: str) -> Author:
+        """Create or update author's Farcaster handle.
+
+        Implements UPSERT logic for Farcaster account linking: creates new author
+        if wallet doesn't exist, or updates farcaster_handle for existing author.
+        Uses case-insensitive wallet lookup to prevent duplicate authors.
+
+        This method is called after successful SIWF verification to store the verified
+        Farcaster username in the author's profile.
+
+        Args:
+            wallet_address: Ethereum wallet address (0x + 40 hex chars)
+            farcaster_handle: Verified Farcaster username from SIWF (alphanumeric)
+
+        Returns:
+            Author entity (newly created or updated)
+
+        Raises:
+            ValueError: If validation fails (invalid wallet format, handle format, etc.)
+
+        Example:
+            >>> author = await repo.upsert_farcaster_handle(
+            ...     "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+            ...     "gliskartist"
+            ... )
+        """
+        # Check if author already exists (case-insensitive lookup)
+        existing_author = await self.get_by_wallet(wallet_address)
+
+        if existing_author:
+            # Update existing author's farcaster handle
+            existing_author.farcaster_handle = farcaster_handle  # Triggers Pydantic validation
+            await self.session.flush()
+            await self.session.refresh(existing_author)  # Ensure fresh data
+            return existing_author
+        else:
+            # Create new author with farcaster handle but no prompt yet
+            # Author will need to set prompt before minting NFTs
+            new_author = Author(
+                wallet_address=wallet_address,  # Triggers wallet validation
+                farcaster_handle=farcaster_handle,  # Triggers farcaster handle validation
                 prompt_text=None,  # Will be set when author updates their prompt
             )
             return await self.add(new_author)

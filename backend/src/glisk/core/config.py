@@ -86,6 +86,15 @@ class Settings(BaseSettings):
     frontend_url: str = Field(default="http://localhost:5173", alias="FRONTEND_URL")
 
     @property
+    def farcaster_domain(self) -> str:
+        """Extract domain from frontend_url for Farcaster SIWF signature verification."""
+        from urllib.parse import urlparse
+
+        parsed = urlparse(self.frontend_url)
+        # Return host (includes port if present, e.g., "localhost:5173")
+        return parsed.netloc or "localhost:5173"
+
+    @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS origins from comma-separated string."""
         return [origin.strip() for origin in self.cors_origins.split(",")]

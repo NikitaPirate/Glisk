@@ -3,6 +3,15 @@ revision = 3
 requires-python = ">=3.13"
 
 [[package]]
+name = "abnf"
+version = "2.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/01/29/3e6a069ffc06a53742cb086155e3bcb5cfc9069c01d9620d25e83262a1a0/abnf-2.4.0.tar.gz", hash = "sha256:78a36eb74d2f7fbbb81a0bc7c237ac29977d5db1cf69cf68099e2ecda6ee3cac", size = 321750, upload-time = "2025-07-23T18:15:09.17Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f1/30/3ba0d00ffc522a71982e49f97ec774fc52c6f036ad8dcb083fea28a9cb71/abnf-2.4.0-py3-none-any.whl", hash = "sha256:a496e3de97ccb7b5a48249f27e75e82d00b3e9ca25049a7261b9b6225e68c48c", size = 49332, upload-time = "2025-07-23T18:15:06.806Z" },
+]
+
+[[package]]
 name = "aiohappyeyeballs"
 version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -557,6 +566,7 @@ dependencies = [
     { name = "pydantic-settings" },
     { name = "replicate" },
     { name = "requests" },
+    { name = "siwe" },
     { name = "sqlmodel" },
     { name = "structlog" },
     { name = "uvicorn" },
@@ -587,6 +597,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "replicate", specifier = ">=1.0.7" },
     { name = "requests", specifier = ">=2.32.5" },
+    { name = "siwe", specifier = ">=4.4.0" },
     { name = "sqlmodel", specifier = ">=0.0.27" },
     { name = "structlog", specifier = ">=25.4.0" },
     { name = "uvicorn", specifier = ">=0.37.0" },
@@ -1401,6 +1412,25 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c3/07/3c45562c67933cc35f6d5df4ca77dabbcd88fddaca0d6b8371693d29fd56/ruff-0.14.1-py3-none-win32.whl", hash = "sha256:e037ea374aaaff4103240ae79168c0945ae3d5ae8db190603de3b4012bd1def6", size = 12319467, upload-time = "2025-10-16T18:05:33.261Z" },
     { url = "https://files.pythonhosted.org/packages/02/88/0ee4ca507d4aa05f67e292d2e5eb0b3e358fbcfe527554a2eda9ac422d6b/ruff-0.14.1-py3-none-win_amd64.whl", hash = "sha256:59d599cdff9c7f925a017f6f2c256c908b094e55967f93f2821b1439928746a1", size = 13401123, upload-time = "2025-10-16T18:05:35.984Z" },
     { url = "https://files.pythonhosted.org/packages/b8/81/4b6387be7014858d924b843530e1b2a8e531846807516e9bea2ee0936bf7/ruff-0.14.1-py3-none-win_arm64.whl", hash = "sha256:e3b443c4c9f16ae850906b8d0a707b2a4c16f8d2f0a7fe65c475c5886665ce44", size = 12436636, upload-time = "2025-10-16T18:05:38.995Z" },
+]
+
+[[package]]
+name = "siwe"
+version = "4.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "abnf" },
+    { name = "eth-account" },
+    { name = "eth-typing" },
+    { name = "eth-utils" },
+    { name = "pydantic" },
+    { name = "pydantic-core" },
+    { name = "typing-extensions" },
+    { name = "web3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a0/20/53cce95942c4e7cac9020d509b88a9cf09b40443b7de8b6f44fe6e24aa26/siwe-4.4.0.tar.gz", hash = "sha256:5fdf843253a91d78085f1da11ed7c9695bbb743e112da658e63a285ddf3ffec7", size = 14258, upload-time = "2024-10-11T15:29:14.284Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/67/71/3bc6d28fe362f295593f570e93db8ec84842634efc3f55612dfab51e7748/siwe-4.4.0-py3-none-any.whl", hash = "sha256:3a4db2d36e10933c01d09ba0aad4db2f404e9ab2c9e9a204fa1bc1103e9d754d", size = 10472, upload-time = "2024-10-11T15:29:12.86Z" },
 ]
 
 [[package]]

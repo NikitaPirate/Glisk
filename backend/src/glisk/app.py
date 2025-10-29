@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from web3 import Web3
 
-from glisk.api.routes import authors, webhooks, x_auth
+from glisk.api.routes import authors, farcaster_auth, webhooks, x_auth
 from glisk.core import timezone  # noqa: F401
 from glisk.core.config import Settings, configure_logging
 from glisk.core.database import setup_db_session
@@ -247,6 +247,9 @@ def create_app() -> FastAPI:
     app.include_router(authors.router)  # Authors router has prefix="/api/authors" in definition
     app.include_router(webhooks.router, prefix="/webhooks", tags=["webhooks"])
     app.include_router(x_auth.router)  # X OAuth router has prefix="/api/authors/x" in definition
+    app.include_router(
+        farcaster_auth.router
+    )  # Farcaster router has prefix="/api/authors/farcaster" in definition
 
     # Health check endpoint with database validation
     @app.get("/health")
