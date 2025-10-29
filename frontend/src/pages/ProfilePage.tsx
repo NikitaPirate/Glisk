@@ -9,9 +9,11 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { network } from '@/lib/wagmi'
+import { FarcasterLinkDialogWithButton as FarcasterLinkDialog } from '@/components/FarcasterLinkDialogWithButton'
+import { toast } from 'sonner'
 
 type LoadingState = 'idle' | 'fetching' | 'linking' | 'signing'
-type SocialProvider = 'x' | 'farcaster'
+type SocialProvider = 'x'
 
 interface ProviderConfig {
   id: SocialProvider
@@ -36,15 +38,6 @@ const SOCIAL_PROVIDERS: Record<SocialProvider, ProviderConfig> = {
     messageTemplate: addr => `Link X account for wallet: ${addr}`,
     responseUrlField: 'authorization_url',
     callbackParams: { linked: 'x_linked', username: 'username', error: 'error' },
-  },
-  farcaster: {
-    id: 'farcaster',
-    displayName: 'Farcaster',
-    icon: '🟣',
-    apiEndpoint: '/api/authors/farcaster/auth/start',
-    messageTemplate: addr => `Link Farcaster account for wallet: ${addr}`,
-    responseUrlField: 'farcaster_url',
-    callbackParams: { linked: 'fc_linked', username: 'username', error: 'error' },
   },
 }
 
@@ -72,15 +65,37 @@ export function ProfilePage() {
     >
   >({
     x: { handle: null, loading: 'idle', error: '' },
-    farcaster: { handle: null, loading: 'idle', error: '' },
   })
+
+  // Farcaster auth state (separate from OAuth providers)
+  const [farcasterAuth, setFarcasterAuth] = useState<{
+    handle: string | null
+    loading: LoadingState
+    error: string
+  }>({
+    handle: null,
+    loading: 'idle',
+    error: '',
+  })
+  const [farcasterDialogOpen, setFarcasterDialogOpen] = useState(false)
+  const [farcasterWalletSig, setFarcasterWalletSig] = useState<{
+    address: string
+    message: string
+    signature: string
+  } | null>(null)
 
   // Share dialog state
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [copySuccess, setCopySuccess] = useState(false)
 
-  // Signature hook for X linking
-  const { signMessage, data: signature, error: signError } = useSignMessage()
+  // Signature hook for social account linking
+  const {
+    signMessage,
+    signMessageAsync,
+    data: signature,
+    error: signError,
+    reset: resetSignature,
+  } = useSignMessage()
 
   // Get active tab from URL query param, validate and fallback to 'author'
   const tabParam = searchParams.get('tab')
@@ -98,7 +113,6 @@ export function ProfilePage() {
   // T065: Invalidate all query caches when wallet address changes
   useEffect(() => {
     if (address) {
-      console.log('[ProfilePage] Wallet changed to:', address, '- clearing all query caches')
       queryClient.invalidateQueries()
     }
   }, [address, queryClient])
@@ -113,8 +127,8 @@ export function ProfilePage() {
     if (!address) {
       setSocialAuth({
         x: { handle: null, loading: 'idle', error: '' },
-        farcaster: { handle: null, loading: 'idle', error: '' },
       })
+      setFarcasterAuth({ handle: null, loading: 'idle', error: '' })
       return
     }
 
@@ -122,8 +136,8 @@ export function ProfilePage() {
       try {
         setSocialAuth(prev => ({
           x: { ...prev.x, loading: 'fetching' },
-          farcaster: { ...prev.farcaster, loading: 'fetching' },
         }))
+        setFarcasterAuth(prev => ({ ...prev, loading: 'fetching' }))
 
         const response = await fetch(`/api/authors/${address}`)
 
@@ -134,14 +148,18 @@ export function ProfilePage() {
         const data = await response.json()
         setSocialAuth(prev => ({
           x: { ...prev.x, handle: data.twitter_handle || null, loading: 'idle' },
-          farcaster: { ...prev.farcaster, handle: data.farcaster_handle || null, loading: 'idle' },
+        }))
+        setFarcasterAuth(prev => ({
+          ...prev,
+          handle: data.farcaster_handle || null,
+          loading: 'idle',
         }))
       } catch (error) {
         console.error('Failed to fetch account status:', error)
         setSocialAuth(prev => ({
           x: { ...prev.x, loading: 'idle' },
-          farcaster: { ...prev.farcaster, loading: 'idle' },
         }))
+        setFarcasterAuth(prev => ({ ...prev, loading: 'idle' }))
       }
     }
 
@@ -289,6 +307,58 @@ export function ProfilePage() {
     }
   }
 
+  // Link Farcaster account (separate flow with Auth Kit dialog)
+  const linkFarcasterAccount = async () => {
+    if (!address) return
+
+    setFarcasterAuth(prev => ({ ...prev, error: '' }))
+
+    try {
+      setFarcasterAuth(prev => ({ ...prev, loading: 'signing' }))
+
+      const message = `Link Farcaster account for wallet: ${address}`
+
+      // Request wallet signature (async version returns result directly)
+      const walletSignature = await signMessageAsync({ message })
+
+      // Save wallet signature data
+      setFarcasterWalletSig({
+        address,
+        message,
+        signature: walletSignature,
+      })
+
+      // Open Farcaster dialog
+      setFarcasterDialogOpen(true)
+      setFarcasterAuth(prev => ({ ...prev, loading: 'idle' }))
+    } catch (error) {
+      setFarcasterAuth(prev => ({ ...prev, loading: 'idle' }))
+    }
+  }
+
+  // Handle Farcaster link success
+  const handleFarcasterSuccess = (username: string, fid: number) => {
+    setFarcasterAuth(prev => ({
+      ...prev,
+      handle: username,
+      loading: 'idle',
+      error: '',
+    }))
+    setFarcasterWalletSig(null)
+    resetSignature()
+
+    toast.success(`Farcaster linked: @${username}`)
+  }
+
+  // Handle Farcaster link error
+  const handleFarcasterError = (error: string) => {
+    setFarcasterAuth(prev => ({
+      ...prev,
+      loading: 'idle',
+      error,
+    }))
+  }
+
   // Redirect message if not connected
   if (!isConnected) {
     return (
@@ -371,6 +441,64 @@ export function ProfilePage() {
                 </div>
               )
             })}
+
+            {/* Farcaster Account (separate Auth Kit flow) */}
+            <div>
+              {farcasterAuth.loading === 'fetching' ? (
+                <p className="text-base text-muted-foreground">Loading...</p>
+              ) : (
+                <div
+                  className={
+                    farcasterAuth.handle
+                      ? 'flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8'
+                      : 'flex flex-row items-center gap-4 sm:gap-8'
+                  }
+                >
+                  {/* Icon + Handle/Error Container */}
+                  <div className="flex items-center gap-4">
+                    {/* Icon */}
+                    <img
+                      src="/images/farcaster.svg"
+                      alt="Farcaster"
+                      className="w-[30px] h-[30px]"
+                    />
+
+                    {/* Handle/Error */}
+                    <div>
+                      {farcasterAuth.handle && (
+                        <p className="text-base text-green-600 dark:text-green-400">
+                          ✓ @{farcasterAuth.handle}
+                        </p>
+                      )}
+                      {farcasterAuth.error && (
+                        <p className="text-sm text-red-600 dark:text-red-400">
+                          {farcasterAuth.error}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Button */}
+                  <Button
+                    onClick={linkFarcasterAccount}
+                    disabled={
+                      farcasterAuth.loading === 'signing' || farcasterAuth.loading === 'linking'
+                    }
+                    variant="secondary"
+                    size="lg"
+                    className={farcasterAuth.handle ? 'w-full sm:w-auto' : ''}
+                  >
+                    {farcasterAuth.loading === 'signing' || farcasterAuth.loading === 'linking'
+                      ? farcasterAuth.handle
+                        ? 'Rebinding...'
+                        : 'Linking...'
+                      : farcasterAuth.handle
+                        ? 'Rebind Farcaster'
+                        : 'Link Farcaster'}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Share Button */}
@@ -447,6 +575,19 @@ export function ProfilePage() {
 
         {/* Tab Content */}
         <div>{activeTab === 'author' ? <PromptAuthor /> : <Collector />}</div>
+
+        {/* Farcaster Link Dialog */}
+        {farcasterWalletSig && (
+          <FarcasterLinkDialog
+            open={farcasterDialogOpen}
+            onClose={() => setFarcasterDialogOpen(false)}
+            walletAddress={farcasterWalletSig.address}
+            walletMessage={farcasterWalletSig.message}
+            walletSignature={farcasterWalletSig.signature}
+            onSuccess={handleFarcasterSuccess}
+            onError={handleFarcasterError}
+          />
+        )}
       </div>
     </div>
   )

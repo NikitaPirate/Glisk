@@ -90,6 +90,10 @@ class AuthorStatusResponse(BaseModel):
         default=None,
         description="X (Twitter) username if author has linked their account, None otherwise",
     )
+    farcaster_handle: str | None = Field(
+        default=None,
+        description="Farcaster username if author has linked their account, None otherwise",
+    )
 
 
 class TokenDTO(BaseModel):
@@ -393,11 +397,11 @@ async def get_author_status(
     wallet_address: str,
     uow_factory=Depends(get_uow_factory),
 ) -> AuthorStatusResponse:
-    """Check if author has configured a prompt and X account (read-only status check).
+    """Check if author has configured a prompt and social accounts (read-only status check).
 
     This endpoint returns whether an author has set up their AI generation prompt
-    and if they have linked their X (Twitter) account. It does NOT return the prompt
-    text itself (prompts are write-only via API).
+    and if they have linked their X (Twitter) or Farcaster accounts. It does NOT
+    return the prompt text itself (prompts are write-only via API).
 
     Always returns 200 OK, even if author doesn't exist (returns has_prompt=false).
 
@@ -411,27 +415,30 @@ async def get_author_status(
         uow_factory: UnitOfWork factory (injected dependency)
 
     Returns:
-        AuthorStatusResponse with has_prompt boolean and twitter_handle (if linked)
+        AuthorStatusResponse with has_prompt boolean, twitter_handle, and farcaster_handle
 
     Example:
         GET /api/authors/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0  # gitleaks:allow
 
-        Response 200 (author exists with X account):
+        Response 200 (author exists with social accounts):
         {
             "has_prompt": true,
-            "twitter_handle": "gliskartist"
+            "twitter_handle": "gliskartist",
+            "farcaster_handle": "gliskartist"
         }
 
-        Response 200 (author exists without X account):
+        Response 200 (author exists without social accounts):
         {
             "has_prompt": true,
-            "twitter_handle": null
+            "twitter_handle": null,
+            "farcaster_handle": null
         }
 
         Response 200 (author doesn't exist):
         {
             "has_prompt": false,
-            "twitter_handle": null
+            "twitter_handle": null,
+            "farcaster_handle": null
         }
     """
     try:
@@ -451,23 +458,29 @@ async def get_author_status(
             author = await uow.authors.get_by_wallet(checksummed_address)
 
             if author is None:
-                # Author not found - return has_prompt=false, no twitter_handle (not 404)
+                # Author not found - return has_prompt=false, no social handles (not 404)
                 logger.debug(
                     "author_not_found",
                     wallet_address=checksummed_address,
                 )
-                return AuthorStatusResponse(has_prompt=False, twitter_handle=None)
+                return AuthorStatusResponse(
+                    has_prompt=False,
+                    twitter_handle=None,
+                    farcaster_handle=None,
+                )
             else:
-                # Author exists with prompt - return status and twitter_handle if linked
+                # Author exists with prompt - return status and social handles if linked
                 logger.debug(
                     "author_status_retrieved",
                     wallet_address=checksummed_address,
                     author_id=str(author.id),
                     twitter_handle=author.twitter_handle,
+                    farcaster_handle=author.farcaster_handle,
                 )
                 return AuthorStatusResponse(
                     has_prompt=True,
                     twitter_handle=author.twitter_handle,
+                    farcaster_handle=author.farcaster_handle,
                 )
 
     except Exception as e:
