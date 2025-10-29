@@ -11,6 +11,42 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { network } from '@/lib/wagmi'
 
 type LoadingState = 'idle' | 'fetching' | 'linking' | 'signing'
+type SocialProvider = 'x' | 'farcaster'
+
+interface ProviderConfig {
+  id: SocialProvider
+  displayName: string
+  icon: string
+  apiEndpoint: string
+  messageTemplate: (address: string) => string
+  responseUrlField: string
+  callbackParams: {
+    linked: string
+    username: string
+    error: string
+  }
+}
+
+const SOCIAL_PROVIDERS: Record<SocialProvider, ProviderConfig> = {
+  x: {
+    id: 'x',
+    displayName: 'X',
+    icon: '𝕏',
+    apiEndpoint: '/api/authors/x/auth/start',
+    messageTemplate: addr => `Link X account for wallet: ${addr}`,
+    responseUrlField: 'authorization_url',
+    callbackParams: { linked: 'x_linked', username: 'username', error: 'error' },
+  },
+  farcaster: {
+    id: 'farcaster',
+    displayName: 'Farcaster',
+    icon: '🟣',
+    apiEndpoint: '/api/authors/farcaster/auth/start',
+    messageTemplate: addr => `Link Farcaster account for wallet: ${addr}`,
+    responseUrlField: 'farcaster_url',
+    callbackParams: { linked: 'fc_linked', username: 'username', error: 'error' },
+  },
+}
 
 // Coinbase Verified attestation schema ID
 const COINBASE_VERIFIED_SCHEMA_ID = network.attestationSchema
@@ -23,10 +59,21 @@ export function ProfilePage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const queryClient = useQueryClient()
 
-  // X linking state
-  const [twitterHandle, setTwitterHandle] = useState<string | null>(null)
-  const [xLoading, setXLoading] = useState<LoadingState>('idle')
-  const [xErrorMessage, setXErrorMessage] = useState('')
+  // Social auth state (unified for all providers)
+  const [activeProvider, setActiveProvider] = useState<SocialProvider | null>(null)
+  const [socialAuth, setSocialAuth] = useState<
+    Record<
+      SocialProvider,
+      {
+        handle: string | null
+        loading: LoadingState
+        error: string
+      }
+    >
+  >({
+    x: { handle: null, loading: 'idle', error: '' },
+    farcaster: { handle: null, loading: 'idle', error: '' },
+  })
 
   // Share dialog state
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
@@ -61,69 +108,101 @@ export function ProfilePage() {
     setSearchParams({ tab })
   }
 
-  // Fetch X account status on mount and when address changes
+  // Fetch social account handles on mount and when address changes
   useEffect(() => {
     if (!address) {
-      setTwitterHandle(null)
+      setSocialAuth({
+        x: { handle: null, loading: 'idle', error: '' },
+        farcaster: { handle: null, loading: 'idle', error: '' },
+      })
       return
     }
 
-    const fetchXStatus = async () => {
+    const fetchAccountStatus = async () => {
       try {
-        setXLoading('fetching')
+        setSocialAuth(prev => ({
+          x: { ...prev.x, loading: 'fetching' },
+          farcaster: { ...prev.farcaster, loading: 'fetching' },
+        }))
+
         const response = await fetch(`/api/authors/${address}`)
 
         if (!response.ok) {
-          throw new Error('Failed to fetch X status')
+          throw new Error('Failed to fetch account status')
         }
 
         const data = await response.json()
-        setTwitterHandle(data.twitter_handle || null)
+        setSocialAuth(prev => ({
+          x: { ...prev.x, handle: data.twitter_handle || null, loading: 'idle' },
+          farcaster: { ...prev.farcaster, handle: data.farcaster_handle || null, loading: 'idle' },
+        }))
       } catch (error) {
-        console.error('Failed to fetch X status:', error)
-      } finally {
-        setXLoading('idle')
+        console.error('Failed to fetch account status:', error)
+        setSocialAuth(prev => ({
+          x: { ...prev.x, loading: 'idle' },
+          farcaster: { ...prev.farcaster, loading: 'idle' },
+        }))
       }
     }
 
-    fetchXStatus()
+    fetchAccountStatus()
   }, [address])
 
-  // Check URL query params for X OAuth callback
+  // Check URL query params for social auth callbacks (unified for all providers)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const xLinked = params.get('x_linked')
-    const username = params.get('username')
-    const error = params.get('error')
+    let hasCallback = false
 
-    if (xLinked === 'true' && username) {
-      setTwitterHandle(username)
-      window.history.replaceState(
-        {},
-        '',
-        window.location.pathname +
-          window.location.search.replace(/[?&]x_linked=true(&username=[^&]+)?/, '')
-      )
-    } else if (xLinked === 'false' && error) {
-      setXErrorMessage('Failed to link X account')
-      window.history.replaceState({}, '', window.location.pathname)
+    Object.values(SOCIAL_PROVIDERS).forEach(provider => {
+      const config = provider.callbackParams
+      const linked = params.get(config.linked)
+      const username = params.get(config.username)
+      const error = params.get(config.error)
+
+      if (linked === 'true' && username) {
+        setSocialAuth(prev => ({
+          ...prev,
+          [provider.id]: { ...prev[provider.id], handle: username },
+        }))
+        hasCallback = true
+      } else if (linked === 'false' && error) {
+        setSocialAuth(prev => ({
+          ...prev,
+          [provider.id]: {
+            ...prev[provider.id],
+            error: `Failed to link ${provider.displayName} account`,
+          },
+        }))
+        hasCallback = true
+      }
+    })
+
+    // Clean callback params from URL
+    if (hasCallback) {
+      const cleanUrl = window.location.pathname + '?tab=' + (params.get('tab') || 'author')
+      window.history.replaceState({}, '', cleanUrl)
     }
   }, [])
 
-  // Start X OAuth flow when signature is received
+  // Start social auth flow when signature is received (unified for all providers)
   useEffect(() => {
-    if (!signature || !address || xLoading !== 'signing') {
-      return
-    }
+    if (!signature || !address || !activeProvider) return
 
-    const startOAuth = async () => {
+    const provider = SOCIAL_PROVIDERS[activeProvider]
+    const auth = socialAuth[activeProvider]
+
+    if (auth.loading !== 'signing') return
+
+    const startAuth = async () => {
       try {
-        setXLoading('linking')
-        setXErrorMessage('')
+        setSocialAuth(prev => ({
+          ...prev,
+          [activeProvider]: { ...prev[activeProvider], loading: 'linking', error: '' },
+        }))
 
-        const message = `Link X account for wallet: ${address}`
+        const message = provider.messageTemplate(address)
 
-        const response = await fetch('/api/authors/x/auth/start', {
+        const response = await fetch(provider.apiEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -138,46 +217,75 @@ export function ProfilePage() {
         const data = await response.json()
 
         if (!response.ok) {
-          throw new Error(data.detail || 'Failed to start X OAuth')
+          throw new Error(data.detail || `Failed to start ${provider.displayName} auth`)
         }
 
-        window.location.href = data.authorization_url
+        window.location.href = data[provider.responseUrlField]
       } catch (error) {
-        setXLoading('idle')
-        setXErrorMessage('Failed to link X account')
+        setSocialAuth(prev => ({
+          ...prev,
+          [activeProvider]: {
+            ...prev[activeProvider],
+            loading: 'idle',
+            error: `Failed to link ${provider.displayName} account`,
+          },
+        }))
+        console.error(`${provider.displayName} linking failed:`, error)
+      } finally {
+        setActiveProvider(null)
       }
     }
 
-    startOAuth()
-  }, [signature, address, xLoading])
+    startAuth()
+  }, [signature, address, activeProvider, socialAuth])
 
-  // Handle signature errors
+  // Handle signature errors (unified for all providers)
   useEffect(() => {
-    if (!signError) return
+    if (!signError || !activeProvider) return
 
-    if (signError.message.includes('User rejected') || signError.message.includes('User denied')) {
-      if (xLoading === 'signing') {
-        setXLoading('idle')
-        setXErrorMessage('Signature cancelled')
-      }
-    } else {
-      if (xLoading === 'signing') {
-        setXLoading('idle')
-        setXErrorMessage('Signature failed')
-      }
-    }
-  }, [signError, xLoading])
+    const errorMsg =
+      signError.message.includes('User rejected') || signError.message.includes('User denied')
+        ? 'Signature cancelled'
+        : 'Signature failed'
 
-  // Link X account function
-  const linkXAccount = async () => {
+    setSocialAuth(prev => ({
+      ...prev,
+      [activeProvider]: {
+        ...prev[activeProvider],
+        loading: 'idle',
+        error: errorMsg,
+      },
+    }))
+    setActiveProvider(null)
+  }, [signError, activeProvider])
+
+  // Link social account (unified for all providers)
+  const linkSocialAccount = async (providerId: SocialProvider) => {
     if (!address) return
-    setXErrorMessage('')
+
+    const provider = SOCIAL_PROVIDERS[providerId]
+
+    setSocialAuth(prev => ({
+      ...prev,
+      [providerId]: { ...prev[providerId], error: '' },
+    }))
+
     try {
-      setXLoading('signing')
-      const message = `Link X account for wallet: ${address}`
+      setActiveProvider(providerId)
+      setSocialAuth(prev => ({
+        ...prev,
+        [providerId]: { ...prev[providerId], loading: 'signing' },
+      }))
+
+      const message = provider.messageTemplate(address)
       await signMessage({ message })
     } catch (error) {
       console.error('Signature request failed:', error)
+      setActiveProvider(null)
+      setSocialAuth(prev => ({
+        ...prev,
+        [providerId]: { ...prev[providerId], loading: 'idle' },
+      }))
     }
   }
 
@@ -199,58 +307,77 @@ export function ProfilePage() {
         <Card className="px-8 gap-6 mb-16">
           <h2 className="text-2xl font-bold">Your Identity</h2>
 
-          <div className="flex flex-wrap gap-8 items-center p-4 sm:p-16">
-            {/* Left: IdentityCard */}
-            <div className="flex-1 min-w-64">
-              <IdentityCard
-                address={address as `0x${string}`}
-                chain={network.chain}
-                schemaId={COINBASE_VERIFIED_SCHEMA_ID}
-              />
-            </div>
+          {/* Identity & Social Accounts - Full width responsive layout */}
+          <div className="w-full max-w-4xl space-y-8 p-4 sm:p-12">
+            {/* Identity Card */}
+            <IdentityCard
+              address={address as `0x${string}`}
+              chain={network.chain}
+              schemaId={COINBASE_VERIFIED_SCHEMA_ID}
+              className="!p-0 !w-fit"
+            />
 
-            {/* Right: X Account */}
-            <div className="flex-1 p-4 min-w-64 max-w-lg space-y-4">
-              {xLoading === 'fetching' ? (
-                <p className="text-base text-muted-foreground">Loading...</p>
-              ) : (
-                <div className="flex items-center gap-4">
-                  <span className="text-3xl">𝕏</span>
+            {/* Social Accounts - Responsive flex layout */}
+            {Object.values(SOCIAL_PROVIDERS).map(provider => {
+              const auth = socialAuth[provider.id]
+              return (
+                <div key={provider.id}>
+                  {auth.loading === 'fetching' ? (
+                    <p className="text-base text-muted-foreground">Loading...</p>
+                  ) : (
+                    <div
+                      className={
+                        auth.handle
+                          ? 'flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8'
+                          : 'flex flex-row items-center gap-4 sm:gap-8'
+                      }
+                    >
+                      {/* Icon + Handle/Error Container */}
+                      <div className="flex items-center gap-4">
+                        {/* Icon */}
+                        <span className="text-3xl">{provider.icon}</span>
 
-                  {twitterHandle && (
-                    <p className="text-base text-green-600 dark:text-green-400 whitespace-nowrap">
-                      ✓ @{twitterHandle}
-                    </p>
+                        {/* Handle/Error */}
+                        <div>
+                          {auth.handle && (
+                            <p className="text-base text-green-600 dark:text-green-400">
+                              ✓ @{auth.handle}
+                            </p>
+                          )}
+                          {auth.error && (
+                            <p className="text-sm text-red-600 dark:text-red-400">{auth.error}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Button */}
+                      <Button
+                        onClick={() => linkSocialAccount(provider.id)}
+                        disabled={auth.loading === 'signing' || auth.loading === 'linking'}
+                        variant="secondary"
+                        size="lg"
+                        className={auth.handle ? 'w-full sm:w-auto' : ''}
+                      >
+                        {auth.loading === 'signing' || auth.loading === 'linking'
+                          ? auth.handle
+                            ? 'Rebinding...'
+                            : 'Linking...'
+                          : auth.handle
+                            ? `Rebind ${provider.displayName}`
+                            : `Link ${provider.displayName}`}
+                      </Button>
+                    </div>
                   )}
-
-                  <Button
-                    onClick={linkXAccount}
-                    disabled={xLoading === 'signing' || xLoading === 'linking'}
-                    variant="secondary"
-                    size="lg"
-                  >
-                    {xLoading === 'signing' || xLoading === 'linking'
-                      ? twitterHandle
-                        ? 'Rebinding...'
-                        : 'Linking...'
-                      : twitterHandle
-                        ? 'Rebind X'
-                        : 'Link X'}
-                  </Button>
                 </div>
-              )}
-
-              {xErrorMessage && (
-                <p className="text-sm text-red-600 dark:text-red-400">{xErrorMessage}</p>
-              )}
-            </div>
+              )
+            })}
           </div>
 
           {/* Share Button */}
           <Button
             onClick={() => setShareDialogOpen(true)}
             variant="primary-action"
-            className="w-full h-24 text-6xl font-black"
+            className="w-full h-24 text-6xl font-black mt-8"
           >
             SHARE
           </Button>

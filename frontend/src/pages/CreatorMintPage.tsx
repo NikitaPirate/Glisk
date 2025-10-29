@@ -318,6 +318,7 @@ export function CreatorMintPage() {
                   address={creatorAddress as `0x${string}`}
                   chain={network.chain}
                   schemaId={COINBASE_VERIFIED_SCHEMA_ID}
+                  className="!p-0 !w-fit"
                 />
 
                 {/* X Account */}
