@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react'
-import { useAccount, useSignMessage } from 'wagmi'
+import {
+  useAccount,
+  useSignMessage,
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from 'wagmi'
 import { useQuery } from '@tanstack/react-query'
+import { formatEther } from 'viem'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { NFTGrid } from '@/components/NFTGrid'
+import { CONTRACT_ADDRESS, GLISK_NFT_ABI } from '@/lib/contract'
+import { useEthPrice } from '@/hooks/useEthPrice'
 
 type PromptStatus = 'loading' | 'has_prompt' | 'no_prompt' | 'error'
 type SaveStatus = 'idle' | 'signing' | 'saving' | 'success' | 'error' | 'cancelled'
@@ -70,6 +79,33 @@ export function PromptAuthor() {
 
   // Signature hook for prompt save
   const { signMessage, data: signature, error: signError } = useSignMessage()
+
+  // Rewards claiming hooks
+  const {
+    data: claimableBalance,
+    isLoading: balanceLoading,
+    refetch: refetchBalance,
+  } = useReadContract({
+    address: CONTRACT_ADDRESS,
+    abi: GLISK_NFT_ABI,
+    functionName: 'authorClaimable',
+    args: address ? [address] : undefined,
+    query: { enabled: !!address },
+  })
+
+  const {
+    writeContract,
+    data: claimHash,
+    isPending: isClaimPending,
+    error: claimError,
+  } = useWriteContract()
+
+  const { isLoading: isClaimConfirming, isSuccess: isClaimSuccess } = useWaitForTransactionReceipt({
+    hash: claimHash,
+  })
+
+  // ETH/USD price hook
+  const { data: ethPriceUsd } = useEthPrice()
 
   /**
    * Fetch author status on mount and when address changes
@@ -194,6 +230,28 @@ export function PromptAuthor() {
   }, [address])
 
   /**
+   * Refetch balance after successful claim
+   */
+  useEffect(() => {
+    if (isClaimSuccess) {
+      refetchBalance()
+    }
+  }, [isClaimSuccess, refetchBalance])
+
+  /**
+   * Handle claim rewards button click
+   */
+  const handleClaimRewards = () => {
+    if (!address) return
+
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: GLISK_NFT_ABI,
+      functionName: 'claimAuthorRewards',
+    })
+  }
+
+  /**
    * Handle save prompt button click
    */
   const handleSavePrompt = async () => {
@@ -285,6 +343,69 @@ export function PromptAuthor() {
 
         {saveStatus === 'success' && (
           <p className="text-sm text-green-600 dark:text-green-400">{promptSuccessMessage}</p>
+        )}
+      </Card>
+
+      {/* Rewards Section */}
+      <Card className="px-8 gap-6">
+        <h2 className="text-2xl font-bold">Your Rewards</h2>
+
+        {balanceLoading ? (
+          <p className="text-sm text-muted-foreground">Loading balance...</p>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <div className="text-4xl font-bold">
+                {formatEther(typeof claimableBalance === 'bigint' ? claimableBalance : 0n)} ETH
+              </div>
+              {ethPriceUsd && (
+                <div className="text-2xl text-muted-foreground">
+                  ≈ $
+                  {(
+                    parseFloat(
+                      formatEther(typeof claimableBalance === 'bigint' ? claimableBalance : 0n)
+                    ) * ethPriceUsd
+                  ).toFixed(2)}{' '}
+                  USD
+                </div>
+              )}
+            </div>
+
+            <Button
+              onClick={handleClaimRewards}
+              disabled={
+                !address ||
+                !claimableBalance ||
+                claimableBalance === 0n ||
+                isClaimPending ||
+                isClaimConfirming
+              }
+              variant="primary-action"
+              size="xl"
+              className="w-full"
+            >
+              {isClaimPending
+                ? 'Waiting for approval...'
+                : isClaimConfirming
+                  ? 'Claiming...'
+                  : 'Claim Rewards'}
+            </Button>
+
+            {isClaimSuccess && (
+              <p className="text-sm text-green-600 dark:text-green-400">
+                Rewards claimed successfully!
+              </p>
+            )}
+
+            {claimError && (
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {claimError.message.includes('User rejected') ||
+                claimError.message.includes('User denied')
+                  ? 'Transaction cancelled'
+                  : 'Failed to claim rewards. Please try again.'}
+              </p>
+            )}
+          </>
         )}
       </Card>
 
