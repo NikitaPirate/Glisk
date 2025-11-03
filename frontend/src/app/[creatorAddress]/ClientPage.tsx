@@ -1,5 +1,6 @@
+'use client'
+
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
 import {
   useAccount,
   useReadContract,
@@ -19,6 +20,7 @@ import { TokenRevealCard } from '@/components/TokenRevealCard'
 import { NFTCard } from '@/components/NFTCard'
 import { useTokenPolling } from '@/hooks/useTokenPolling'
 import { NFTGrid } from '@/components/NFTGrid'
+import { Header } from '@/components/HeaderNext'
 
 type TransactionStatus = 'idle' | 'waitingApproval' | 'pending' | 'success' | 'failed' | 'cancelled'
 
@@ -67,8 +69,7 @@ async function fetchAuthorData(walletAddress: string): Promise<AuthorDTO> {
   return response.json()
 }
 
-export function CreatorMintPage() {
-  const { creatorAddress } = useParams<{ creatorAddress: string }>()
+export function CreatorMintPageClient({ creatorAddress }: { creatorAddress: string }) {
   const { isConnected, address: connectedWallet } = useAccount()
   const chainId = useChainId()
   const publicClient = usePublicClient()
@@ -122,7 +123,7 @@ export function CreatorMintPage() {
       })
 
       if (logs.length > 0) {
-        const batchMintedEvent = logs[0] as any // Type assertion for event args
+        const batchMintedEvent = logs[0] as { args?: { startTokenId?: bigint; quantity?: bigint } }
         const args = batchMintedEvent.args
 
         if (args && args.startTokenId !== undefined && args.quantity !== undefined) {
@@ -201,7 +202,7 @@ export function CreatorMintPage() {
   }
 
   const handleMint = () => {
-    if (!creatorAddress || !mintPrice) return
+    if (!creatorAddress || !mintPrice || !connectedWallet) return
 
     writeContract({
       address: CONTRACT_ADDRESS,
@@ -209,6 +210,8 @@ export function CreatorMintPage() {
       functionName: 'mint',
       args: [creatorAddress as `0x${string}`, BigInt(quantity)],
       value: mintPrice * BigInt(quantity),
+      account: connectedWallet,
+      chain: network.chain,
     })
   }
 
@@ -284,17 +287,25 @@ export function CreatorMintPage() {
 
   if (!creatorAddress) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <p className="text-sm text-red-600 dark:text-red-400">Error: No creator address provided</p>
-      </div>
+      <>
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <p className="text-sm text-red-600 dark:text-red-400">
+            Error: No creator address provided
+          </p>
+        </div>
+      </>
     )
   }
 
   if (!isCreatorAddressValid) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <p className="text-sm text-red-600 dark:text-red-400">Invalid creator address</p>
-      </div>
+      <>
+        <Header />
+        <div className="container mx-auto px-4 py-8">
+          <p className="text-sm text-red-600 dark:text-red-400">Invalid creator address</p>
+        </div>
+      </>
     )
   }
 
@@ -305,183 +316,190 @@ export function CreatorMintPage() {
   const COINBASE_VERIFIED_SCHEMA_ID = network.attestationSchema
 
   return (
-    <div className="page-container">
-      <div className="space-y-16">
-        {/* Author Identity Section */}
-        {isCreatorAddressValid && (
-          <Card className="px-8 gap-6 mb-16">
-            {authorLoading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : (
-              <>
-                <IdentityCard
-                  address={creatorAddress as `0x${string}`}
-                  chain={network.chain}
-                  schemaId={COINBASE_VERIFIED_SCHEMA_ID}
-                  className="!p-0 !w-fit"
-                />
+    <>
+      <Header />
+      <div className="page-container">
+        <div className="space-y-16">
+          {/* Author Identity Section */}
+          {isCreatorAddressValid && (
+            <Card className="px-8 gap-6 mb-16">
+              {authorLoading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : (
+                <>
+                  <IdentityCard
+                    address={creatorAddress as `0x${string}`}
+                    chain={network.chain}
+                    schemaId={COINBASE_VERIFIED_SCHEMA_ID}
+                    className="!p-0 !w-fit"
+                  />
 
-                {/* X Account */}
-                {authorData?.twitter_handle && (
-                  <p className="text-sm text-green-600 dark:text-green-400">
-                    ✓ @{authorData.twitter_handle}
-                  </p>
-                )}
-              </>
-            )}
-          </Card>
-        )}
+                  {/* X Account */}
+                  {authorData?.twitter_handle && (
+                    <p className="text-sm text-green-600 dark:text-green-400">
+                      ✓ @{authorData.twitter_handle}
+                    </p>
+                  )}
+                </>
+              )}
+            </Card>
+          )}
 
-        {!isConnected && <p className="text-sm text-blue-600 dark:text-blue-400">Connect wallet</p>}
+          {!isConnected && (
+            <p className="text-sm text-blue-600 dark:text-blue-400">Connect wallet</p>
+          )}
 
-        {isConnected && isWrongNetwork && (
-          <p className="text-sm text-yellow-600 dark:text-yellow-400">Switch to Base Sepolia</p>
-        )}
+          {isConnected && isWrongNetwork && (
+            <p className="text-sm text-yellow-600 dark:text-yellow-400">Switch to Base Sepolia</p>
+          )}
 
-        {isConnected && !isWrongNetwork && (
-          <Card className="px-16 py-24 max-w-4xl mx-auto">
-            {isMintPriceLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
+          {isConnected && !isWrongNetwork && (
+            <Card className="px-16 py-24 max-w-4xl mx-auto">
+              {isMintPriceLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
 
-            {mintPriceError && (
-              <p className="text-sm text-red-600 dark:text-red-400">Contract error</p>
-            )}
+              {mintPriceError && (
+                <p className="text-sm text-red-600 dark:text-red-400">Contract error</p>
+              )}
 
-            {!isMintPriceLoading && !mintPriceError && (
-              <>
-                {/* Card Transformation: Show EITHER mint form OR revealing workflow */}
-                {!(isConfirmed && mintedTokenIds.length > 0) ? (
-                  // MINT FORM STATE
-                  <div className="space-y-16">
-                    {/* Monumental Quantity Input */}
-                    <div className="space-y-4">
-                      <input
-                        id="quantity"
-                        type="number"
-                        min="1"
-                        max="10"
-                        value={quantity}
-                        onChange={handleQuantityChange}
-                        placeholder="1-10"
-                        className="w-full h-24 text-5xl text-center font-bold rounded-none bg-accent shadow-interactive focus-lift focus-darken focus:outline-none transition-all p-6"
-                      />
-                      {quantity > 10 && (
-                        <p className="text-sm text-red-600 dark:text-red-400 text-center">Max 10</p>
-                      )}
-                    </div>
+              {!isMintPriceLoading && !mintPriceError && (
+                <>
+                  {/* Card Transformation: Show EITHER mint form OR revealing workflow */}
+                  {!(isConfirmed && mintedTokenIds.length > 0) ? (
+                    // MINT FORM STATE
+                    <div className="space-y-16">
+                      {/* Monumental Quantity Input */}
+                      <div className="space-y-4">
+                        <input
+                          id="quantity"
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={quantity}
+                          onChange={handleQuantityChange}
+                          placeholder="1-10"
+                          className="w-full h-24 text-5xl text-center font-bold rounded-none bg-accent shadow-interactive focus-lift focus-darken focus:outline-none transition-all p-6"
+                        />
+                        {quantity > 10 && (
+                          <p className="text-sm text-red-600 dark:text-red-400 text-center">
+                            Max 10
+                          </p>
+                        )}
+                      </div>
 
-                    {/* Monumental MINT Button */}
-                    <Button
-                      onClick={handleMint}
-                      disabled={
-                        !isConnected ||
-                        !mintPrice ||
-                        isWritePending ||
-                        isConfirming ||
-                        isWrongNetwork ||
-                        quantity > 10
-                      }
-                      variant="primary-action"
-                      className="w-full h-24 text-6xl font-black"
-                    >
-                      {isWritePending || isConfirming ? 'MINTING...' : 'MINT'}
-                    </Button>
-
-                    <StatusMessage />
-                  </div>
-                ) : (
-                  // REVEALING WORKFLOW STATE
-                  <div className="space-y-16">
-                    {/* Grid of reveal cards and revealed NFTs */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {mintedTokenIds.map(tokenId => {
-                        const tokenData = tokens.get(tokenId)
-                        const isRevealed = tokenData?.status === 'revealed'
-
-                        return isRevealed ? (
-                          <NFTCard
-                            key={tokenId}
-                            contractAddress={CONTRACT_ADDRESS}
-                            tokenId={tokenId.toString()}
-                          />
-                        ) : (
-                          <TokenRevealCard
-                            key={tokenId}
-                            tokenId={tokenId}
-                            status={tokenData?.status || 'detected'}
-                          />
-                        )
-                      })}
-                    </div>
-
-                    {/* Monumental MINT MORE Button - Show when all revealed */}
-                    {allRevealed && (
+                      {/* Monumental MINT Button */}
                       <Button
-                        onClick={handleMintMore}
+                        onClick={handleMint}
+                        disabled={
+                          !isConnected ||
+                          !mintPrice ||
+                          isWritePending ||
+                          isConfirming ||
+                          isWrongNetwork ||
+                          quantity > 10
+                        }
                         variant="primary-action"
                         className="w-full h-24 text-6xl font-black"
                       >
-                        MINT MORE
+                        {isWritePending || isConfirming ? 'MINTING...' : 'MINT'}
                       </Button>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-          </Card>
-        )}
 
-        {/* Author's NFT Gallery */}
-        {isCreatorAddressValid && (
-          <Card className="px-8 gap-6">
-            {/* Loading state */}
-            {nftLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
+                      <StatusMessage />
+                    </div>
+                  ) : (
+                    // REVEALING WORKFLOW STATE
+                    <div className="space-y-16">
+                      {/* Grid of reveal cards and revealed NFTs */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {mintedTokenIds.map(tokenId => {
+                          const tokenData = tokens.get(tokenId)
+                          const isRevealed = tokenData?.status === 'revealed'
 
-            {/* Error state */}
-            {!nftLoading && nftError && (
-              <p className="text-sm text-red-600 dark:text-red-400">Error</p>
-            )}
+                          return isRevealed ? (
+                            <NFTCard
+                              key={tokenId}
+                              contractAddress={CONTRACT_ADDRESS}
+                              tokenId={tokenId.toString()}
+                            />
+                          ) : (
+                            <TokenRevealCard
+                              key={tokenId}
+                              tokenId={tokenId}
+                              status={tokenData?.status || 'detected'}
+                            />
+                          )
+                        })}
+                      </div>
 
-            {/* Empty state */}
-            {!nftLoading && !nftError && nftData && nftData.total === 0 && (
-              <p className="text-sm text-muted-foreground">No NFTs</p>
-            )}
+                      {/* Monumental MINT MORE Button - Show when all revealed */}
+                      {allRevealed && (
+                        <Button
+                          onClick={handleMintMore}
+                          variant="primary-action"
+                          className="w-full h-24 text-6xl font-black"
+                        >
+                          MINT MORE
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </Card>
+          )}
 
-            {/* NFT Grid */}
-            {!nftLoading && !nftError && nftData && nftData.total > 0 && (
-              <>
-                <NFTGrid
-                  tokens={nftData.tokens.map(token => ({
-                    tokenId: token.token_id.toString(),
-                  }))}
-                />
+          {/* Author's NFT Gallery */}
+          {isCreatorAddressValid && (
+            <Card className="px-8 gap-6">
+              {/* Loading state */}
+              {nftLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-4">
-                    <Button
-                      onClick={() => setNftPage(p => p - 1)}
-                      disabled={nftPage === 1 || nftLoading}
-                      variant="ghost"
-                    >
-                      Previous
-                    </Button>
-                    <p className="text-sm text-muted-foreground">
-                      Page {nftPage} of {totalPages}
-                    </p>
-                    <Button
-                      onClick={() => setNftPage(p => p + 1)}
-                      disabled={nftPage === totalPages || nftLoading}
-                      variant="ghost"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
-          </Card>
-        )}
+              {/* Error state */}
+              {!nftLoading && nftError && (
+                <p className="text-sm text-red-600 dark:text-red-400">Error</p>
+              )}
+
+              {/* Empty state */}
+              {!nftLoading && !nftError && nftData && nftData.total === 0 && (
+                <p className="text-sm text-muted-foreground">No NFTs</p>
+              )}
+
+              {/* NFT Grid */}
+              {!nftLoading && !nftError && nftData && nftData.total > 0 && (
+                <>
+                  <NFTGrid
+                    tokens={nftData.tokens.map(token => ({
+                      tokenId: token.token_id.toString(),
+                    }))}
+                  />
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between pt-4">
+                      <Button
+                        onClick={() => setNftPage(p => p - 1)}
+                        disabled={nftPage === 1 || nftLoading}
+                        variant="ghost"
+                      >
+                        Previous
+                      </Button>
+                      <p className="text-sm text-muted-foreground">
+                        Page {nftPage} of {totalPages}
+                      </p>
+                      <Button
+                        onClick={() => setNftPage(p => p + 1)}
+                        disabled={nftPage === totalPages || nftLoading}
+                        variant="ghost"
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </Card>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }

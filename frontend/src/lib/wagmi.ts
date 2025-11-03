@@ -19,14 +19,15 @@ const NETWORK_CONFIG = {
 } as const
 
 // Get network from environment (defaults to BASE_MAINNET for production)
-const networkKey = (import.meta.env.VITE_NETWORK || 'BASE_MAINNET') as keyof typeof NETWORK_CONFIG
+const networkKey = (process.env.NEXT_PUBLIC_NETWORK ||
+  'BASE_MAINNET') as keyof typeof NETWORK_CONFIG
 export const network = NETWORK_CONFIG[networkKey]
 
 // Get WalletConnect Project ID from https://cloud.walletconnect.com
-const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID'
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID'
 
 // Get CDP API Key from Coinbase Developer Platform
-const cdpApiKey = import.meta.env.VITE_ONCHAINKIT_API_KEY
+const cdpApiKey = process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY
 
 // Configure CDP RPC transport for reliable blockchain reads (50 req/sec vs public 10 req/sec)
 const cdpRpcUrl = `https://api.developer.coinbase.com/rpc/v1/${network.cdpRpc}/${cdpApiKey}`
@@ -42,5 +43,5 @@ export const config = getDefaultConfig({
   transports: {
     [network.chainId]: http(cdpRpcUrl),
   },
-  ssr: false,
+  ssr: true,
 })

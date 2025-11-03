@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { NFTGrid } from '@/components/NFTGrid'
 import { CONTRACT_ADDRESS, GLISK_NFT_ABI } from '@/lib/contract'
+import { network } from '@/lib/wagmi'
 import { useEthPrice } from '@/hooks/useEthPrice'
 
 type PromptStatus = 'loading' | 'has_prompt' | 'no_prompt' | 'error'
@@ -248,6 +249,8 @@ export function PromptAuthor() {
       address: CONTRACT_ADDRESS,
       abi: GLISK_NFT_ABI,
       functionName: 'claimAuthorRewards',
+      account: address,
+      chain: network.chain,
     })
   }
 
@@ -271,7 +274,7 @@ export function PromptAuthor() {
     try {
       setSaveStatus('signing')
       const message = `Update GLISK prompt for wallet: ${address}`
-      await signMessage({ message })
+      await signMessage({ message, account: address })
     } catch (error) {
       // Error will be handled by useEffect watching signError
       console.error('Signature request failed:', error)
