@@ -1,5 +1,8 @@
 import { CreatorMintPageClient } from './ClientPage'
 
+// Force dynamic rendering to avoid build-time env variable requirements
+export const dynamic = 'force-dynamic'
+
 export default async function CreatorMintPage({
   params,
 }: {

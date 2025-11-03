@@ -41,3 +41,12 @@
 - [x] 6.3 Test API calls to backend (unchanged)
 - [x] 6.4 Check responsive design and dark mode
 - [x] 6.5 Manual browser testing (Chrome, Safari, mobile)
+
+## 7. Docker Deployment Configuration (Post-Migration Fix)
+- [x] 7.1 Update Dockerfile from Vite to Next.js standalone mode
+- [x] 7.2 Update docker-compose.yml with NEXT_PUBLIC_ variables
+- [x] 7.3 Update Traefik/NPM port configuration (80 → 3000)
+- [x] 7.4 Add output: 'standalone' to next.config.ts
+- [x] 7.5 Update .env.example documentation
+- [x] 7.6 Create pre-deployment security checklist
+- [x] 7.7 Verify no hardcoded secrets in code
