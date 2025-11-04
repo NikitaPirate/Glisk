@@ -1,94 +1,32 @@
-'use client'
+import type { Metadata } from 'next'
+import HomePageClient from './HomePageClient'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Identity, Avatar, Name, Badge, Address } from '@coinbase/onchainkit/identity'
-import { Card } from '@/components/ui/card'
-import { Header } from '@/components/HeaderNext'
-
-interface AuthorLeaderboardEntry {
-  author_address: string
-  total_tokens: number
+export const metadata: Metadata = {
+  title: 'Glisk NFT - AI-Generated NFT Minting Platform',
+  description: 'Discover and mint unique AI-generated NFTs on Base blockchain',
+  openGraph: {
+    title: 'Glisk NFT',
+    description: 'Create unique AI-generated NFTs on Base blockchain',
+    images: ['https://glisk.xyz/app-icon.png'],
+  },
+  other: {
+    'fc:miniapp': JSON.stringify({
+      version: '1',
+      imageUrl: 'https://glisk.xyz/app-icon.png',
+      button: {
+        title: 'Open Glisk',
+        action: {
+          type: 'launch_miniapp',
+          name: 'Glisk',
+          url: 'https://glisk.xyz',
+          splashImageUrl: 'https://glisk.xyz/app-icon.png',
+          splashBackgroundColor: '#000000',
+        },
+      },
+    }),
+  },
 }
 
 export default function HomePage() {
-  const [authors, setAuthors] = useState<AuthorLeaderboardEntry[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
-
-  useEffect(() => {
-    // Fetch leaderboard data from API
-    fetch('/api/authors/leaderboard')
-      .then(res => res.json())
-      .then((data: AuthorLeaderboardEntry[]) => {
-        setAuthors(data)
-        setIsLoading(false)
-      })
-      .catch(error => {
-        console.error('Failed to fetch leaderboard:', error)
-        setIsLoading(false)
-      })
-  }, [])
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <>
-        <Header />
-        <div className="page-container">
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
-      </>
-    )
-  }
-
-  // Empty state
-  if (authors.length === 0) {
-    return (
-      <>
-        <Header />
-        <div className="page-container">
-          <p className="text-sm text-muted-foreground">No authors yet</p>
-        </div>
-      </>
-    )
-  }
-
-  // Leaderboard display
-  return (
-    <>
-      <Header />
-      <div className="page-container">
-        <Card className="sm:px-8 px-4">
-          <div className="space-y-6">
-            {authors.map((author, index) => (
-              <div
-                key={author.author_address}
-                onClick={() => router.push(`/${author.author_address}`)}
-                className="sm:p-6 p-4 bg-accent shadow-interactive hover-lift cursor-pointer transition-all"
-              >
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <span className="text-muted-foreground font-semibold min-w-[2rem]">
-                      {index + 1}.
-                    </span>
-                    <Identity address={author.author_address as `0x${string}`}>
-                      <Avatar />
-                      <Name>
-                        <Badge />
-                      </Name>
-                      <Address />
-                    </Identity>
-                  </div>
-                  <span className="text-muted-foreground">
-                    {author.total_tokens} token{author.total_tokens !== 1 ? 's' : ''}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-    </>
-  )
+  return <HomePageClient />
 }
