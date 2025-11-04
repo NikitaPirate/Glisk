@@ -11,6 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - internal
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-glisk}"]
       interval: 5s
