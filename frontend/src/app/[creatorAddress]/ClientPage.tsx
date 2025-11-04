@@ -394,7 +394,7 @@ export function CreatorMintPageClient({ creatorAddress }: { creatorAddress: stri
                             isWrongNetwork ||
                             quantity > 10
                           }
-                          className="w-full h-24 text-6xl font-black inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-none transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-brutal hover:shadow-brutal-lg active:shadow-brutal-sm font-black tracking-wide border-4 border-foreground"
+                          className="w-full h-24 text-6xl font-black bg-[#FFBB00] hover:bg-[#FFBB00] text-black hover:text-black shadow-interactive-lg hover-lift-lg active-press-lg disabled:opacity-50"
                           text={transactionStatus === 'pending' ? 'MINTING...' : 'MINT'}
                         />
                       </Transaction>

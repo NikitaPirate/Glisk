@@ -412,7 +412,7 @@ export function PromptAuthor() {
                   claimableBalance === 0n ||
                   claimStatus === 'pending'
                 }
-                className="w-full h-16 text-2xl inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-none transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-brutal hover:shadow-brutal-lg active:shadow-brutal-sm font-black tracking-wide border-4 border-foreground"
+                className="w-full h-16 text-2xl font-black bg-[#FFBB00] hover:bg-[#FFBB00] text-black hover:text-black shadow-interactive-lg hover-lift-lg active-press-lg disabled:opacity-50"
                 text={claimStatus === 'pending' ? 'Claiming...' : 'Claim Rewards'}
               />
             </Transaction>
