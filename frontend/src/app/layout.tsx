@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   other: {
     'fc:miniapp': JSON.stringify({
-      version: 'next',
+      version: '1',
       imageUrl: 'https://glisk.xyz/app-icon.png',
       button: {
         title: 'Open Glisk',
@@ -29,6 +29,8 @@ export const metadata: Metadata = {
           type: 'launch_miniapp',
           name: 'Glisk',
           url: 'https://glisk.xyz',
+          splashImageUrl: 'https://glisk.xyz/app-icon.png',
+          splashBackgroundColor: '#000000',
         },
       },
     }),
