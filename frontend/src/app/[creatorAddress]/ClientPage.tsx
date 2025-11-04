@@ -1,17 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import {
-  useAccount,
-  useReadContract,
-  useWriteContract,
-  useWaitForTransactionReceipt,
-  useChainId,
-  usePublicClient,
-} from 'wagmi'
+import { useState, useCallback } from 'react'
+import { useAccount, useReadContract, useChainId } from 'wagmi'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { isAddress, parseEventLogs } from 'viem'
 import { IdentityCard } from '@coinbase/onchainkit/identity'
+import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction'
+import type { LifecycleStatus } from '@coinbase/onchainkit/transaction'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { CONTRACT_ADDRESS, GLISK_NFT_ABI } from '@/lib/contract'
@@ -72,11 +67,12 @@ async function fetchAuthorData(walletAddress: string): Promise<AuthorDTO> {
 export function CreatorMintPageClient({ creatorAddress }: { creatorAddress: string }) {
   const { isConnected, address: connectedWallet } = useAccount()
   const chainId = useChainId()
-  const publicClient = usePublicClient()
   const queryClient = useQueryClient()
   const [quantity, setQuantity] = useState(1)
   const [mintedTokenIds, setMintedTokenIds] = useState<number[]>([]) // Token IDs from BatchMinted event
   const [nftPage, setNftPage] = useState(1)
+  const [transactionStatus, setTransactionStatus] = useState<TransactionStatus>('idle')
+  const [transactionError, setTransactionError] = useState<string | null>(null)
 
   // Validate creator address
   const isCreatorAddressValid = creatorAddress ? isAddress(creatorAddress) : false
@@ -92,65 +88,85 @@ export function CreatorMintPageClient({ creatorAddress }: { creatorAddress: stri
     functionName: 'mintPrice',
   }) as { data: bigint | undefined; error: Error | null; isLoading: boolean }
 
-  // Write contract hook for minting
-  const {
-    writeContract,
-    data: hash,
-    isPending: isWritePending,
-    error: writeError,
-  } = useWriteContract()
+  // Handle OnchainKit Transaction lifecycle
+  const handleTransactionStatus = useCallback((status: LifecycleStatus) => {
+    console.log('[Transaction] Lifecycle status:', status)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const statusData = status.statusData as any
 
-  // Wait for transaction receipt
-  const {
-    isLoading: isConfirming,
-    isSuccess: isConfirmed,
-    error: receiptError,
-    data: receipt,
-  } = useWaitForTransactionReceipt({
-    hash,
-  })
+    // Map OnchainKit status to our internal status
+    switch (status.statusName) {
+      case 'init':
+      case 'transactionIdle':
+        setTransactionStatus('idle')
+        setTransactionError(null)
+        break
+      case 'buildingTransaction':
+      case 'transactionPending':
+        setTransactionStatus('pending')
+        break
+      case 'success': {
+        setTransactionStatus('success')
+        setTransactionError(null)
 
-  // Parse BatchMinted event from transaction receipt
-  useEffect(() => {
-    if (!receipt || !publicClient) return
+        // Parse BatchMinted event from receipts
+        if (statusData?.transactionReceipts && statusData.transactionReceipts.length > 0) {
+          const receipt = statusData.transactionReceipts[0]
+          try {
+            const logs = parseEventLogs({
+              abi: GLISK_NFT_ABI,
+              eventName: 'BatchMinted',
+              logs: receipt.logs,
+            })
 
-    try {
-      // Parse event logs to extract token IDs
-      const logs = parseEventLogs({
-        abi: GLISK_NFT_ABI,
-        eventName: 'BatchMinted',
-        logs: receipt.logs,
-      })
+            if (logs.length > 0) {
+              const batchMintedEvent = logs[0] as {
+                args?: { startTokenId?: bigint; quantity?: bigint }
+              }
+              const args = batchMintedEvent.args
 
-      if (logs.length > 0) {
-        const batchMintedEvent = logs[0] as { args?: { startTokenId?: bigint; quantity?: bigint } }
-        const args = batchMintedEvent.args
-
-        if (args && args.startTokenId !== undefined && args.quantity !== undefined) {
-          const startTokenId = Number(args.startTokenId)
-          const mintQuantity = Number(args.quantity)
-
-          // Generate array of token IDs: [startTokenId, startTokenId+1, ...]
-          const tokenIds = Array.from({ length: mintQuantity }, (_, i) => startTokenId + i)
-          setMintedTokenIds(tokenIds)
-
-          console.log('[CreatorMintPage] BatchMinted event parsed:', {
-            startTokenId,
-            quantity: mintQuantity,
-            tokenIds,
-          })
+              if (args && args.startTokenId !== undefined && args.quantity !== undefined) {
+                const startTokenId = Number(args.startTokenId)
+                const mintQuantity = Number(args.quantity)
+                const tokenIds = Array.from({ length: mintQuantity }, (_, i) => startTokenId + i)
+                setMintedTokenIds(tokenIds)
+                console.log('[Transaction] BatchMinted event parsed:', { tokenIds })
+              }
+            }
+          } catch (error) {
+            console.error('[Transaction] Failed to parse BatchMinted event:', error)
+          }
         }
+        break
       }
-    } catch (error) {
-      console.error('[CreatorMintPage] Failed to parse BatchMinted event:', error)
+      case 'error': {
+        // Check if user rejected/cancelled
+        const errorMessage =
+          typeof statusData === 'string'
+            ? statusData
+            : statusData?.message || statusData?.error?.message || ''
+        if (
+          errorMessage.includes('User rejected') ||
+          errorMessage.includes('User denied') ||
+          errorMessage.includes('rejected') ||
+          errorMessage.includes('denied')
+        ) {
+          setTransactionStatus('cancelled')
+          setTransactionError('Transaction cancelled')
+        } else {
+          setTransactionStatus('failed')
+          setTransactionError(errorMessage || 'Transaction failed')
+        }
+        break
+      }
     }
-  }, [receipt, publicClient])
+  }, [])
 
   // Poll for token status updates
   const { tokens, allRevealed } = useTokenPolling(
     mintedTokenIds,
     connectedWallet,
-    isConfirmed && mintedTokenIds.length > 0 // Enable polling after mint success
+    transactionStatus === 'success' && mintedTokenIds.length > 0 // Enable polling after mint success
   )
 
   // Fetch author data
@@ -201,58 +217,35 @@ export function CreatorMintPageClient({ creatorAddress }: { creatorAddress: stri
     setQuantity(clamped)
   }
 
-  const handleMint = () => {
-    if (!creatorAddress || !mintPrice || !connectedWallet) return
-
-    writeContract({
-      address: CONTRACT_ADDRESS,
-      abi: GLISK_NFT_ABI,
-      functionName: 'mint',
-      args: [creatorAddress as `0x${string}`, BigInt(quantity)],
-      value: mintPrice * BigInt(quantity),
-      account: connectedWallet,
-      chain: network.chain,
-    })
-  }
+  // Prepare contract calls for OnchainKit Transaction
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mintCalls: any[] =
+    !creatorAddress || !mintPrice
+      ? []
+      : [
+          {
+            address: CONTRACT_ADDRESS,
+            abi: GLISK_NFT_ABI,
+            functionName: 'mint',
+            args: [creatorAddress as `0x${string}`, BigInt(quantity)],
+            value: mintPrice * BigInt(quantity),
+          },
+        ]
 
   const handleMintMore = () => {
     // Reset mint state (triggers Card Transformation back to mint form)
     setMintedTokenIds([])
     setQuantity(1)
+    setTransactionStatus('idle')
+    setTransactionError(null)
 
     // Invalidate gallery query to fetch newly minted NFTs
     queryClient.invalidateQueries({ queryKey: ['creator-nfts', creatorAddress] })
   }
 
-  /**
-   * Derives transaction status from wagmi hooks state
-   * Priority order (from highest to lowest):
-   * 1. waitingApproval - User needs to approve in wallet
-   * 2. cancelled - User rejected transaction
-   * 3. failed - Transaction failed (write error or receipt error)
-   * 4. success - Transaction confirmed on-chain
-   * 5. pending - Transaction submitted, waiting for confirmation
-   * 6. idle - No active transaction
-   */
-  const getTransactionStatus = (): TransactionStatus => {
-    if (isWritePending) return 'waitingApproval'
-    if (
-      writeError?.message.includes('User rejected') ||
-      writeError?.message.includes('User denied')
-    )
-      return 'cancelled'
-    if (writeError) return 'failed'
-    if (isConfirmed) return 'success'
-    if (receiptError) return 'failed'
-    if (isConfirming) return 'pending'
-    return 'idle'
-  }
-
-  const status = getTransactionStatus()
-
   // Status message component
   const StatusMessage = () => {
-    switch (status) {
+    switch (transactionStatus) {
       case 'waitingApproval':
         return (
           <p className="text-sm text-blue-600 dark:text-blue-400">
@@ -277,7 +270,7 @@ export function CreatorMintPageClient({ creatorAddress }: { creatorAddress: stri
       case 'failed':
         return (
           <p className="text-sm text-red-600 dark:text-red-400">
-            Error: {receiptError?.message || writeError?.message || 'Transaction failed'}
+            Error: {transactionError || 'Transaction failed'}
           </p>
         )
       default:
@@ -364,7 +357,7 @@ export function CreatorMintPageClient({ creatorAddress }: { creatorAddress: stri
               {!isMintPriceLoading && !mintPriceError && (
                 <>
                   {/* Card Transformation: Show EITHER mint form OR revealing workflow */}
-                  {!(isConfirmed && mintedTokenIds.length > 0) ? (
+                  {!(transactionStatus === 'success' && mintedTokenIds.length > 0) ? (
                     // MINT FORM STATE
                     <div className="space-y-16">
                       {/* Monumental Quantity Input */}
@@ -386,22 +379,25 @@ export function CreatorMintPageClient({ creatorAddress }: { creatorAddress: stri
                         )}
                       </div>
 
-                      {/* Monumental MINT Button */}
-                      <Button
-                        onClick={handleMint}
-                        disabled={
-                          !isConnected ||
-                          !mintPrice ||
-                          isWritePending ||
-                          isConfirming ||
-                          isWrongNetwork ||
-                          quantity > 10
-                        }
-                        variant="primary-action"
-                        className="w-full h-24 text-6xl font-black"
+                      {/* Monumental MINT Button with Gas Sponsorship */}
+                      <Transaction
+                        calls={mintCalls}
+                        chainId={network.chainId}
+                        onStatus={handleTransactionStatus}
+                        isSponsored={true}
                       >
-                        {isWritePending || isConfirming ? 'MINTING...' : 'MINT'}
-                      </Button>
+                        <TransactionButton
+                          disabled={
+                            !isConnected ||
+                            !mintPrice ||
+                            transactionStatus === 'pending' ||
+                            isWrongNetwork ||
+                            quantity > 10
+                          }
+                          className="w-full h-24 text-6xl font-black inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-none transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-brutal hover:shadow-brutal-lg active:shadow-brutal-sm font-black tracking-wide border-4 border-foreground"
+                          text={transactionStatus === 'pending' ? 'MINTING...' : 'MINT'}
+                        />
+                      </Transaction>
 
                       <StatusMessage />
                     </div>

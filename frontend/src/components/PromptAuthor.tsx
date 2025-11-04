@@ -1,13 +1,9 @@
-import { useState, useEffect } from 'react'
-import {
-  useAccount,
-  useSignMessage,
-  useReadContract,
-  useWriteContract,
-  useWaitForTransactionReceipt,
-} from 'wagmi'
+import { useState, useEffect, useCallback } from 'react'
+import { useAccount, useSignMessage, useReadContract } from 'wagmi'
 import { useQuery } from '@tanstack/react-query'
 import { formatEther } from 'viem'
+import { Transaction, TransactionButton } from '@coinbase/onchainkit/transaction'
+import type { LifecycleStatus } from '@coinbase/onchainkit/transaction'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { NFTGrid } from '@/components/NFTGrid'
@@ -17,6 +13,7 @@ import { useEthPrice } from '@/hooks/useEthPrice'
 
 type PromptStatus = 'loading' | 'has_prompt' | 'no_prompt' | 'error'
 type SaveStatus = 'idle' | 'signing' | 'saving' | 'success' | 'error' | 'cancelled'
+type ClaimStatus = 'idle' | 'pending' | 'success' | 'failed' | 'cancelled'
 
 // T027, T028: TypeScript interfaces for authored NFTs API
 interface TokenDTO {
@@ -81,6 +78,10 @@ export function PromptAuthor() {
   // Signature hook for prompt save
   const { signMessage, data: signature, error: signError } = useSignMessage()
 
+  // Claim transaction state
+  const [claimStatus, setClaimStatus] = useState<ClaimStatus>('idle')
+  const [claimError, setClaimError] = useState<string | null>(null)
+
   // Rewards claiming hooks
   const {
     data: claimableBalance,
@@ -94,19 +95,67 @@ export function PromptAuthor() {
     query: { enabled: !!address },
   })
 
-  const {
-    writeContract,
-    data: claimHash,
-    isPending: isClaimPending,
-    error: claimError,
-  } = useWriteContract()
-
-  const { isLoading: isClaimConfirming, isSuccess: isClaimSuccess } = useWaitForTransactionReceipt({
-    hash: claimHash,
-  })
-
   // ETH/USD price hook
   const { data: ethPriceUsd } = useEthPrice()
+
+  // Handle OnchainKit Transaction lifecycle for claim rewards
+  const handleClaimStatus = useCallback(
+    (status: LifecycleStatus) => {
+      console.log('[Claim] Lifecycle status:', status)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const statusData = status.statusData as any
+
+      switch (status.statusName) {
+        case 'init':
+        case 'transactionIdle':
+          setClaimStatus('idle')
+          setClaimError(null)
+          break
+        case 'buildingTransaction':
+        case 'transactionPending':
+          setClaimStatus('pending')
+          break
+        case 'success':
+          setClaimStatus('success')
+          setClaimError(null)
+          // Refetch balance after successful claim
+          refetchBalance()
+          break
+        case 'error': {
+          const errorMessage =
+            typeof statusData === 'string'
+              ? statusData
+              : statusData?.message || statusData?.error?.message || ''
+          if (
+            errorMessage.includes('User rejected') ||
+            errorMessage.includes('User denied') ||
+            errorMessage.includes('rejected') ||
+            errorMessage.includes('denied')
+          ) {
+            setClaimStatus('cancelled')
+            setClaimError('Transaction cancelled')
+          } else {
+            setClaimStatus('failed')
+            setClaimError(errorMessage || 'Failed to claim rewards')
+          }
+          break
+        }
+      }
+    },
+    [refetchBalance]
+  )
+
+  // Prepare contract calls for claim rewards
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const claimCalls: any[] = !address
+    ? []
+    : [
+        {
+          address: CONTRACT_ADDRESS,
+          abi: GLISK_NFT_ABI,
+          functionName: 'claimAuthorRewards',
+        },
+      ]
 
   /**
    * Fetch author status on mount and when address changes
@@ -231,30 +280,6 @@ export function PromptAuthor() {
   }, [address])
 
   /**
-   * Refetch balance after successful claim
-   */
-  useEffect(() => {
-    if (isClaimSuccess) {
-      refetchBalance()
-    }
-  }, [isClaimSuccess, refetchBalance])
-
-  /**
-   * Handle claim rewards button click
-   */
-  const handleClaimRewards = () => {
-    if (!address) return
-
-    writeContract({
-      address: CONTRACT_ADDRESS,
-      abi: GLISK_NFT_ABI,
-      functionName: 'claimAuthorRewards',
-      account: address,
-      chain: network.chain,
-    })
-  }
-
-  /**
    * Handle save prompt button click
    */
   const handleSavePrompt = async () => {
@@ -374,38 +399,39 @@ export function PromptAuthor() {
               )}
             </div>
 
-            <Button
-              onClick={handleClaimRewards}
-              disabled={
-                !address ||
-                !claimableBalance ||
-                claimableBalance === 0n ||
-                isClaimPending ||
-                isClaimConfirming
-              }
-              variant="primary-action"
-              size="xl"
-              className="w-full"
+            <Transaction
+              calls={claimCalls}
+              chainId={network.chainId}
+              onStatus={handleClaimStatus}
+              isSponsored={true}
             >
-              {isClaimPending
-                ? 'Waiting for approval...'
-                : isClaimConfirming
-                  ? 'Claiming...'
-                  : 'Claim Rewards'}
-            </Button>
+              <TransactionButton
+                disabled={
+                  !address ||
+                  !claimableBalance ||
+                  claimableBalance === 0n ||
+                  claimStatus === 'pending'
+                }
+                className="w-full h-16 text-2xl inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-none transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow-brutal hover:shadow-brutal-lg active:shadow-brutal-sm font-black tracking-wide border-4 border-foreground"
+                text={claimStatus === 'pending' ? 'Claiming...' : 'Claim Rewards'}
+              />
+            </Transaction>
 
-            {isClaimSuccess && (
+            {claimStatus === 'success' && (
               <p className="text-sm text-green-600 dark:text-green-400">
                 Rewards claimed successfully!
               </p>
             )}
 
-            {claimError && (
+            {claimStatus === 'cancelled' && (
+              <p className="text-sm text-yellow-600 dark:text-yellow-400">
+                {claimError || 'Transaction cancelled'}
+              </p>
+            )}
+
+            {claimStatus === 'failed' && (
               <p className="text-sm text-red-600 dark:text-red-400">
-                {claimError.message.includes('User rejected') ||
-                claimError.message.includes('User denied')
-                  ? 'Transaction cancelled'
-                  : 'Failed to claim rewards. Please try again.'}
+                {claimError || 'Failed to claim rewards. Please try again.'}
               </p>
             )}
           </>

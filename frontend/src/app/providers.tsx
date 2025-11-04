@@ -22,6 +22,9 @@ const queryClient = new QueryClient()
 // Get CDP API Key for OnchainKit
 const cdpApiKey = process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY
 
+// Get Paymaster & Bundler endpoint for gas-sponsored transactions
+const paymasterEndpoint = process.env.NEXT_PUBLIC_PAYMASTER_AND_BUNDLER_ENDPOINT
+
 // Farcaster Auth Kit configuration
 const farcasterConfig = {
   domain: typeof window !== 'undefined' ? window.location.host : '',
@@ -71,7 +74,13 @@ export function Providers({ children }: { children: ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <WagmiProvider config={config}>
         <QueryClientProvider client={queryClient}>
-          <OnchainKitProvider apiKey={cdpApiKey} chain={network.chain}>
+          <OnchainKitProvider
+            apiKey={cdpApiKey}
+            chain={network.chain}
+            config={{
+              paymaster: paymasterEndpoint,
+            }}
+          >
             <RainbowKitProvider theme={gliskTheme} avatar={WalletAvatar}>
               <AuthKitProvider config={farcasterConfig}>
                 {children}
