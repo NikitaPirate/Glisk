@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Providers } from './providers'
+import BottomNav from '@/components/BottomNav'
 import '@/index.css'
 
 export const metadata: Metadata = {
@@ -24,8 +25,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
-        <Providers>{children}</Providers>
+      <body className="pb-16 sm:pb-0">
+        <Providers>
+          {children}
+          <BottomNav />
+        </Providers>
       </body>
     </html>
   )

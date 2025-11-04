@@ -1,3 +1,6 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { RiInfoI } from 'react-icons/ri'
 import {
   Dialog,
@@ -9,8 +12,16 @@ import {
 import { Button } from '@/components/ui/button'
 
 export function HelpDialog() {
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    const handleOpenDialog = () => setOpen(true)
+    window.addEventListener('openHelpDialog', handleOpenDialog)
+    return () => window.removeEventListener('openHelpDialog', handleOpenDialog)
+  }, [])
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="lg">
           <RiInfoI className="h-5 w-5" />
