@@ -31,6 +31,7 @@ export function FarcasterLinkDialogWithButton({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleFarcasterSuccess = async (res: any) => {
     // Extract message and signature from the correct location
     const message = res.signatureParams?.message || res.message
@@ -121,7 +122,10 @@ export function FarcasterLinkDialogWithButton({
             <div className="flex justify-center">
               <SignInButton
                 onSuccess={handleFarcasterSuccess}
-                onError={(error: any) => {
+                onError={(
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  error: any
+                ) => {
                   const errorMessage =
                     error?.message || error?.toString() || 'Farcaster sign-in failed'
                   setError(errorMessage)

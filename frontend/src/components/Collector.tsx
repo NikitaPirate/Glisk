@@ -34,13 +34,8 @@ export function Collector() {
 
   // T049, T050, T051: Implement useInfiniteReadContracts with pagination
   // Fetch backwards from end to show newest NFTs first
-  const {
-    data,
-    error: tokensError,
-    isLoading: tokensLoading,
-    fetchNextPage,
-    hasNextPage,
-  } = useInfiniteReadContracts({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const contractsConfig: any = {
     cacheKey: `owned-nfts-${address}`,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     contracts: ((pageParam: any) => {
@@ -65,6 +60,7 @@ export function Collector() {
         functionName: 'tokenOfOwnerByIndex',
         args: [address!, BigInt(endIndex - 1 - i)],
       }))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     }) as any,
     query: {
       enabled: !!address && !!balance && Number(balance) > 0,
@@ -75,15 +71,28 @@ export function Collector() {
         return nextOffsetFromEnd < Number(balance || 0n) ? nextOffsetFromEnd : undefined
       },
     },
-  })
+  }
+
+  const {
+    data,
+    error: tokensError,
+    isLoading: tokensLoading,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteReadContracts(contractsConfig)
 
   // T052: Extract tokenIds from data.pages using flatMap (filter out failed results)
   // Tokens are already in newest-first order (we fetch backwards from end)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tokenIds =
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ((data as any)?.pages
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ?.flatMap((page: any) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         page.map((result: any) => (result.status === 'success' ? result.result : null))
       )
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((id: any): id is bigint => id !== null) as bigint[]) || []
 
   // T057: Calculate total pages for client-side pagination
@@ -118,6 +127,15 @@ export function Collector() {
     balanceError?.message || tokensError?.message || 'Failed to load NFTs'
   )
 
+  const errorDisplay: React.ReactNode = hasError ? (
+    <div className="space-y-2">
+      <p className="text-sm text-red-600 dark:text-red-400">Failed to load NFTs: {errorMessage}</p>
+      <Button onClick={() => window.location.reload()} size="sm" variant="ghost">
+        Retry
+      </Button>
+    </div>
+  ) : null
+
   return (
     <div className="space-y-6">
       <Card className="px-8 gap-6">
@@ -127,18 +145,7 @@ export function Collector() {
         {isLoading && <p className="text-sm text-muted-foreground">Loading...</p>}
 
         {/* T054: Error state */}
-        {
-          (hasError ? (
-            <div className="space-y-2">
-              <p className="text-sm text-red-600 dark:text-red-400">
-                Failed to load NFTs: {errorMessage}
-              </p>
-              <Button onClick={() => window.location.reload()} size="sm" variant="ghost">
-                Retry
-              </Button>
-            </div>
-          ) : null) as any
-        }
+        <>{errorDisplay}</>
 
         {/* T055: Empty state */}
         {!isLoading && !hasError && Number(balance || 0n) === 0 && (

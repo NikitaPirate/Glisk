@@ -1,6 +1,8 @@
+'use client'
+
 import { useEffect, useState } from 'react'
 import { useAccount, useSignMessage } from 'wagmi'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { IdentityCard } from '@coinbase/onchainkit/identity'
 import { PromptAuthor } from '@/components/PromptAuthor'
@@ -11,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { network } from '@/lib/wagmi'
 import { FarcasterLinkDialogWithButton as FarcasterLinkDialog } from '@/components/FarcasterLinkDialogWithButton'
 import { toast } from 'sonner'
+import { Header } from '@/components/HeaderNext'
 
 type LoadingState = 'idle' | 'fetching' | 'linking' | 'signing'
 type SocialProvider = 'x'
@@ -47,9 +50,11 @@ const COINBASE_VERIFIED_SCHEMA_ID = network.attestationSchema
 const VALID_TABS = ['author', 'collector'] as const
 type TabType = (typeof VALID_TABS)[number]
 
-export function ProfilePage() {
+export function ProfilePageClient() {
   const { isConnected, address } = useAccount()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
   const queryClient = useQueryClient()
 
   // Social auth state (unified for all providers)
@@ -98,7 +103,7 @@ export function ProfilePage() {
   } = useSignMessage()
 
   // Get active tab from URL query param, validate and fallback to 'author'
-  const tabParam = searchParams.get('tab')
+  const tabParam = searchParams?.get('tab')
   const activeTab: TabType = VALID_TABS.includes(tabParam as TabType)
     ? (tabParam as TabType)
     : 'author'
@@ -106,9 +111,9 @@ export function ProfilePage() {
   // Set default tab=author when no query param (replace: true prevents back button loop)
   useEffect(() => {
     if (!tabParam) {
-      setSearchParams({ tab: 'author' }, { replace: true })
+      router.replace(`${pathname}?tab=author`)
     }
-  }, [tabParam, setSearchParams])
+  }, [tabParam, router, pathname])
 
   // T065: Invalidate all query caches when wallet address changes
   useEffect(() => {
@@ -119,7 +124,7 @@ export function ProfilePage() {
 
   // Handle tab switching (creates history entry for back button)
   const handleTabChange = (tab: TabType) => {
-    setSearchParams({ tab })
+    router.push(`${pathname}?tab=${tab}`)
   }
 
   // Fetch social account handles on mount and when address changes
@@ -296,7 +301,7 @@ export function ProfilePage() {
       }))
 
       const message = provider.messageTemplate(address)
-      await signMessage({ message })
+      await signMessage({ message, account: address })
     } catch (error) {
       console.error('Signature request failed:', error)
       setActiveProvider(null)
@@ -319,7 +324,7 @@ export function ProfilePage() {
       const message = `Link Farcaster account for wallet: ${address}`
 
       // Request wallet signature (async version returns result directly)
-      const walletSignature = await signMessageAsync({ message })
+      const walletSignature = await signMessageAsync({ message, account: address })
 
       // Save wallet signature data
       setFarcasterWalletSig({
@@ -331,13 +336,13 @@ export function ProfilePage() {
       // Open Farcaster dialog
       setFarcasterDialogOpen(true)
       setFarcasterAuth(prev => ({ ...prev, loading: 'idle' }))
-    } catch (error) {
+    } catch {
       setFarcasterAuth(prev => ({ ...prev, loading: 'idle' }))
     }
   }
 
   // Handle Farcaster link success
-  const handleFarcasterSuccess = (username: string, _fid: number) => {
+  const handleFarcasterSuccess = (username: string) => {
     setFarcasterAuth(prev => ({
       ...prev,
       handle: username,
@@ -362,233 +367,239 @@ export function ProfilePage() {
   // Redirect message if not connected
   if (!isConnected) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <p className="text-sm text-blue-600 dark:text-blue-400">
-          Please connect your wallet to access your profile
-        </p>
-      </div>
+      <>
+        <Header />
+        <div className="container mx-auto px-4 py-8 max-w-2xl">
+          <p className="text-sm text-blue-600 dark:text-blue-400">
+            Please connect your wallet to access your profile
+          </p>
+        </div>
+      </>
     )
   }
 
   return (
-    <div className="page-container">
-      <div>
-        {/* Identity Card Section */}
-        <Card className="px-8 gap-6 mb-16">
-          <h2 className="text-2xl font-bold">Your Identity</h2>
+    <>
+      <Header />
+      <div className="page-container">
+        <div>
+          {/* Identity Card Section */}
+          <Card className="px-8 gap-6 mb-16">
+            <h2 className="text-2xl font-bold">Your Identity</h2>
 
-          {/* Identity & Social Accounts - Full width responsive layout */}
-          <div className="w-full max-w-4xl space-y-8 p-4 sm:p-12">
-            {/* Identity Card */}
-            <IdentityCard
-              address={address as `0x${string}`}
-              chain={network.chain}
-              schemaId={COINBASE_VERIFIED_SCHEMA_ID}
-              className="!p-0 !w-fit"
-            />
+            {/* Identity & Social Accounts - Full width responsive layout */}
+            <div className="w-full max-w-4xl space-y-8 p-4 sm:p-12">
+              {/* Identity Card */}
+              <IdentityCard
+                address={address as `0x${string}`}
+                chain={network.chain}
+                schemaId={COINBASE_VERIFIED_SCHEMA_ID}
+                className="!p-0 !w-fit"
+              />
 
-            {/* Social Accounts - Responsive flex layout */}
-            {Object.values(SOCIAL_PROVIDERS).map(provider => {
-              const auth = socialAuth[provider.id]
-              return (
-                <div key={provider.id}>
-                  {auth.loading === 'fetching' ? (
-                    <p className="text-base text-muted-foreground">Loading...</p>
-                  ) : (
-                    <div
-                      className={
-                        auth.handle
-                          ? 'flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8'
-                          : 'flex flex-row items-center gap-4 sm:gap-8'
-                      }
-                    >
-                      {/* Icon + Handle/Error Container */}
-                      <div className="flex items-center gap-4">
-                        {/* Icon */}
-                        <span className="text-3xl">{provider.icon}</span>
-
-                        {/* Handle/Error */}
-                        <div>
-                          {auth.handle && (
-                            <p className="text-base text-green-600 dark:text-green-400">
-                              ✓ @{auth.handle}
-                            </p>
-                          )}
-                          {auth.error && (
-                            <p className="text-sm text-red-600 dark:text-red-400">{auth.error}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Button */}
-                      <Button
-                        onClick={() => linkSocialAccount(provider.id)}
-                        disabled={auth.loading === 'signing' || auth.loading === 'linking'}
-                        variant="secondary"
-                        size="lg"
-                        className={auth.handle ? 'w-full sm:w-auto' : ''}
+              {/* Social Accounts - Responsive flex layout */}
+              {Object.values(SOCIAL_PROVIDERS).map(provider => {
+                const auth = socialAuth[provider.id]
+                return (
+                  <div key={provider.id}>
+                    {auth.loading === 'fetching' ? (
+                      <p className="text-base text-muted-foreground">Loading...</p>
+                    ) : (
+                      <div
+                        className={
+                          auth.handle
+                            ? 'flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8'
+                            : 'flex flex-row items-center gap-4 sm:gap-8'
+                        }
                       >
-                        {auth.loading === 'signing' || auth.loading === 'linking'
-                          ? auth.handle
-                            ? 'Rebinding...'
-                            : 'Linking...'
-                          : auth.handle
-                            ? `Rebind ${provider.displayName}`
-                            : `Link ${provider.displayName}`}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+                        {/* Icon + Handle/Error Container */}
+                        <div className="flex items-center gap-4">
+                          {/* Icon */}
+                          <span className="text-3xl">{provider.icon}</span>
 
-            {/* Farcaster Account (separate Auth Kit flow) */}
-            <div>
-              {farcasterAuth.loading === 'fetching' ? (
-                <p className="text-base text-muted-foreground">Loading...</p>
-              ) : (
-                <div
-                  className={
-                    farcasterAuth.handle
-                      ? 'flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8'
-                      : 'flex flex-row items-center gap-4 sm:gap-8'
-                  }
-                >
-                  {/* Icon + Handle/Error Container */}
-                  <div className="flex items-center gap-4">
-                    {/* Icon */}
-                    <img
-                      src="/images/farcaster.svg"
-                      alt="Farcaster"
-                      className="w-[30px] h-[30px]"
-                    />
+                          {/* Handle/Error */}
+                          <div>
+                            {auth.handle && (
+                              <p className="text-base text-green-600 dark:text-green-400">
+                                ✓ @{auth.handle}
+                              </p>
+                            )}
+                            {auth.error && (
+                              <p className="text-sm text-red-600 dark:text-red-400">{auth.error}</p>
+                            )}
+                          </div>
+                        </div>
 
-                    {/* Handle/Error */}
-                    <div>
-                      {farcasterAuth.handle && (
-                        <p className="text-base text-green-600 dark:text-green-400">
-                          ✓ @{farcasterAuth.handle}
-                        </p>
-                      )}
-                      {farcasterAuth.error && (
-                        <p className="text-sm text-red-600 dark:text-red-400">
-                          {farcasterAuth.error}
-                        </p>
-                      )}
-                    </div>
+                        {/* Button */}
+                        <Button
+                          onClick={() => linkSocialAccount(provider.id)}
+                          disabled={auth.loading === 'signing' || auth.loading === 'linking'}
+                          variant="secondary"
+                          size="lg"
+                          className={auth.handle ? 'w-full sm:w-auto' : ''}
+                        >
+                          {auth.loading === 'signing' || auth.loading === 'linking'
+                            ? auth.handle
+                              ? 'Rebinding...'
+                              : 'Linking...'
+                            : auth.handle
+                              ? `Rebind ${provider.displayName}`
+                              : `Link ${provider.displayName}`}
+                        </Button>
+                      </div>
+                    )}
                   </div>
+                )
+              })}
 
-                  {/* Button */}
-                  <Button
-                    onClick={linkFarcasterAccount}
-                    disabled={
-                      farcasterAuth.loading === 'signing' || farcasterAuth.loading === 'linking'
+              {/* Farcaster Account (separate Auth Kit flow) */}
+              <div>
+                {farcasterAuth.loading === 'fetching' ? (
+                  <p className="text-base text-muted-foreground">Loading...</p>
+                ) : (
+                  <div
+                    className={
+                      farcasterAuth.handle
+                        ? 'flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8'
+                        : 'flex flex-row items-center gap-4 sm:gap-8'
                     }
-                    variant="secondary"
-                    size="lg"
-                    className={farcasterAuth.handle ? 'w-full sm:w-auto' : ''}
                   >
-                    {farcasterAuth.loading === 'signing' || farcasterAuth.loading === 'linking'
-                      ? farcasterAuth.handle
-                        ? 'Rebinding...'
-                        : 'Linking...'
-                      : farcasterAuth.handle
-                        ? 'Rebind Farcaster'
-                        : 'Link Farcaster'}
-                  </Button>
-                </div>
-              )}
+                    {/* Icon + Handle/Error Container */}
+                    <div className="flex items-center gap-4">
+                      {/* Icon */}
+                      <img
+                        src="/images/farcaster.svg"
+                        alt="Farcaster"
+                        className="w-[30px] h-[30px]"
+                      />
+
+                      {/* Handle/Error */}
+                      <div>
+                        {farcasterAuth.handle && (
+                          <p className="text-base text-green-600 dark:text-green-400">
+                            ✓ @{farcasterAuth.handle}
+                          </p>
+                        )}
+                        {farcasterAuth.error && (
+                          <p className="text-sm text-red-600 dark:text-red-400">
+                            {farcasterAuth.error}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Button */}
+                    <Button
+                      onClick={linkFarcasterAccount}
+                      disabled={
+                        farcasterAuth.loading === 'signing' || farcasterAuth.loading === 'linking'
+                      }
+                      variant="secondary"
+                      size="lg"
+                      className={farcasterAuth.handle ? 'w-full sm:w-auto' : ''}
+                    >
+                      {farcasterAuth.loading === 'signing' || farcasterAuth.loading === 'linking'
+                        ? farcasterAuth.handle
+                          ? 'Rebinding...'
+                          : 'Linking...'
+                        : farcasterAuth.handle
+                          ? 'Rebind Farcaster'
+                          : 'Link Farcaster'}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Share Button */}
+            <Button
+              onClick={() => setShareDialogOpen(true)}
+              variant="primary-action"
+              className="w-full h-24 text-6xl font-black mt-8"
+            >
+              SHARE
+            </Button>
+          </Card>
+
+          {/* Share Dialog */}
+          <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Share Your Prompt</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                {/* Share to X */}
+                <Button
+                  onClick={() => {
+                    const tweetText =
+                      'My AI prompt is live on @getglisk! Check it out and mint some NFTs ✨'
+                    const shareUrl = `https://glisk.xyz/${address}`
+                    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                      tweetText
+                    )}&url=${encodeURIComponent(shareUrl)}`
+                    window.open(twitterUrl, '_blank')
+                    setShareDialogOpen(false)
+                  }}
+                  variant="primary-action"
+                  className="w-full h-16 text-2xl font-bold"
+                >
+                  Share to X
+                </Button>
+
+                {/* Copy Link */}
+                <Button
+                  onClick={() => {
+                    const shareUrl = `https://glisk.xyz/${address}`
+                    navigator.clipboard.writeText(shareUrl)
+                    setCopySuccess(true)
+                    setTimeout(() => setCopySuccess(false), 2000)
+                  }}
+                  variant="secondary"
+                  className="w-full h-16 text-2xl font-bold"
+                >
+                  {copySuccess ? 'Copied!' : 'Copy Link'}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Tab Navigation */}
+          <div className="mb-16">
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                onClick={() => handleTabChange('author')}
+                variant={activeTab === 'author' ? 'tab-active' : 'ghost'}
+                className="w-full"
+              >
+                Prompt Author
+              </Button>
+              <Button
+                onClick={() => handleTabChange('collector')}
+                variant={activeTab === 'collector' ? 'tab-active' : 'ghost'}
+                className="w-full"
+              >
+                Collector
+              </Button>
             </div>
           </div>
 
-          {/* Share Button */}
-          <Button
-            onClick={() => setShareDialogOpen(true)}
-            variant="primary-action"
-            className="w-full h-24 text-6xl font-black mt-8"
-          >
-            SHARE
-          </Button>
-        </Card>
+          {/* Tab Content */}
+          <div>{activeTab === 'author' ? <PromptAuthor /> : <Collector />}</div>
 
-        {/* Share Dialog */}
-        <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Share Your Prompt</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              {/* Share to X */}
-              <Button
-                onClick={() => {
-                  const tweetText =
-                    'My AI prompt is live on @getglisk! Check it out and mint some NFTs ✨'
-                  const shareUrl = `https://glisk.xyz/${address}`
-                  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                    tweetText
-                  )}&url=${encodeURIComponent(shareUrl)}`
-                  window.open(twitterUrl, '_blank')
-                  setShareDialogOpen(false)
-                }}
-                variant="primary-action"
-                className="w-full h-16 text-2xl font-bold"
-              >
-                Share to X
-              </Button>
-
-              {/* Copy Link */}
-              <Button
-                onClick={() => {
-                  const shareUrl = `https://glisk.xyz/${address}`
-                  navigator.clipboard.writeText(shareUrl)
-                  setCopySuccess(true)
-                  setTimeout(() => setCopySuccess(false), 2000)
-                }}
-                variant="secondary"
-                className="w-full h-16 text-2xl font-bold"
-              >
-                {copySuccess ? 'Copied!' : 'Copy Link'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* Tab Navigation */}
-        <div className="mb-16">
-          <div className="grid grid-cols-2 gap-4">
-            <Button
-              onClick={() => handleTabChange('author')}
-              variant={activeTab === 'author' ? 'tab-active' : 'ghost'}
-              className="w-full"
-            >
-              Prompt Author
-            </Button>
-            <Button
-              onClick={() => handleTabChange('collector')}
-              variant={activeTab === 'collector' ? 'tab-active' : 'ghost'}
-              className="w-full"
-            >
-              Collector
-            </Button>
-          </div>
+          {/* Farcaster Link Dialog */}
+          {farcasterWalletSig && (
+            <FarcasterLinkDialog
+              open={farcasterDialogOpen}
+              onClose={() => setFarcasterDialogOpen(false)}
+              walletAddress={farcasterWalletSig.address}
+              walletMessage={farcasterWalletSig.message}
+              walletSignature={farcasterWalletSig.signature}
+              onSuccess={handleFarcasterSuccess}
+              onError={handleFarcasterError}
+            />
+          )}
         </div>
-
-        {/* Tab Content */}
-        <div>{activeTab === 'author' ? <PromptAuthor /> : <Collector />}</div>
-
-        {/* Farcaster Link Dialog */}
-        {farcasterWalletSig && (
-          <FarcasterLinkDialog
-            open={farcasterDialogOpen}
-            onClose={() => setFarcasterDialogOpen(false)}
-            walletAddress={farcasterWalletSig.address}
-            walletMessage={farcasterWalletSig.message}
-            walletSignature={farcasterWalletSig.signature}
-            onSuccess={handleFarcasterSuccess}
-            onError={handleFarcasterError}
-          />
-        )}
       </div>
-    </div>
+    </>
   )
 }

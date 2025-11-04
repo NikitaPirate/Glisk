@@ -1,7 +1,7 @@
 // NFTGrid reusable component for displaying NFT cards
 import { NFTCard } from '@/components/NFTCard'
 
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS as `0x${string}`
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`
 
 interface NFTGridProps {
   tokens: { tokenId: string }[]

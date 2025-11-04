@@ -11,6 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - internal
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-glisk}"]
       interval: 5s
@@ -36,12 +37,13 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        VITE_NETWORK: ${VITE_NETWORK:-BASE_MAINNET}
-        VITE_CONTRACT_ADDRESS: ${VITE_CONTRACT_ADDRESS}
-        VITE_WALLETCONNECT_PROJECT_ID: ${VITE_WALLETCONNECT_PROJECT_ID}
-        VITE_ONCHAINKIT_API_KEY: ${VITE_ONCHAINKIT_API_KEY}
-        VITE_PINATA_GATEWAY: ${VITE_PINATA_GATEWAY}
-        VITE_PINATA_GATEWAY_TOKEN: ${VITE_PINATA_GATEWAY_TOKEN}
+        NEXT_PUBLIC_NETWORK: ${NEXT_PUBLIC_NETWORK:-BASE_MAINNET}
+        NEXT_PUBLIC_CONTRACT_ADDRESS: ${NEXT_PUBLIC_CONTRACT_ADDRESS}
+        NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID}
+        NEXT_PUBLIC_ONCHAINKIT_API_KEY: ${NEXT_PUBLIC_ONCHAINKIT_API_KEY}
+        NEXT_PUBLIC_PINATA_GATEWAY: ${NEXT_PUBLIC_PINATA_GATEWAY}
+        NEXT_PUBLIC_PINATA_GATEWAY_TOKEN: ${NEXT_PUBLIC_PINATA_GATEWAY_TOKEN}
+        BACKEND_URL: http://backend:8000
     container_name: glisk-frontend
     depends_on:
       - backend
@@ -49,12 +51,6 @@ services:
       - proxy
       - internal
     restart: unless-stopped
-    # Labels for automatic Traefik configuration (if using Traefik instead of NPM)
-    # If using NPM UI - configure manually, these labels can be ignored
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.glisk.rule=Host(`testnet.glisk.xyz`)"
-      - "traefik.http.services.glisk.loadbalancer.server.port=80"
 
 networks:
   # Internal network for postgres <-> backend <-> frontend (nginx proxy)
