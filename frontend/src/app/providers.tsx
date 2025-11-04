@@ -1,12 +1,13 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RainbowKitProvider, lightTheme, darkTheme } from '@rainbow-me/rainbowkit'
 import { OnchainKitProvider } from '@coinbase/onchainkit'
 import { AuthKitProvider } from '@farcaster/auth-kit'
 import { ThemeProvider } from 'next-themes'
+import { sdk } from '@farcaster/miniapp-sdk'
 
 import { config, network } from '@/lib/wagmi'
 import { WalletAvatar } from '@/components/WalletAvatar'
@@ -61,6 +62,11 @@ const gliskTheme = {
 }
 
 export function Providers({ children }: { children: ReactNode }) {
+  // Signal Farcaster miniapp is ready (dismisses splash screen)
+  useEffect(() => {
+    sdk.actions.ready()
+  }, [])
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <WagmiProvider config={config}>
