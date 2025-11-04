@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { HelpDialog } from '@/components/HelpDialog'
 import { useMiniApp } from '@/hooks/useMiniApp'
+import { cn } from '@/lib/utils'
 
 export function Header() {
   const { isConnected } = useAccount()
@@ -26,8 +27,14 @@ export function Header() {
     <header className="container mx-auto px-4 sm:px-12 max-w-4xl py-6">
       <Card className="sm:px-8 px-4">
         <div className="flex flex-wrap sm:flex-nowrap items-center justify-between sm:justify-start">
-          {/* Logo - visible on all screens */}
-          <Link href="/" className="order-1 transition-transform hover:scale-105 sm:mr-4">
+          {/* Logo - expands in Mini App, normal size in browser */}
+          <Link
+            href="/"
+            className={cn(
+              'order-1 transition-transform hover:scale-105',
+              isMiniApp ? 'flex-1 flex justify-center' : 'sm:mr-4'
+            )}
+          >
             <img src="/full_logo.svg" alt="Glisk" className="h-16 sm:h-24" />
           </Link>
 
