@@ -27,10 +27,10 @@ Auto-generated from all feature plans. Last updated: 2025-10-10
 - File-based (audit history in `.audit/` directory, results as markdown reports) (002-smart-contract-audit)
 - Python 3.13 (standard GIL-enabled version) + FastAPI, SQLModel, psycopg3 (async), Alembic, Pydantic BaseSettings, structlog, pytest, testcontainers (003-003a-backend-foundation)
 - PostgreSQL 14+ with 200 connection pool, UTC timestamps, JSONB suppor (003-003a-backend-foundation)
-- React 18 + TypeScript (via Vite) (005-frontend-foundation-with)
+- React 18 + TypeScript (via Next.js 15) (005-frontend-foundation-with)
 - N/A (stateless frontend, no persistence) (005-frontend-foundation-with)
 - Python 3.13 (backend), TypeScript 5.x (frontend) (007-link-x-twitter)
-- React 18 + TypeScript (via Vite), Python 3.13 (backend) (008-unified-profile-page)
+- React 18 + TypeScript (via Next.js 15), Python 3.13 (backend) (008-unified-profile-page)
 - TypeScript 5.x + React 18 (frontend), Python 3.13 (backend for new API endpoint) + @coinbase/onchainkit (NFTCard components), wagmi + viem (blockchain reads), react-router-dom (query param navigation) (008-unified-profile-page)
 - N/A (frontend reads from backend API and blockchain RPC) (008-unified-profile-page)
 - PostgreSQL 14+ (existing database with tokens_s0 table) (009-create-a-main)
@@ -179,7 +179,7 @@ Solidity ^0.8.20: Follow standard conventions
 
 ## Network Configuration
 
-The application is config-driven and supports both Base Sepolia and Base Mainnet. Set `NETWORK=BASE_MAINNET` (backend) and `VITE_NETWORK=BASE_MAINNET` (frontend) in .env files. Contract addresses must match the selected network (see `contracts/deployments/`).
+The application is config-driven and supports both Base Sepolia and Base Mainnet. Set `NETWORK=BASE_MAINNET` (backend) and `NEXT_PUBLIC_NETWORK=BASE_MAINNET` (frontend) in .env files. Contract addresses must match the selected network (see `contracts/deployments/`).
 
 ## Backend Features
 
